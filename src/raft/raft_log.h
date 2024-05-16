@@ -8,9 +8,13 @@
 #include <type_traits>
 #include <utility>
 
+#include "allocator.h"
+#include "coding.h"
 #include "common.h"
 #include "leveldb/comparator.h"
 #include "leveldb/db.h"
+#include "nlohmann/json.hpp"
+#include "slice.h"
 
 namespace vraft {
 
@@ -29,14 +33,113 @@ void EncodeTermValue(RaftTerm term, char *dst);
 const leveldb::Comparator *U32Comparator();
 
 struct AppendEntry {
-  std::string value;
   RaftTerm term;
+  std::string value;
 };
 
 struct LogEntry {
   RaftIndex index;
   AppendEntry append_entry;
+
+  int32_t MaxBytes();
+  int32_t ToString(std::string &s);
+  int32_t ToString(const char *ptr, int32_t len);
+  bool FromString(std::string &s);
+  bool FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
+
+inline int32_t LogEntry::MaxBytes() {
+  return sizeof(RaftIndex) + sizeof(append_entry.term) + 2 * sizeof(int32_t) +
+         append_entry.value.size();
+}
+
+inline int32_t LogEntry::ToString(std::string &s) {
+  s.clear();
+  int32_t max_bytes = MaxBytes();
+  char *ptr = reinterpret_cast<char *>(DefaultAllocator().Malloc(max_bytes));
+  int32_t size = ToString(ptr, max_bytes);
+  s.append(ptr, size);
+  DefaultAllocator().Free(ptr);
+  return size;
+}
+
+inline int32_t LogEntry::ToString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  EncodeFixed32(p, index);
+  p += sizeof(index);
+  size += sizeof(index);
+
+  EncodeFixed64(p, append_entry.term);
+  p += sizeof(append_entry.term);
+  size += sizeof(append_entry.term);
+
+  Slice sls(append_entry.value.c_str(), append_entry.value.size());
+  char *p2 = EncodeString2(p, len - size, sls);
+  size += (p2 - p);
+
+  assert(size <= len);
+  return size;
+}
+
+inline bool LogEntry::FromString(std::string &s) {
+  return FromString(s.c_str(), s.size());
+}
+
+inline bool LogEntry::FromString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+
+  index = DecodeFixed32(p);
+  p += sizeof(index);
+
+  append_entry.term = DecodeFixed64(p);
+  p += sizeof(append_entry.term);
+
+  Slice result;
+  Slice input(p, len - sizeof(index) - sizeof(append_entry.term));
+  bool b = DecodeString(&input, &result);
+  if (b) {
+    append_entry.value.clear();
+    append_entry.value.append(result.data(), result.size());
+  }
+  return b;
+}
+
+inline nlohmann::json LogEntry::ToJson() {
+  nlohmann::json j;
+  j["index"] = index;
+  j["term"] = append_entry.term;
+  j["value"] = append_entry.value;
+  return j;
+}
+
+inline nlohmann::json LogEntry::ToJsonTiny() {
+  nlohmann::json j;
+  j["idx"] = index;
+  j["tm"] = append_entry.term;
+  j["val"] = append_entry.value;
+  return j;
+}
+
+inline std::string LogEntry::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["entry"] = ToJsonTiny();
+  } else {
+    j["log_entry"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
 
 // Wraps an instance whose destructor is never called.
 //

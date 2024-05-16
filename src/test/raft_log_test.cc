@@ -791,6 +791,37 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
   system("rm -rf /tmp/raftlog_test_dir");
 }
 
+TEST(LogEntry, test) {
+  vraft::LogEntry entry;
+  entry.index = 3;
+  entry.append_entry.term = 100;
+  entry.append_entry.value = "hello";
+
+  std::string str;
+  int32_t bytes = entry.ToString(str);
+  std::cout << "bytes:" << bytes << std::endl;
+
+  std::cout << "encoding:" << std::endl;
+  std::cout << entry.ToJsonString(true, true) << std::endl;
+  std::cout << entry.ToJsonString(true, false) << std::endl;
+  std::cout << entry.ToJsonString(false, true) << std::endl;
+  std::cout << entry.ToJsonString(false, false) << std::endl;
+
+  vraft::LogEntry entry2;
+  bool b = entry2.FromString(str);
+  assert(b);
+
+  std::cout << "decoding:" << std::endl;
+  std::cout << entry.ToJsonString(true, true) << std::endl;
+  std::cout << entry.ToJsonString(true, false) << std::endl;
+  std::cout << entry.ToJsonString(false, true) << std::endl;
+  std::cout << entry.ToJsonString(false, false) << std::endl;
+
+  EXPECT_EQ(entry.index, entry2.index);
+  EXPECT_EQ(entry.append_entry.term, entry2.append_entry.term);
+  EXPECT_EQ(entry.append_entry.value, entry2.append_entry.value);
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
 
