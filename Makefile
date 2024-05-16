@@ -94,10 +94,9 @@ request_vote_reply_test: $(REQUEST_VOTE_REPLY_TEST_OBJECTS)
 clean:
 	rm -f output/vraft_server output/raft_log_tool output/echo_server output/echo_client
 	rm -f output/*_test
-	rm -f $(VRAFT_SERVER_OBJECTS) $(RAFT_LOG_TOOL_OBJECTS) $(ECHO_SERVER_OBJECTS) $(ECHO_CLIENT_OBJECTS) 
-	rm -f $(LOGGER_TEST_OBJECTS) $(PING_TEST_OBJECTS) $(RAFT_LOG_TEST_OBJECTS) $(SOLID_DATA_TEST_OBJECTS) $(UTIL_TEST_OBJECTS)
+	find ./src/ -name "*.o" | xargs rm -f
 
 format:
 	clang-format --style=Google -i `find ./src -type f \( -name "*.h" -o -name "*.c" -o -name "*.cc" -o -name "*.cpp" \)`
 
-.PHONY: prepare all clean
+.PHONY: all clean

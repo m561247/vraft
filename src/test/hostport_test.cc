@@ -5,6 +5,7 @@
 #include <csignal>
 #include <iostream>
 
+#include "coding.h"
 #include "util.h"
 
 TEST(HostPortTests, construct) {
@@ -38,6 +39,7 @@ TEST(HostPortTests, HostPortToSockaddrIn) {
 }
 
 int main(int argc, char **argv) {
+  vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

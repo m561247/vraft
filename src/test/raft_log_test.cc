@@ -824,7 +824,6 @@ TEST(LogEntry, test) {
 
 int main(int argc, char **argv) {
   vraft::CodingInit();
-
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
