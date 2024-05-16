@@ -1,10 +1,12 @@
 #include "tcp_connection.h"
+
+#include <cassert>
+#include <iostream>
+
 #include "allocator.h"
 #include "eventloop.h"
 #include "hostport.h"
 #include "vraft_logger.h"
-#include <cassert>
-#include <iostream>
 
 namespace vraft {
 
@@ -215,4 +217,4 @@ int32_t TcpConnection::BufSend(const char *buf, ssize_t size) {
   return 0;
 }
 
-} // namespace vraft
+}  // namespace vraft

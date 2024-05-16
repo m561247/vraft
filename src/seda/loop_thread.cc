@@ -11,4 +11,4 @@ void LoopThread::Join() { thread_.join(); }
 
 void LoopThread::ThreadFunc() {}
 
-} // namespace vraft
+}  // namespace vraft

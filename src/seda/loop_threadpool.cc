@@ -21,4 +21,4 @@ LoopThreadPtr LoopThreadPool::PickThread() {
 
 int32_t LoopThreadPool::current_index_ = 0;
 
-} // namespace vraft
+}  // namespace vraft

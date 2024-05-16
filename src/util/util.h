@@ -2,13 +2,14 @@
 #define VRAFT_UTIL_H_
 
 #include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 #include <cassert>
 #include <cstring>
 #include <iostream>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <string>
-#include <sys/socket.h>
 #include <thread>
 #include <vector>
 
@@ -39,6 +40,6 @@ uint32_t Crc32(const void *data, size_t length);
 
 std::string StrToHexStr(const char *ptr, int32_t size);
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

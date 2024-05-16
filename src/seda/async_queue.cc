@@ -1,4 +1,5 @@
 #include "async_queue.h"
+
 #include "eventloop.h"
 
 namespace vraft {
@@ -42,4 +43,4 @@ void AsyncQueue::DoFunctor() {
 
 void AsyncQueue::AssertInLoopThread() { loop_->AssertInLoopThread(); }
 
-} // namespace vraft
+}  // namespace vraft

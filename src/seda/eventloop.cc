@@ -1,11 +1,13 @@
 #include "eventloop.h"
-#include "clock.h"
-#include "util.h"
-#include "vraft_logger.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+
+#include "clock.h"
+#include "util.h"
+#include "vraft_logger.h"
 
 namespace vraft {
 
@@ -121,4 +123,4 @@ void EventLoop::RemoveTimerLoop(TimerId id) {
   timers_.erase(id);
 }
 
-} // namespace vraft
+}  // namespace vraft

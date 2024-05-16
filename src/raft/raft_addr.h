@@ -1,14 +1,15 @@
 #ifndef VRAFT_RAFT_ADDR_H_
 #define VRAFT_RAFT_ADDR_H_
 
+#include <cstdint>
+
 #include "coding.h"
 #include "util.h"
-#include <cstdint>
 
 namespace vraft {
 
 class RaftAddr final {
-public:
+ public:
   RaftAddr(uint32_t ip, uint16_t port, int16_t id);
   RaftAddr(uint64_t u64 = 0);
   ~RaftAddr();
@@ -24,10 +25,10 @@ public:
   uint16_t port() { return port_; }
   int16_t id() { return id_; }
 
-private:
+ private:
   void FromU64(uint64_t u64, uint32_t &ip, uint16_t &port, int16_t &id);
 
-private:
+ private:
   uint32_t ip_;
   uint16_t port_;
   int16_t id_;
@@ -79,6 +80,6 @@ inline std::string RaftAddr::ToString() {
   return std::string(buf);
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

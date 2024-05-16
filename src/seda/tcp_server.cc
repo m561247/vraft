@@ -1,11 +1,13 @@
 #include "tcp_server.h"
-#include "eventloop.h"
-#include "vraft_logger.h"
+
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+
+#include "eventloop.h"
+#include "vraft_logger.h"
 
 namespace vraft {
 
@@ -138,4 +140,4 @@ int32_t TcpServer::RemoveConnectionInLoop(const TcpConnectionPtr &conn) {
   return 0;
 }
 
-} // namespace vraft
+}  // namespace vraft

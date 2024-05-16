@@ -1,12 +1,13 @@
 #ifndef VRAFT_ASYNC_QUEUE_H_
 #define VRAFT_ASYNC_QUEUE_H_
 
-#include "common.h"
-#include "uv_wrapper.h"
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
+
+#include "common.h"
+#include "uv_wrapper.h"
 
 namespace vraft {
 
@@ -14,7 +15,7 @@ class EventLoop;
 void AsyncQueueCb(UvAsync *uv_async);
 
 class AsyncQueue {
-public:
+ public:
   AsyncQueue() {}
   ~AsyncQueue() {}
   AsyncQueue(const AsyncQueue &a) = delete;
@@ -28,14 +29,14 @@ public:
   // call in any thread
   void Push(const Functor func);
 
-private:
+ private:
   EventLoop *loop_;
   UvAsync uv_async_;
 
   std::mutex mutex_;
-  std::queue<Functor> functors_; // guarded by mutex_
+  std::queue<Functor> functors_;  // guarded by mutex_
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

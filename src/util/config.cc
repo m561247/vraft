@@ -1,4 +1,5 @@
 #include "config.h"
+
 #include "util.h"
 
 namespace vraft {
@@ -85,4 +86,4 @@ void Config::Init(int32_t argc, char **argv) {
   }
 }
 
-} // namespace vraft
+}  // namespace vraft

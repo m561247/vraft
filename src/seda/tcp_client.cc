@@ -127,4 +127,4 @@ void TcpClient::Init() {
       std::bind(&TcpClient::NewConnection, this, std::placeholders::_1));
 }
 
-} // namespace vraft
+}  // namespace vraft

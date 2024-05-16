@@ -1,11 +1,12 @@
 #ifndef VRAFT_RAFT_H_
 #define VRAFT_RAFT_H_
 
+#include <vector>
+
 #include "config.h"
 #include "ping.h"
 #include "ping_reply.h"
 #include "timer.h"
-#include <vector>
 
 namespace vraft {
 
@@ -14,7 +15,7 @@ class RaftServer;
 void SendPing(Timer *timer);
 
 class Raft final {
-public:
+ public:
   Raft(RaftServer *raft_server);
   ~Raft();
   Raft(const Raft &t) = delete;
@@ -30,7 +31,7 @@ public:
   HostPort my_addr() { return my_addr_; }
   std::vector<HostPort> &peers() { return peers_; }
 
-private:
+ private:
   RaftServer *raft_server_;
 
   int16_t id_;
@@ -46,6 +47,6 @@ private:
 
 inline Raft::~Raft() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

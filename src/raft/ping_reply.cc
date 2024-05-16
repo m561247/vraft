@@ -1,3 +1,3 @@
 #include "ping.h"
 
-namespace vraft {} // namespace vraft
+namespace vraft {}  // namespace vraft

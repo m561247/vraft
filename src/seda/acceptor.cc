@@ -1,9 +1,11 @@
 #include "acceptor.h"
+
+#include <cassert>
+#include <memory>
+
 #include "eventloop.h"
 #include "uv_wrapper.h"
 #include "vraft_logger.h"
-#include <cassert>
-#include <memory>
 
 namespace vraft {
 
@@ -111,4 +113,4 @@ void AcceptorHandleRead(UvStream *server, int status) {
   }
 }
 
-} // namespace vraft
+}  // namespace vraft

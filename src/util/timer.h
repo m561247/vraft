@@ -1,11 +1,12 @@
 #ifndef VRAFT_TIMER_H_
 #define VRAFT_TIMER_H_
 
-#include "common.h"
-#include "uv_wrapper.h"
 #include <atomic>
 #include <map>
 #include <memory>
+
+#include "common.h"
+#include "uv_wrapper.h"
 
 namespace vraft {
 
@@ -22,7 +23,7 @@ TimerPtr CreateTimer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
 void HandleUvTimer(UvTimer *uv_timer);
 
 class Timer final {
-public:
+ public:
   Timer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
         const TimerFunctor &cb);
   ~Timer();
@@ -47,13 +48,13 @@ public:
     repeat_counter_ = repeat_times;
   }
 
-public:
+ public:
   void *data;
 
-private:
+ private:
   void Init();
 
-private:
+ private:
   TimerId id_;
   uint64_t timeout_ms_;
   uint64_t repeat_ms_;
@@ -70,6 +71,6 @@ private:
   friend void HandleUvTimer(UvTimer *uv_timer);
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

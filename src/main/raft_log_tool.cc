@@ -1,8 +1,10 @@
+#include <gtest/gtest.h>
+
+#include <cstdlib>
+#include <iostream>
+
 #include "coding.h"
 #include "raft_log.h"
-#include <cstdlib>
-#include <gtest/gtest.h>
-#include <iostream>
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -53,7 +55,7 @@ int main(int argc, char **argv) {
 
     std::cout << key32 << " " << tmp_key << " : " << tmp_value << std::endl;
   }
-  assert(it->status().ok()); // Check for any errors found during the scan
+  assert(it->status().ok());  // Check for any errors found during the scan
   delete it;
   delete db;
 

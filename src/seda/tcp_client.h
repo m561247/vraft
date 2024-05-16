@@ -1,13 +1,14 @@
 #ifndef VRAFT_TCP_CLIENT_H_
 #define VRAFT_TCP_CLIENT_H_
 
+#include <memory>
+#include <string>
+
 #include "common.h"
 #include "connector.h"
 #include "eventloop.h"
 #include "tcp_connection.h"
 #include "tcp_options.h"
-#include <memory>
-#include <string>
 
 namespace vraft {
 
@@ -15,7 +16,7 @@ class TcpClient;
 using TcpClientPtr = std::shared_ptr<TcpClient>;
 
 class TcpClient final {
-public:
+ public:
   TcpClient(const std::string name, EventLoop *loop, const HostPort &dest_addr,
             const TcpOptions &options);
   ~TcpClient();
@@ -41,7 +42,7 @@ public:
   void set_connection_close_cb(const ConnectionCloseCallback &cb);
   const std::string &name() const;
 
-private:
+ private:
   void Init();
   void NewConnection(UvTcpUPtr client);
 
@@ -51,7 +52,7 @@ private:
   int32_t BufSendInLoop(const char *buf, unsigned int size);
   int32_t RemoveConnectionInLoop(const TcpConnectionPtr &conn);
 
-private:
+ private:
   const std::string name_;
   EventLoop *loop_;
   Connector connector_;
@@ -90,13 +91,13 @@ inline void TcpClient::set_write_complete_cb(const WriteCompleteCallback &cb) {
   write_complete_cb_ = cb;
 }
 
-inline void
-TcpClient::set_connection_close_cb(const ConnectionCloseCallback &cb) {
+inline void TcpClient::set_connection_close_cb(
+    const ConnectionCloseCallback &cb) {
   connection_close_cb_ = cb;
 }
 
 inline const std::string &TcpClient::name() const { return name_; }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

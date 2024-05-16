@@ -1,10 +1,11 @@
 #ifndef VRAFT_LOOP_THREAD_H_
 #define VRAFT_LOOP_THREAD_H_
 
-#include "common.h"
-#include "workloop.h"
 #include <memory>
 #include <thread>
+
+#include "common.h"
+#include "workloop.h"
 
 namespace vraft {
 
@@ -12,7 +13,7 @@ class LoopThread;
 using LoopThreadPtr = std::shared_ptr<LoopThread>;
 
 class LoopThread final {
-public:
+ public:
   LoopThread();
   ~LoopThread();
   LoopThread(const LoopThread &lt) = delete;
@@ -26,10 +27,10 @@ public:
   // call in loop thread
   std::thread::id tid() { return thread_.get_id(); }
 
-private:
+ private:
   void ThreadFunc();
 
-private:
+ private:
   WorkLoop loop_;
   std::thread thread_;
 };
@@ -38,6 +39,6 @@ inline LoopThread::LoopThread() {}
 
 inline LoopThread::~LoopThread() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

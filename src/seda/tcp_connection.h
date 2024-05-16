@@ -1,13 +1,14 @@
 #ifndef VRAFT_TCP_CONNECTION_H_
 #define VRAFT_TCP_CONNECTION_H_
 
+#include <functional>
+#include <map>
+#include <memory>
+
 #include "allocator.h"
 #include "buffer.h"
 #include "hostport.h"
 #include "uv_wrapper.h"
-#include <functional>
-#include <map>
-#include <memory>
 
 namespace vraft {
 
@@ -40,7 +41,7 @@ struct WriteReq {
 };
 
 class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
-public:
+ public:
   TcpConnection(EventLoop *loop, const std::string &name, UvTcpUPtr conn);
   ~TcpConnection();
   TcpConnection(const TcpConnection &t) = delete;
@@ -72,7 +73,7 @@ public:
   Allocator &allocator();
   const std::string &name() const;
 
-private:
+ private:
   const std::string name_;
   HostPort local_addr_;
   HostPort peer_addr_;
@@ -94,8 +95,8 @@ private:
                                         UvBuf *buf);
 };
 
-inline void
-TcpConnection::set_on_connection_cb(const OnConnectionCallback &cb) {
+inline void TcpConnection::set_on_connection_cb(
+    const OnConnectionCallback &cb) {
   on_connection_cb_ = cb;
 }
 
@@ -103,13 +104,13 @@ inline void TcpConnection::set_on_message_cb(const OnMessageCallback &cb) {
   on_message_cb_ = cb;
 }
 
-inline void
-TcpConnection::set_write_complete_cb(const WriteCompleteCallback &cb) {
+inline void TcpConnection::set_write_complete_cb(
+    const WriteCompleteCallback &cb) {
   write_complete_cb_ = cb;
 }
 
-inline void
-TcpConnection::set_connection_close_cb(const ConnectionCloseCallback &cb) {
+inline void TcpConnection::set_connection_close_cb(
+    const ConnectionCloseCallback &cb) {
   connection_close_cb_ = cb;
 }
 
@@ -119,6 +120,6 @@ inline EventLoop *TcpConnection::loop() { return loop_; }
 
 inline Allocator &TcpConnection::allocator() { return allocator_; }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

@@ -1,4 +1,5 @@
 #include "solid_data.h"
+
 #include "coding.h"
 
 namespace vraft {
@@ -85,4 +86,4 @@ void SolidData::PersistVote() {
   assert(status.ok());
 }
 
-} // namespace vraft
+}  // namespace vraft

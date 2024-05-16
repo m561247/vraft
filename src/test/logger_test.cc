@@ -1,8 +1,10 @@
+#include <gtest/gtest.h>
+
+#include <csignal>
+#include <iostream>
+
 #include "spdlog/spdlog.h"
 #include "vraft_logger.h"
-#include <csignal>
-#include <gtest/gtest.h>
-#include <iostream>
 
 TEST(Logger, test) {
   vraft::LoggerOptions logger_options{"vraft", false, 1, 8192,

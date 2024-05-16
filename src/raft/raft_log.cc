@@ -1,7 +1,9 @@
 #include "raft_log.h"
+
+#include <cassert>
+
 #include "coding.h"
 #include "leveldb/write_batch.h"
-#include <cassert>
 
 namespace vraft {
 
@@ -61,14 +63,12 @@ int U32ComparatorImpl::Compare(const leveldb::Slice &a,
 void U32ComparatorImpl::FindShortestSeparator(
     std::string *start, const leveldb::Slice &limit) const {
   // do nothing, just make no warning
-  if (start->size() == 0 || limit.size() == 0)
-    return;
+  if (start->size() == 0 || limit.size() == 0) return;
 }
 
 void U32ComparatorImpl::FindShortSuccessor(std::string *key) const {
   // do nothing, just make no warning
-  if (key->size() == 0)
-    return;
+  if (key->size() == 0) return;
 }
 
 // index    : 1 2 3
@@ -224,4 +224,4 @@ int32_t RaftLog::DeleteUtil(RaftIndex to_index) {
   return 0;
 }
 
-} // namespace vraft
+}  // namespace vraft

@@ -1,4 +1,5 @@
 #include "async_stop.h"
+
 #include "eventloop.h"
 #include "vraft_logger.h"
 
@@ -25,4 +26,4 @@ void AsyncStop::AssertInLoopThread() { loop_->AssertInLoopThread(); }
 
 void AsyncStop::Notify() { UvAsyncSend(&uv_async_); }
 
-} // namespace vraft
+}  // namespace vraft

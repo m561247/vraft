@@ -1,17 +1,18 @@
 #ifndef VRAFT_RAFT_SERVER_H_
 #define VRAFT_RAFT_SERVER_H_
 
+#include <unordered_map>
+
 #include "allocator.h"
 #include "config.h"
 #include "raft.h"
 #include "tcp_client.h"
 #include "tcp_server.h"
-#include <unordered_map>
 
 namespace vraft {
 
 class RaftServer final {
-public:
+ public:
   RaftServer(Config &config);
   ~RaftServer();
   RaftServer(const RaftServer &t) = delete;
@@ -28,7 +29,7 @@ public:
   Config &config() { return config_; }
   EventLoop *LoopPtr() { return &loop_; }
 
-private:
+ private:
   Config config_;
   EventLoop loop_;
   TcpServerPtr server_;
@@ -99,6 +100,6 @@ inline TcpClientPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
   return ptr;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

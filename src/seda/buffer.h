@@ -1,15 +1,16 @@
 #ifndef VRAFT_BUFFER_H_
 #define VRAFT_BUFFER_H_
 
-#include "coding.h"
 #include <cassert>
 #include <cstdint>
 #include <vector>
 
+#include "coding.h"
+
 namespace vraft {
 
 class Buffer final {
-public:
+ public:
   Buffer(int32_t init_bytes = 1024 * 64, int32_t max_waste_bytes = 1024 * 32);
   ~Buffer();
   Buffer(const Buffer &t) = delete;
@@ -43,11 +44,11 @@ public:
   int32_t PeekInt32() const;
   int64_t PeekInt64() const;
 
-private:
+ private:
   char *Begin();
   const char *Begin() const;
 
-private:
+ private:
   int32_t init_bytes_;
   int32_t max_waste_bytes_;
   std::vector<char> buf_;
@@ -57,8 +58,10 @@ private:
 };
 
 inline Buffer::Buffer(int32_t init_bytes, int32_t max_waste_bytes)
-    : init_bytes_(init_bytes), max_waste_bytes_(max_waste_bytes),
-      read_index_(0), write_index_(0) {
+    : init_bytes_(init_bytes),
+      max_waste_bytes_(max_waste_bytes),
+      read_index_(0),
+      write_index_(0) {
   assert(max_waste_bytes > 0);
   assert(init_bytes > max_waste_bytes);
   buf_.reserve(init_bytes);
@@ -177,6 +180,6 @@ inline int32_t Buffer::WritableBytes() const {
 
 inline int32_t Buffer::WastefulBytes() const { return read_index_; }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

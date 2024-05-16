@@ -1,16 +1,17 @@
 #ifndef VRAFT_PING_REPLY_H_
 #define VRAFT_PING_REPLY_H_
 
+#include <string>
+
 #include "allocator.h"
 #include "message.h"
 #include "raft_addr.h"
-#include <string>
 
 namespace vraft {
 
 struct PingReply {
-  RaftAddr src;  // uint64_t
-  RaftAddr dest; // uint64_t
+  RaftAddr src;   // uint64_t
+  RaftAddr dest;  // uint64_t
   std::string msg;
 
   int32_t ToString(std::string &s);
@@ -78,6 +79,6 @@ inline bool PingReply::FromString(const char *ptr, int32_t len) {
   return b;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

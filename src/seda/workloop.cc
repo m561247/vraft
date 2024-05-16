@@ -1,3 +1,3 @@
 #include "workloop.h"
 
-namespace vraft {} // namespace vraft
+namespace vraft {}  // namespace vraft

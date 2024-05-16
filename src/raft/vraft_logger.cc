@@ -8,4 +8,4 @@ vraft::LoggerOptions vraft_logger_options{"vraft", false, 1, 8192,
 
 vraft::Logger vraft_logger;
 
-} // namespace vraft
+}  // namespace vraft

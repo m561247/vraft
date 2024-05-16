@@ -1,15 +1,19 @@
-#include "coding.h"
-#include "leveldb/comparator.h"
-#include "leveldb/db.h"
 #include "raft_log.h"
-#include <cstdlib>
+
 #include <gtest/gtest.h>
+
+#include <cstdlib>
 #include <iostream>
 #include <type_traits>
 #include <utility>
 
-template <typename InstanceType> class NoDestructor {
-public:
+#include "coding.h"
+#include "leveldb/comparator.h"
+#include "leveldb/db.h"
+
+template <typename InstanceType>
+class NoDestructor {
+ public:
   template <typename... ConstructorArgTypes>
   explicit NoDestructor(ConstructorArgTypes &&... constructor_args) {
     static_assert(sizeof(instance_storage_) >= sizeof(InstanceType),
@@ -30,13 +34,13 @@ public:
     return reinterpret_cast<InstanceType *>(&instance_storage_);
   }
 
-private:
+ private:
   typename std::aligned_storage<sizeof(InstanceType),
                                 alignof(InstanceType)>::type instance_storage_;
 };
 
 class I64ComparatorImpl : public leveldb::Comparator {
-public:
+ public:
   I64ComparatorImpl() {}
 
   I64ComparatorImpl(const I64ComparatorImpl &) = delete;
@@ -61,19 +65,17 @@ public:
   virtual void FindShortestSeparator(std::string *start,
                                      const leveldb::Slice &limit) const {
     // do nothing, just make no warning
-    if (start->size() == 0 || limit.size() == 0)
-      return;
+    if (start->size() == 0 || limit.size() == 0) return;
   }
 
   virtual void FindShortSuccessor(std::string *key) const {
     // do nothing, just make no warning
-    if (key->size() == 0)
-      return;
+    if (key->size() == 0) return;
   }
 
   ~I64ComparatorImpl() {}
 
-private:
+ private:
 };
 
 const leveldb::Comparator *I64Comparator() {
@@ -84,7 +86,7 @@ const leveldb::Comparator *I64Comparator() {
 //--------------------------------------------------------------------------
 
 class TestU32ComparatorImpl : public leveldb::Comparator {
-public:
+ public:
   TestU32ComparatorImpl() {}
 
   TestU32ComparatorImpl(const TestU32ComparatorImpl &) = delete;
@@ -110,19 +112,17 @@ public:
   virtual void FindShortestSeparator(std::string *start,
                                      const leveldb::Slice &limit) const {
     // do nothing, just make no warning
-    if (start->size() == 0 || limit.size() == 0)
-      return;
+    if (start->size() == 0 || limit.size() == 0) return;
   }
 
   virtual void FindShortSuccessor(std::string *key) const {
     // do nothing, just make no warning
-    if (key->size() == 0)
-      return;
+    if (key->size() == 0) return;
   }
 
   ~TestU32ComparatorImpl() {}
 
-private:
+ private:
 };
 
 const leveldb::Comparator *TestU32Comparator() {
@@ -132,7 +132,7 @@ const leveldb::Comparator *TestU32Comparator() {
 
 //--------------------------------------------------------------------------
 class TestI32ComparatorImpl : public leveldb::Comparator {
-public:
+ public:
   TestI32ComparatorImpl() {}
 
   TestI32ComparatorImpl(const TestI32ComparatorImpl &) = delete;
@@ -157,19 +157,17 @@ public:
   virtual void FindShortestSeparator(std::string *start,
                                      const leveldb::Slice &limit) const {
     // do nothing, just make no warning
-    if (start->size() == 0 || limit.size() == 0)
-      return;
+    if (start->size() == 0 || limit.size() == 0) return;
   }
 
   virtual void FindShortSuccessor(std::string *key) const {
     // do nothing, just make no warning
-    if (key->size() == 0)
-      return;
+    if (key->size() == 0) return;
   }
 
   ~TestI32ComparatorImpl() {}
 
-private:
+ private:
 };
 
 const leveldb::Comparator *TestI32Comparator() {

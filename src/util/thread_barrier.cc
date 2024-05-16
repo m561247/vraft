@@ -1,4 +1,5 @@
 #include "thread_barrier.h"
+
 #include <cassert>
 
 namespace vraft {
@@ -12,4 +13,4 @@ Barrier::~Barrier() { pthread_barrier_destroy(&b_); }
 
 int32_t Barrier::ArriveAndWait() { return pthread_barrier_wait(&b_); }
 
-} // namespace vraft
+}  // namespace vraft

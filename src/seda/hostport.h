@@ -2,14 +2,14 @@
 #define VRAFT_HOSTPORT_H_
 
 #include <arpa/inet.h>
-#include <netdb.h>      // getaddrinfo, freeaddrinfo
-#include <netinet/in.h> // sockaddr_in
+#include <netdb.h>       // getaddrinfo, freeaddrinfo
+#include <netinet/in.h>  // sockaddr_in
 #include <sys/socket.h>
 #include <sys/types.h>
 
 #include <cassert>
 #include <cstdint>
-#include <cstring> // memset
+#include <cstring>  // memset
 #include <iostream>
 #include <string>
 
@@ -61,7 +61,7 @@ class HostPort;
 HostPort SockaddrInToHostPort(sockaddr_in *addr);
 
 class HostPort final {
-public:
+ public:
   HostPort(const std::string &hostport);
   HostPort(const std::string &h, uint16_t p);
   HostPort();
@@ -71,14 +71,14 @@ public:
 
   const std::string ToString() const;
 
-public:
+ public:
   std::string host;
   uint16_t port;
 
   bool convert_ok;
   sockaddr addr;
 
-private:
+ private:
   void Init();
 };
 
@@ -114,6 +114,6 @@ inline const std::string HostPort::ToString() const {
   return std::string(buf);
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

@@ -15,7 +15,7 @@ void ConnectFinish(UvConnect *req, int32_t status);
 void TimerConnectCb(Timer *timer);
 
 class Connector final {
-public:
+ public:
   Connector(const HostPort &dest_addr, const TcpOptions &options,
             EventLoop *loop);
   ~Connector();
@@ -31,11 +31,11 @@ public:
   void set_new_conn_func(const ConnectorNewConnFunc &new_conn_func);
   const HostPort &dest_addr() { return dest_addr_; }
 
-private:
+ private:
   // call in loop thread
   void Init();
 
-private:
+ private:
   const HostPort dest_addr_;
   const TcpOptions options_;
 
@@ -48,11 +48,11 @@ private:
   friend void ConnectFinish(UvConnect *req, int32_t status);
 };
 
-inline void
-Connector::set_new_conn_func(const ConnectorNewConnFunc &new_conn_func) {
+inline void Connector::set_new_conn_func(
+    const ConnectorNewConnFunc &new_conn_func) {
   new_conn_func_ = new_conn_func;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

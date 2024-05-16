@@ -1,4 +1,5 @@
 #include "connector.h"
+
 #include <cassert>
 
 namespace vraft {
@@ -95,4 +96,4 @@ void Connector::Init() {
   assert(retry_timer_);
 }
 
-} // namespace vraft
+}  // namespace vraft

@@ -1,14 +1,15 @@
 #ifndef VRAFT_LOGGER_H_
 #define VRAFT_LOGGER_H_
 
-#include "spdlog/async.h"
-#include "spdlog/sinks/basic_file_sink.h"
-#include "spdlog/spdlog.h"
 #include <cassert>
 #include <cstdarg>
 #include <functional>
 #include <memory>
 #include <string>
+
+#include "spdlog/async.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/spdlog.h"
 
 namespace vraft {
 
@@ -18,34 +19,34 @@ using LogFunc = std::function<void(const char *)>;
 // use fatal instead of critical
 // use debug, trace, info, error, fatal
 enum LoggerLevel {
-  kLoggerTrace = SPDLOG_LEVEL_TRACE,    // 0
-  kLoggerDebug = SPDLOG_LEVEL_DEBUG,    // 1
-  kLoggerInfo = SPDLOG_LEVEL_INFO,      // 2
-  kLoggerWarn = SPDLOG_LEVEL_WARN,      // 3
-  kLoggerError = SPDLOG_LEVEL_ERROR,    // 4
-  kLoggerFatal = SPDLOG_LEVEL_CRITICAL, // 5
-  kLoggerOff = SPDLOG_LEVEL_OFF,        // 6
+  kLoggerTrace = SPDLOG_LEVEL_TRACE,     // 0
+  kLoggerDebug = SPDLOG_LEVEL_DEBUG,     // 1
+  kLoggerInfo = SPDLOG_LEVEL_INFO,       // 2
+  kLoggerWarn = SPDLOG_LEVEL_WARN,       // 3
+  kLoggerError = SPDLOG_LEVEL_ERROR,     // 4
+  kLoggerFatal = SPDLOG_LEVEL_CRITICAL,  // 5
+  kLoggerOff = SPDLOG_LEVEL_OFF,         // 6
   kLoggerLevelNum
 };
 
 inline enum LoggerLevel U8ToLevel(uint8_t level) {
   switch (level) {
-  case 0:
-    return kLoggerTrace;
-  case 1:
-    return kLoggerDebug;
-  case 2:
-    return kLoggerInfo;
-  case 3:
-    return kLoggerWarn;
-  case 4:
-    return kLoggerError;
-  case 5:
-    return kLoggerFatal;
-  case 6:
-    return kLoggerOff;
-  default:
-    assert(0);
+    case 0:
+      return kLoggerTrace;
+    case 1:
+      return kLoggerDebug;
+    case 2:
+      return kLoggerInfo;
+    case 3:
+      return kLoggerWarn;
+    case 4:
+      return kLoggerError;
+    case 5:
+      return kLoggerFatal;
+    case 6:
+      return kLoggerOff;
+    default:
+      assert(0);
   }
 }
 
@@ -59,7 +60,7 @@ struct LoggerOptions {
 };
 
 class Logger final {
-public:
+ public:
   Logger(const std::string &file_name, const LoggerOptions &options);
   Logger();
   ~Logger();
@@ -86,7 +87,7 @@ public:
 
   static void ShutDown() { spdlog::shutdown(); }
 
-private:
+ private:
   void Init();
   void DoLog(const char *format, std::va_list arguments, LogFunc func);
   void DoLogTrace(const char *str);
@@ -96,7 +97,7 @@ private:
   void DoLogError(const char *str);
   void DoLogFatal(const char *str);
 
-private:
+ private:
   std::string file_name_;
   LoggerOptions options_;
 
@@ -112,7 +113,7 @@ inline Logger::Logger(const std::string &file_name,
 inline Logger::Logger() {}
 
 inline Logger::~Logger() {
-  //spdlog::drop_all();
+  // spdlog::drop_all();
   // spdlog::shutdown();
 }
 
@@ -141,6 +142,6 @@ inline void Logger::DoLogFatal(const char *str) {
   assert(0);
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

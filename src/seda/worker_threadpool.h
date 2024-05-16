@@ -1,14 +1,15 @@
 #ifndef VRAFT_WORKER_THREADPOOL_H_
 #define VRAFT_WORKER_THREADPOOL_H_
 
-#include "worker_thread.h"
 #include <cstdint>
 #include <vector>
+
+#include "worker_thread.h"
 
 namespace vraft {
 
 class WorkerThreadPool final {
-public:
+ public:
   WorkerThreadPool(int32_t thread_num);
   ~WorkerThreadPool();
   WorkerThreadPool(const WorkerThreadPool &p) = delete;
@@ -18,11 +19,11 @@ public:
   WorkerThreadPtr PickThread();
   int32_t thread_num() { return thread_num_; }
 
-private:
+ private:
   int32_t thread_num_;
   std::vector<WorkerThreadPtr> threads_;
 
-private:
+ private:
   static int32_t current_index_;
 };
 
@@ -31,6 +32,6 @@ inline WorkerThreadPool::WorkerThreadPool(int32_t thread_num)
 
 inline WorkerThreadPool::~WorkerThreadPool() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

@@ -1,4 +1,5 @@
 #include "util.h"
+
 #include <algorithm>
 #include <cctype>
 #include <iostream>
@@ -46,10 +47,10 @@ void ToLower(std::string &input) {
 bool HostNameToIpU32(const std::string &hostname, uint32_t &ip_out) {
   struct addrinfo hints, *res;
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_INET; // 限定为IPv4
+  hints.ai_family = AF_INET;  // 限定为IPv4
 
   if (getaddrinfo(hostname.c_str(), nullptr, &hints, &res) != 0) {
-    return false; // 解析域名失败
+    return false;  // 解析域名失败
   }
 
   for (struct addrinfo *p = res; p != nullptr; p = p->ai_next) {
@@ -57,14 +58,14 @@ bool HostNameToIpU32(const std::string &hostname, uint32_t &ip_out) {
     if (p->ai_family == AF_INET) {
       struct sockaddr_in *ipv4 =
           reinterpret_cast<struct sockaddr_in *>(p->ai_addr);
-      ip_out = ntohl(ipv4->sin_addr.s_addr); // 将网络字节序转换为主机字节序
+      ip_out = ntohl(ipv4->sin_addr.s_addr);  // 将网络字节序转换为主机字节序
       freeaddrinfo(res);
-      return true; // 成功转换
+      return true;  // 成功转换
     }
   }
 
   freeaddrinfo(res);
-  return false; // 未找到IPv4地址
+  return false;  // 未找到IPv4地址
 }
 
 bool IpStringToIpU32(const std::string &ip_str, uint32_t &ip_out) {
@@ -79,7 +80,7 @@ bool IpStringToIpU32(const std::string &ip_str, uint32_t &ip_out) {
     return false;
   }
 
-  ip_out = ntohl(addr.s_addr); // 网络字节序转换为主机字节序
+  ip_out = ntohl(addr.s_addr);  // 网络字节序转换为主机字节序
   return true;
 }
 
@@ -103,7 +104,7 @@ bool StringToIpU32(const std::string &str, uint32_t &ip_out) {
 std::string IpU32ToIpString(uint32_t ip) {
   // 使用inet_ntoa进行转换，先转换为网络字节序
   in_addr addr;
-  addr.s_addr = htonl(ip); // 主机字节序转为网络字节序
+  addr.s_addr = htonl(ip);  // 主机字节序转为网络字节序
   // inet_ntoa返回点分十进制形式的字符串
   const char *ip_str = inet_ntoa(addr);
   if (ip_str != nullptr) {
@@ -143,4 +144,4 @@ std::string StrToHexStr(const char *ptr, int32_t size) {
   return str;
 }
 
-} // namespace vraft
+}  // namespace vraft

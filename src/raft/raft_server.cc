@@ -1,4 +1,5 @@
 #include "raft_server.h"
+
 #include "ping.h"
 #include "ping_reply.h"
 #include "vraft_logger.h"
@@ -32,41 +33,41 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
 
       // parse body
       switch (header.type) {
-      case kMsgPing: {
-        Ping msg;
-        bool b = msg.FromString(buf->BeginRead(), body_bytes);
-        assert(b);
-        buf->Retrieve(body_bytes);
-        raft_.OnPing(msg);
-        break;
-      }
-      case kMsgPingReply: {
-        PingReply msg;
-        bool b = msg.FromString(buf->BeginRead(), body_bytes);
-        assert(b);
-        buf->Retrieve(body_bytes);
-        raft_.OnPingReply(msg);
-        break;
-      }
+        case kMsgPing: {
+          Ping msg;
+          bool b = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(b);
+          buf->Retrieve(body_bytes);
+          raft_.OnPing(msg);
+          break;
+        }
+        case kMsgPingReply: {
+          PingReply msg;
+          bool b = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(b);
+          buf->Retrieve(body_bytes);
+          raft_.OnPingReply(msg);
+          break;
+        }
 
-      case kRequestVote: {
-        break;
-      }
+        case kRequestVote: {
+          break;
+        }
 
-      case kRequestVoteReply: {
-        break;
-      }
+        case kRequestVoteReply: {
+          break;
+        }
 
-      case kAppendEntries: {
-        break;
-      }
+        case kAppendEntries: {
+          break;
+        }
 
-      case kAppendEntriesReply: {
-        break;
-      }
+        case kAppendEntriesReply: {
+          break;
+        }
 
-      default:
-        assert(0);
+        default:
+          assert(0);
       }
     }
   }
@@ -97,4 +98,4 @@ int32_t RaftServer::Stop() {
   return rv;
 }
 
-} // namespace vraft
+}  // namespace vraft

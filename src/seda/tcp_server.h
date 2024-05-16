@@ -1,15 +1,16 @@
 #ifndef VRAFT_TCP_SERVER_H_
 #define VRAFT_TCP_SERVER_H_
 
+#include <map>
+#include <memory>
+#include <string>
+
 #include "acceptor.h"
 #include "eventloop.h"
 #include "hostport.h"
 #include "tcp_connection.h"
 #include "tcp_options.h"
 #include "timer.h"
-#include <map>
-#include <memory>
-#include <string>
 
 namespace vraft {
 
@@ -17,7 +18,7 @@ class TcpServer;
 using TcpServerPtr = std::shared_ptr<TcpServer>;
 
 class TcpServer final {
-public:
+ public:
   TcpServer(const HostPort &addr, const std::string &name,
             const TcpOptions &options, EventLoop *loop);
   ~TcpServer();
@@ -42,7 +43,7 @@ public:
 
   HostPort Addr() const { return acceptor_.addr(); }
 
-private:
+ private:
   // call in loop thread
   void Init();
   int32_t StopInLoop();
@@ -51,7 +52,7 @@ private:
   int32_t AddConnectionInLoop(TcpConnectionPtr &conn);
   int32_t RemoveConnectionInLoop(const TcpConnectionPtr &conn);
 
-private:
+ private:
   const std::string name_;
 
   EventLoop *loop_;
@@ -80,6 +81,6 @@ inline void TcpServer::set_on_message_cb(const OnMessageCallback &cb) {
 
 inline const std::string &TcpServer::name() const { return name_; }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

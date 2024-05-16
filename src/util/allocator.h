@@ -6,7 +6,7 @@
 namespace vraft {
 
 class Allocator final {
-public:
+ public:
   Allocator() {}
   ~Allocator() {}
 
@@ -16,12 +16,12 @@ public:
   void *Malloc(size_t size);
   void Free(void *ptr);
 
-private:
+ private:
   void *mem_;
 };
 
 Allocator &DefaultAllocator();
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

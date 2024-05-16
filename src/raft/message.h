@@ -1,10 +1,11 @@
 #ifndef VRAFT_MESSAGE_H_
 #define VRAFT_MESSAGE_H_
 
-#include "allocator.h"
-#include "coding.h"
 #include <cstdint>
 #include <string>
+
+#include "allocator.h"
+#include "coding.h"
 
 namespace vraft {
 
@@ -74,6 +75,6 @@ inline bool MsgHeader::FromString(const char *ptr, int32_t len) {
   return true;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

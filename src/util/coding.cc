@@ -151,7 +151,7 @@ void EncodeFixed8(char *dst, uint8_t value) {
 
 uint8_t DecodeFixed8(const char *ptr) {
   uint8_t result;
-  memcpy(&result, ptr, sizeof(result)); // gcc optimizes this to a plain load
+  memcpy(&result, ptr, sizeof(result));  // gcc optimizes this to a plain load
   return result;
 }
 
@@ -178,7 +178,7 @@ uint16_t DecodeFixed16(const char *ptr) {
   if (g_little_endian) {
     // Load the raw bytes
     uint16_t result;
-    memcpy(&result, ptr, sizeof(result)); // gcc optimizes this to a plain load
+    memcpy(&result, ptr, sizeof(result));  // gcc optimizes this to a plain load
     return result;
   } else {
     return ((static_cast<uint32_t>(static_cast<unsigned char>(ptr[0]))) |
@@ -211,7 +211,7 @@ uint32_t DecodeFixed32(const char *ptr) {
   if (g_little_endian) {
     // Load the raw bytes
     uint32_t result;
-    memcpy(&result, ptr, sizeof(result)); // gcc optimizes this to a plain load
+    memcpy(&result, ptr, sizeof(result));  // gcc optimizes this to a plain load
     return result;
   } else {
     return ((static_cast<uint32_t>(static_cast<unsigned char>(ptr[0]))) |
@@ -291,7 +291,7 @@ uint64_t DecodeFixed64(const char *ptr) {
   if (g_little_endian) {
     // Load the raw bytes
     uint64_t result;
-    memcpy(&result, ptr, sizeof(result)); // gcc optimizes this to a plain load
+    memcpy(&result, ptr, sizeof(result));  // gcc optimizes this to a plain load
     return result;
   } else {
     uint64_t lo = DecodeFixed32(ptr);
@@ -361,4 +361,4 @@ char *EncodeString2(const char *dst, int32_t len, const Slice &value) {
   return p;
 }
 
-} // namespace vraft
+}  // namespace vraft

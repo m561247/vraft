@@ -4,15 +4,15 @@
 namespace vraft {
 
 class WorkLoop {
-public:
+ public:
   WorkLoop() {}
   ~WorkLoop() {}
   WorkLoop(const WorkLoop &wl) = delete;
   WorkLoop &operator=(const WorkLoop &wl) = delete;
 
-private:
+ private:
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

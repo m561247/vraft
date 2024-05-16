@@ -1,9 +1,9 @@
 # 声明编译器
 CXX := g++
 # 基础编译参数
-CXXFLAGS := -g -Wall 
+CXXFLAGS := -g -Wall -std=c++14
 
-INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Ithird_party/spdlog.v1.13.0/include -Ithird_party/cxxopts.v3.2.0/include -Ithird_party/googletest.v1.14.0/googletest/include -Ithird_party/leveldb.1.22/include -Ithird_party/libuv.v1.40.0/include
+INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Ithird_party/spdlog.v1.13.0/include -Ithird_party/cxxopts.v3.2.0/include -Ithird_party/googletest.v1.14.0/googletest/include -Ithird_party/leveldb.1.22/include -Ithird_party/libuv.v1.40.0/include -Ithird_party/nlohmann_json.v3.10.0/single_include
 
 # 链接参数
 LDFLAGS := third_party/libuv.v1.40.0/.libs/libuv.a third_party/googletest.v1.14.0/build/lib/libgtest.a third_party/googletest.v1.14.0/build/lib/libgtest_main.a third_party/leveldb.1.22/build/libleveldb.a -pthread -ldl
@@ -23,6 +23,7 @@ PING_TEST_SRCS := src/test/ping_test.cc $(COMMON_SRCS)
 RAFT_LOG_TEST_SRCS := src/test/raft_log_test.cc $(COMMON_SRCS)
 SOLID_DATA_TEST_SRCS := src/test/solid_data_test.cc $(COMMON_SRCS)
 UTIL_TEST_SRCS := src/test/util_test.cc $(COMMON_SRCS)
+JSON_TEST_SRCS := src/test/json_test.cc $(COMMON_SRCS)
 
 # 生成所有.o文件的列表
 VRAFT_SERVER_OBJECTS := $(VRAFT_SERVER_SRCS:.cc=.o)
@@ -35,10 +36,11 @@ PING_TEST_OBJECTS := $(PING_TEST_SRCS:.cc=.o)
 RAFT_LOG_TEST_OBJECTS := $(RAFT_LOG_TEST_SRCS:.cc=.o)
 SOLID_DATA_TEST_OBJECTS := $(SOLID_DATA_TEST_SRCS:.cc=.o)
 UTIL_TEST_OBJECTS := $(UTIL_TEST_SRCS:.cc=.o)
+JSON_TEST_OBJECTS := $(JSON_TEST_SRCS:.cc=.o)
 
 # 可执行文件列表
 EXE := vraft_server raft_log_tool echo_server echo_client 
-TEST := logger_test ping_test raft_log_test solid_data_test util_test
+TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test
 
 # 默认目标
 all: $(EXE) $(TEST)
@@ -75,11 +77,17 @@ solid_data_test: $(SOLID_DATA_TEST_OBJECTS)
 util_test: $(UTIL_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/$@
 
+json_test: $(JSON_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/$@
+
 # 清理规则
 clean:
 	rm -f output/vraft_server output/raft_log_tool output/echo_server output/echo_client
 	rm -f output/*_test
 	rm -f $(VRAFT_SERVER_OBJECTS) $(RAFT_LOG_TOOL_OBJECTS) $(ECHO_SERVER_OBJECTS) $(ECHO_CLIENT_OBJECTS) 
 	rm -f $(LOGGER_TEST_OBJECTS) $(PING_TEST_OBJECTS) $(RAFT_LOG_TEST_OBJECTS) $(SOLID_DATA_TEST_OBJECTS) $(UTIL_TEST_OBJECTS)
+
+format:
+	clang-format --style=Google -i `find ./src -type f \( -name "*.h" -o -name "*.c" -o -name "*.cc" -o -name "*.cpp" \)`
 
 .PHONY: prepare all clean

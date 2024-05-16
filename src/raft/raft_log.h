@@ -1,13 +1,15 @@
 #ifndef VRAFT_RAFT_LOG_H_
 #define VRAFT_RAFT_LOG_H_
 
-#include "leveldb/comparator.h"
-#include "leveldb/db.h"
+#include <stdint.h>
+
 #include <cassert>
 #include <memory>
-#include <stdint.h>
 #include <type_traits>
 #include <utility>
+
+#include "leveldb/comparator.h"
+#include "leveldb/db.h"
 
 namespace vraft {
 
@@ -41,8 +43,9 @@ struct LogEntry {
 // Wraps an instance whose destructor is never called.
 //
 // This is intended for use with function-level static variables.
-template <typename InstanceType> class NoDestructor {
-public:
+template <typename InstanceType>
+class NoDestructor {
+ public:
   template <typename... ConstructorArgTypes>
   explicit NoDestructor(ConstructorArgTypes &&... constructor_args) {
     static_assert(sizeof(instance_storage_) >= sizeof(InstanceType),
@@ -63,13 +66,13 @@ public:
     return reinterpret_cast<InstanceType *>(&instance_storage_);
   }
 
-private:
+ private:
   typename std::aligned_storage<sizeof(InstanceType),
                                 alignof(InstanceType)>::type instance_storage_;
 };
 
 class U32ComparatorImpl : public leveldb::Comparator {
-public:
+ public:
   U32ComparatorImpl() {}
 
   U32ComparatorImpl(const U32ComparatorImpl &) = delete;
@@ -84,11 +87,11 @@ public:
 
   ~U32ComparatorImpl();
 
-private:
+ private:
 };
 
 class RaftLog final {
-public:
+ public:
   RaftLog(const std::string &path);
   ~RaftLog();
   RaftLog(const RaftLog &t) = delete;
@@ -102,10 +105,10 @@ public:
   RaftIndex begin_index() const { return begin_index_; };
   RaftIndex end_index() const { return end_index_; }
 
-private:
+ private:
   void Init();
 
-private:
+ private:
   RaftIndex begin_index_;
   RaftIndex end_index_;
 
@@ -116,6 +119,6 @@ private:
 
 inline RaftLog::~RaftLog() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

@@ -6,7 +6,7 @@
 namespace vraft {
 
 class Clock final {
-public:
+ public:
   Clock() {}
   ~Clock() {}
 
@@ -37,11 +37,11 @@ public:
         .count();
   }
 
-private:
+ private:
 };
 
 class SteadyClock final {
-public:
+ public:
   SteadyClock() {}
   ~SteadyClock() {}
 
@@ -72,9 +72,9 @@ public:
         .count();
   }
 
-private:
+ private:
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

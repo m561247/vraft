@@ -9,7 +9,7 @@
 namespace vraft {
 
 class Slice {
-public:
+ public:
   // Create an empty slice.
   Slice() : data_(""), size_(0) {}
 
@@ -69,7 +69,7 @@ public:
     return ((size_ >= x.size_) && (memcmp(data_, x.data_, x.size_) == 0));
   }
 
-private:
+ private:
   const char *data_;
   size_t size_;
 };
@@ -93,6 +93,6 @@ inline int Slice::compare(const Slice &b) const {
   return r;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

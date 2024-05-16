@@ -1,9 +1,10 @@
 #ifndef VRAFT_CODING_H_
 #define VRAFT_CODING_H_
 
-#include "slice.h"
 #include <cstdint>
 #include <cstring>
+
+#include "slice.h"
 
 namespace vraft {
 
@@ -58,6 +59,6 @@ bool DecodeString(Slice *input, Slice *result);
 
 char *EncodeString2(const char *dst, int32_t len, const Slice &value);
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

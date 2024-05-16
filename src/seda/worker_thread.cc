@@ -11,4 +11,4 @@ void WorkerThread::Join() { thread_.join(); }
 
 void WorkerThread::ThreadFunc() {}
 
-} // namespace vraft
+}  // namespace vraft

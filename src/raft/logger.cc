@@ -147,4 +147,4 @@ void Logger::DoLog(const char *format, std::va_list arguments, LogFunc func) {
   }
 }
 
-} // namespace vraft
+}  // namespace vraft

@@ -1,3 +1,6 @@
+#include <csignal>
+#include <iostream>
+
 #include "clock.h"
 #include "config.h"
 #include "eventloop.h"
@@ -5,8 +8,6 @@
 #include "tcp_client.h"
 #include "tcp_connection.h"
 #include "vraft_logger.h"
-#include <csignal>
-#include <iostream>
 
 void Ping(vraft::TcpConnectionPtr &conn, vraft::Timer *t) {
   char buf[128];
@@ -27,7 +28,6 @@ void SignalHandler(int signal) {
 }
 
 int main(int argc, char **argv) {
-
 #if 0  
   if (argc == 1) {
     std::cout << vraft::GetConfig().UsageBanner(argv[0]) << std::endl;

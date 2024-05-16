@@ -1,10 +1,11 @@
+#include <csignal>
+#include <iostream>
+
 #include "coding.h"
 #include "config.h"
 #include "logger.h"
 #include "raft_server.h"
 #include "vraft_logger.h"
-#include <csignal>
-#include <iostream>
 
 void SignalHandler(int signal) {
   vraft::Logger::ShutDown();

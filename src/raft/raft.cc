@@ -1,4 +1,5 @@
 #include "raft.h"
+
 #include "raft_server.h"
 #include "util.h"
 #include "vraft_logger.h"
@@ -97,4 +98,4 @@ int32_t Raft::OnPingReply(struct PingReply &msg) {
   return 0;
 }
 
-} // namespace vraft
+}  // namespace vraft

@@ -1,3 +1,3 @@
 #include "message.h"
 
-namespace vraft {} // namespace vraft
+namespace vraft {}  // namespace vraft

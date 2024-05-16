@@ -19,7 +19,7 @@ enum RaftMode {
 };
 
 class Config final {
-public:
+ public:
   Config();
   ~Config();
   Config(const Config &c) = default;
@@ -39,7 +39,7 @@ public:
   const std::string &log_file() { return log_file_; }
   const RaftMode mode() { return mode_; }
 
-private:
+ private:
   std::shared_ptr<cxxopts::Options> options_;
   cxxopts::ParseResult result_;
 
@@ -112,6 +112,6 @@ inline const std::string Config::ToString() const {
   return str;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

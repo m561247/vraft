@@ -1,5 +1,7 @@
 #include "util.h"
+
 #include <gtest/gtest.h>
+
 #include <iostream>
 
 TEST(UTIL, MISC) { std::cout << vraft::IpU32ToIpString(32765) << std::endl; }

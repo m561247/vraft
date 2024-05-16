@@ -1,11 +1,12 @@
 #ifndef VRAFT_ACCEPTOR_H_
 #define VRAFT_ACCEPTOR_H_
 
+#include <atomic>
+
 #include "common.h"
 #include "hostport.h"
 #include "tcp_connection.h"
 #include "tcp_options.h"
-#include <atomic>
 
 namespace vraft {
 
@@ -15,7 +16,7 @@ using AcceptorNewConnFunc = std::function<void(UvTcpUPtr)>;
 void AcceptorHandleRead(UvStream *server, int status);
 
 class Acceptor final {
-public:
+ public:
   Acceptor(const HostPort &addr, EventLoop *loop, const TcpOptions &options);
   ~Acceptor();
   Acceptor(const Acceptor &t) = delete;
@@ -34,13 +35,13 @@ public:
   EventLoop *loop() const;
   void set_new_conn_func(const AcceptorNewConnFunc &new_conn_func);
 
-private:
+ private:
   // call in loop thread
   void Init();
   int32_t Bind();
   int32_t Listen();
 
-private:
+ private:
   const HostPort addr_;
   const TcpOptions options_;
   EventLoop *loop_;
@@ -55,11 +56,11 @@ inline const TcpOptions &Acceptor::options() const { return options_; }
 
 inline EventLoop *Acceptor::loop() const { return loop_; }
 
-inline void
-Acceptor::set_new_conn_func(const AcceptorNewConnFunc &new_conn_func) {
+inline void Acceptor::set_new_conn_func(
+    const AcceptorNewConnFunc &new_conn_func) {
   new_conn_func_ = new_conn_func;
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

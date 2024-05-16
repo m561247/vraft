@@ -1,4 +1,5 @@
 #include "hostport.h"
+
 #include "util.h"
 
 namespace vraft {
@@ -7,8 +8,8 @@ bool ConvertHostPortToSockaddr(const std::string &host, int32_t port,
                                sockaddr &out_sockaddr) {
   struct addrinfo hints, *res;
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_INET;       // IPv4
-  hints.ai_socktype = SOCK_STREAM; // TCP, for example
+  hints.ai_family = AF_INET;        // IPv4
+  hints.ai_socktype = SOCK_STREAM;  // TCP, for example
 
   // Convert the port number to a string because getaddrinfo expects it as such
   std::string port_str = std::to_string(port);
@@ -24,7 +25,7 @@ bool ConvertHostPortToSockaddr(const std::string &host, int32_t port,
   if (res != nullptr) {
     // Assuming the first result is the address we want to use
     memcpy(&out_sockaddr, res->ai_addr, res->ai_addrlen);
-    freeaddrinfo(res); // Free the linked list allocated by getaddrinfo
+    freeaddrinfo(res);  // Free the linked list allocated by getaddrinfo
     return true;
   }
 
@@ -51,4 +52,4 @@ HostPort SockaddrInToHostPort(sockaddr_in *addr) {
                   ntohs(addr->sin_port));
 }
 
-} // namespace vraft
+}  // namespace vraft

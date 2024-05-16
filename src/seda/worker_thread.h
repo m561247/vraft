@@ -1,9 +1,10 @@
 #ifndef VRAFT_WORKER_THREAD_H_
 #define VRAFT_WORKER_THREAD_H_
 
-#include "common.h"
 #include <memory>
 #include <thread>
+
+#include "common.h"
 
 namespace vraft {
 
@@ -11,7 +12,7 @@ class WorkerThread;
 using WorkerThreadPtr = std::shared_ptr<WorkerThread>;
 
 class WorkerThread final {
-public:
+ public:
   WorkerThread();
   ~WorkerThread();
   WorkerThread(const WorkerThread &wt) = delete;
@@ -25,10 +26,10 @@ public:
   // call in loop thread
   std::thread::id tid() { return thread_.get_id(); }
 
-private:
+ private:
   void ThreadFunc();
 
-private:
+ private:
   std::thread thread_;
 };
 
@@ -36,6 +37,6 @@ inline WorkerThread::WorkerThread() {}
 
 inline WorkerThread::~WorkerThread() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

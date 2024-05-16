@@ -11,6 +11,6 @@ struct TcpOptions {
   // int32_t retry_times = 100;
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

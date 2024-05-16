@@ -202,6 +202,6 @@ inline int UvTcpGetPeerName(const UvTcp *handle, struct sockaddr *name,
   return ::uv_tcp_getpeername(handle, name, namelen);
 }
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

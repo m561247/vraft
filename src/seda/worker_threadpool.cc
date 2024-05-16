@@ -21,4 +21,4 @@ WorkerThreadPtr WorkerThreadPool::PickThread() {
 
 int32_t WorkerThreadPool::current_index_ = 0;
 
-} // namespace vraft
+}  // namespace vraft

@@ -10,7 +10,7 @@ class EventLoop;
 void StopLoop(UvAsync *uv_async);
 
 class AsyncStop final {
-public:
+ public:
   AsyncStop();
   ~AsyncStop();
   AsyncStop(const AsyncStop &a) = delete;
@@ -23,7 +23,7 @@ public:
   // call in any thread
   void Notify();
 
-private:
+ private:
   EventLoop *loop_;
   UvAsync uv_async_;
 
@@ -34,6 +34,6 @@ inline AsyncStop::AsyncStop() {}
 
 inline AsyncStop::~AsyncStop() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

@@ -1,18 +1,19 @@
 #ifndef VRAFT_EVENTLOOP_H_
 #define VRAFT_EVENTLOOP_H_
 
-#include "async_queue.h"
-#include "async_stop.h"
-#include "timer.h"
-#include "uv_wrapper.h"
 #include <functional>
 #include <memory>
 #include <thread>
 
+#include "async_queue.h"
+#include "async_stop.h"
+#include "timer.h"
+#include "uv_wrapper.h"
+
 namespace vraft {
 
 class EventLoop final {
-public:
+ public:
   EventLoop(const std::string &name);
   ~EventLoop();
   EventLoop(const EventLoop &loop) = delete;
@@ -43,14 +44,14 @@ public:
   const std::string &tid_str() const { return tid_str_; }
   UvLoop *UvLoopPtr() { return &uv_loop_; }
 
-private:
+ private:
   void Init();
   void AddTimerInLoop(uint64_t timeout_ms, uint64_t repeat_ms,
                       const TimerFunctor &func);
-  void AddTimerPtr(TimerPtr timer); // overload function cannot bind
+  void AddTimerPtr(TimerPtr timer);  // overload function cannot bind
   void RemoveTimerLoop(TimerId id);
 
-private:
+ private:
   const std::string name_;
   std::thread::id tid_;
   std::string tid_str_;
@@ -61,6 +62,6 @@ private:
   AsyncStop async_stop_;
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

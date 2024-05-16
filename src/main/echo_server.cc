@@ -1,3 +1,6 @@
+#include <csignal>
+#include <iostream>
+
 #include "config.h"
 #include "eventloop.h"
 #include "hostport.h"
@@ -5,11 +8,9 @@
 #include "tcp_connection.h"
 #include "tcp_server.h"
 #include "vraft_logger.h"
-#include <csignal>
-#include <iostream>
 
 class EchoServer {
-public:
+ public:
   EchoServer(const vraft::HostPort &listen_addr, vraft::TcpOptions &options)
       : loop_("echo_server_loop"),
         tcp_server_(listen_addr, "echo_server", options, &loop_) {
@@ -30,7 +31,7 @@ public:
     loop_.Stop();
   }
 
-private:
+ private:
   void OnConnection(const vraft::TcpConnectionPtr &conn) {
     vraft::vraft_logger.FInfo("echo-server OnConnection:%s",
                               conn->name().c_str());
@@ -58,7 +59,6 @@ void SignalHandler(int signal) {
 }
 
 int main(int argc, char **argv) {
-
 #if 0  
   if (argc == 1) {
     std::cout << vraft::GetConfig().UsageBanner(argv[0]) << std::endl;

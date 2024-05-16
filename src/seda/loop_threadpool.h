@@ -1,14 +1,15 @@
 #ifndef VRAFT_LOOP_THREADPOOL_H_
 #define VRAFT_LOOP_THREADPOOL_H_
 
-#include "loop_thread.h"
 #include <cstdint>
 #include <vector>
+
+#include "loop_thread.h"
 
 namespace vraft {
 
 class LoopThreadPool final {
-public:
+ public:
   LoopThreadPool(int32_t thread_num);
   ~LoopThreadPool();
   LoopThreadPool(const LoopThreadPool &p) = delete;
@@ -18,11 +19,11 @@ public:
   LoopThreadPtr PickThread();
   int32_t thread_num() { return thread_num_; }
 
-private:
+ private:
   int32_t thread_num_;
   std::vector<LoopThreadPtr> threads_;
 
-private:
+ private:
   static int32_t current_index_;
 };
 
@@ -31,6 +32,6 @@ inline LoopThreadPool::LoopThreadPool(int32_t thread_num)
 
 inline LoopThreadPool::~LoopThreadPool() {}
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

@@ -1,7 +1,9 @@
 #include "timer.h"
+
+#include <cassert>
+
 #include "eventloop.h"
 #include "vraft_logger.h"
-#include <cassert>
 
 namespace vraft {
 
@@ -23,8 +25,13 @@ void HandleUvTimer(UvTimer *uv_timer) {
 
 Timer::Timer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
              const TimerFunctor &cb)
-    : data(nullptr), id_(seq_.fetch_add(1)), timeout_ms_(timeout_ms),
-      repeat_ms_(repeat_ms), cb_(cb), repeat_times_(0), loop_(loop) {
+    : data(nullptr),
+      id_(seq_.fetch_add(1)),
+      timeout_ms_(timeout_ms),
+      repeat_ms_(repeat_ms),
+      cb_(cb),
+      repeat_times_(0),
+      loop_(loop) {
   vraft_logger.FInfo(
       "timer:%ld construct, timeout_ms:%lu, repeat_ms:%lu, loop:%s, handle:%p",
       id_, timeout_ms_, repeat_ms_, loop_->name().c_str(), &uv_timer_);
@@ -55,13 +62,13 @@ int32_t Timer::Stop() {
   loop_->AssertInLoopThread();
   int32_t r = 0;
   if (!UvIsClosing(reinterpret_cast<UvHandle *>(&uv_timer_))) {
-    r = UvTimerStop(&uv_timer_); // equal to uv_close
+    r = UvTimerStop(&uv_timer_);  // equal to uv_close
     assert(r == 0);
   } else {
-    vraft_logger.FInfo("timer:%ld stop, already stopping, timeout_ms:%lu, "
-                       "repeat_ms:%lu, loop:%s, handle:%p",
-                       id_, timeout_ms_, repeat_ms_, loop_->name().c_str(),
-                       &uv_timer_);
+    vraft_logger.FInfo(
+        "timer:%ld stop, already stopping, timeout_ms:%lu, "
+        "repeat_ms:%lu, loop:%s, handle:%p",
+        id_, timeout_ms_, repeat_ms_, loop_->name().c_str(), &uv_timer_);
   }
   loop_->RemoveTimer(id_);
   return r;
@@ -81,4 +88,4 @@ bool Timer::IsStart() {
 
 std::atomic<int64_t> Timer::seq_(0);
 
-} // namespace vraft
+}  // namespace vraft

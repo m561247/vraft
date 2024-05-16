@@ -7,6 +7,6 @@ namespace vraft {
 
 extern vraft::Logger vraft_logger;
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif

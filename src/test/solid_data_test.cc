@@ -1,8 +1,11 @@
-#include "coding.h"
 #include "solid_data.h"
-#include <cstdlib>
+
 #include <gtest/gtest.h>
+
+#include <cstdlib>
 #include <iostream>
+
+#include "coding.h"
 
 TEST(SolidData, construct) {
   system("rm -rf /tmp/soliddata_test_dir");

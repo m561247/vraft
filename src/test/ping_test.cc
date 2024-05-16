@@ -1,8 +1,11 @@
 #include "ping.h"
-#include "util.h"
-#include <csignal>
+
 #include <gtest/gtest.h>
+
+#include <csignal>
 #include <iostream>
+
+#include "util.h"
 
 TEST(PingTests, Coding) {
   uint32_t ip32;

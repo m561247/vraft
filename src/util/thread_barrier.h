@@ -1,13 +1,14 @@
 #ifndef VRAFT_BARRIER_H_
 #define VRAFT_BARRIER_H_
 
-#include <cstdint>
 #include <pthread.h>
+
+#include <cstdint>
 
 namespace vraft {
 
 class Barrier final {
-public:
+ public:
   Barrier(int32_t num);
   ~Barrier();
   Barrier(const Barrier &) = delete;
@@ -16,11 +17,11 @@ public:
   int32_t num() const { return num_; }
   int32_t ArriveAndWait();
 
-private:
+ private:
   int32_t num_;
   pthread_barrier_t b_;
 };
 
-} // namespace vraft
+}  // namespace vraft
 
 #endif
