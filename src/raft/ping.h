@@ -4,7 +4,9 @@
 #include <string>
 
 #include "allocator.h"
+#include "common.h"
 #include "message.h"
+#include "nlohmann/json.hpp"
 #include "raft_addr.h"
 
 namespace vraft {
@@ -18,7 +20,21 @@ struct Ping {
   int32_t ToString(const char *ptr, int32_t len);
   bool FromString(std::string &s);
   bool FromString(const char *ptr, int32_t len);
+
+  std::string ToJson(bool one_line = true);
 };
+
+inline std::string Ping::ToJson(bool one_line) {
+  nlohmann::json j;
+  j["src"] = src.ToString();
+  j["dest"] = dest.ToString();
+  j["msg"] = msg;
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
 
 inline int32_t Ping::ToString(std::string &s) {
   s.clear();
