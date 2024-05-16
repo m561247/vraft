@@ -8,8 +8,8 @@ fi
 file_name="$1"
 echo ${file_name}
 
-cp tpl_class.h ${file_name}.h
-cp tpl_class.cc ${file_name}.cc
+cp tpl_struct.h ${file_name}.h
+cp tpl_struct.cc ${file_name}.cc
 
 
 # 使用awk将字符串按照下划线分割，然后将每个单词的首字母大写
