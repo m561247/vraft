@@ -21,8 +21,6 @@ TEST(PingTests, Coding) {
   msg.dest = dest;
   std::cout << "msg: " << msg.msg << " " << msg.src.ToU64() << " "
             << msg.dest.ToU64() << std::endl;
-  std::cout << msg.ToJson() << std::endl;
-  std::cout << msg.ToJson(false) << std::endl;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -33,8 +31,11 @@ TEST(PingTests, Coding) {
   assert(b);
   std::cout << "msg2: " << msg2.msg << " " << msg2.src.ToU64() << " "
             << msg2.dest.ToU64() << std::endl;
-  std::cout << msg2.ToJson() << std::endl;
-  std::cout << msg2.ToJson(false) << std::endl;
+
+  std::cout << msg2.ToJsonString(true, true) << std::endl;
+  std::cout << msg2.ToJsonString(true, false) << std::endl;
+  std::cout << msg2.ToJsonString(false, true) << std::endl;
+  std::cout << msg2.ToJsonString(false, false) << std::endl;
 
   EXPECT_EQ(msg.msg, msg2.msg);
   EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());

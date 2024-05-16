@@ -8,13 +8,11 @@
 #include <type_traits>
 #include <utility>
 
+#include "common.h"
 #include "leveldb/comparator.h"
 #include "leveldb/db.h"
 
 namespace vraft {
-
-using RaftIndex = uint32_t;
-using RaftTerm = uint64_t;
 
 // log_index: 1 2 3
 // term_key : 1 3 5

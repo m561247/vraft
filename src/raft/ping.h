@@ -21,20 +21,10 @@ struct Ping {
   bool FromString(std::string &s);
   bool FromString(const char *ptr, int32_t len);
 
-  std::string ToJson(bool one_line = true);
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
-
-inline std::string Ping::ToJson(bool one_line) {
-  nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dest"] = dest.ToString();
-  j["msg"] = msg;
-  if (one_line) {
-    return j.dump();
-  } else {
-    return j.dump(JSON_TAB);
-  }
-}
 
 inline int32_t Ping::ToString(std::string &s) {
   s.clear();
@@ -93,6 +83,37 @@ inline bool Ping::FromString(const char *ptr, int32_t len) {
     msg.append(result.data(), result.size());
   }
   return b;
+}
+
+inline nlohmann::json Ping::ToJson() {
+  nlohmann::json j;
+  j["src"] = src.ToString();
+  j["dest"] = dest.ToString();
+  j["msg"] = msg;
+  return j;
+}
+
+inline nlohmann::json Ping::ToJsonTiny() {
+  nlohmann::json j;
+  j[0] = src.ToString();
+  j[1] = dest.ToString();
+  j[2] = msg;
+  return j;
+}
+
+inline std::string Ping::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["rv"] = ToJsonTiny();
+  } else {
+    j["request_vote"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
 }
 
 }  // namespace vraft
