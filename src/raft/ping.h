@@ -16,6 +16,7 @@ struct Ping {
   RaftAddr dest;  // uint64_t
   std::string msg;
 
+  int32_t MaxBytes();
   int32_t ToString(std::string &s);
   int32_t ToString(const char *ptr, int32_t len);
   bool FromString(std::string &s);
@@ -26,9 +27,13 @@ struct Ping {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
+inline int32_t Ping::MaxBytes() {
+  return sizeof(uint64_t) + sizeof(uint64_t) + 2 * sizeof(int32_t) + msg.size();
+}
+
 inline int32_t Ping::ToString(std::string &s) {
   s.clear();
-  int32_t max_bytes = sizeof(src) + sizeof(dest) + sizeof(int32_t) + msg.size();
+  int32_t max_bytes = MaxBytes();
   char *ptr = reinterpret_cast<char *>(DefaultAllocator().Malloc(max_bytes));
   int32_t size = ToString(ptr, max_bytes);
   s.append(ptr, size);
@@ -104,9 +109,9 @@ inline nlohmann::json Ping::ToJsonTiny() {
 inline std::string Ping::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["rv"] = ToJsonTiny();
+    j["pi"] = ToJsonTiny();
   } else {
-    j["request_vote"] = ToJson();
+    j["ping"] = ToJson();
   }
 
   if (one_line) {
