@@ -41,10 +41,7 @@ EXE := vraft_server raft_log_tool echo_server echo_client
 TEST := logger_test ping_test raft_log_test solid_data_test util_test
 
 # 默认目标
-all: prepare $(EXE) $(TEST)
-
-prepare:
-	mkdir -p output
+all: $(EXE) $(TEST)
 
 # 模式规则，用于从.cc文件编译成.o文件
 %.o: %.cc
@@ -80,7 +77,8 @@ util_test: $(UTIL_TEST_OBJECTS)
 
 # 清理规则
 clean:
-	rm -rf ./output
+	rm -f output/vraft_server output/raft_log_tool output/echo_server output/echo_client
+	rm -f output/*_test
 	rm -f $(VRAFT_SERVER_OBJECTS) $(RAFT_LOG_TOOL_OBJECTS) $(ECHO_SERVER_OBJECTS) $(ECHO_CLIENT_OBJECTS) 
 	rm -f $(LOGGER_TEST_OBJECTS) $(PING_TEST_OBJECTS) $(RAFT_LOG_TEST_OBJECTS) $(SOLID_DATA_TEST_OBJECTS) $(UTIL_TEST_OBJECTS)
 
