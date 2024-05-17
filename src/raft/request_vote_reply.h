@@ -13,8 +13,8 @@ namespace vraft {
 struct RequestVoteReply {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
-
   RaftTerm term;
+
   bool granted;  // uint8_t
 
   int32_t MaxBytes();

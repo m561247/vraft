@@ -38,6 +38,7 @@ uint32_t DecodeFixed32(const char *ptr);
 
 char *EncodeVarint32(char *dst, uint32_t value);
 bool DecodeVarint32(Slice *input, uint32_t *value);
+int32_t DecodeVarint32Bytes(Slice *input, uint32_t *value);
 
 // 64
 void EncodeFixed64(char *dst, uint64_t value);
@@ -58,6 +59,7 @@ void EncodeString(std::string *dst, const Slice &value);
 bool DecodeString(Slice *input, Slice *result);
 
 char *EncodeString2(const char *dst, int32_t len, const Slice &value);
+int32_t DecodeString2(Slice *input, Slice *result);
 
 }  // namespace vraft
 

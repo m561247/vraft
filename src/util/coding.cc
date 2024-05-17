@@ -261,6 +261,19 @@ bool DecodeVarint32(Slice *input, uint32_t *value) {
   }
 }
 
+// return real decode bytes
+int32_t DecodeVarint32Bytes(Slice *input, uint32_t *value) {
+  const char *p = input->data();
+  const char *limit = p + input->size();
+  const char *q = GetVarint32Ptr(p, limit, value);
+  if (q == nullptr) {
+    return -1;
+  } else {
+    *input = Slice(q, limit - q);
+    return (q - p);
+  }
+}
+
 void EncodeFloat(char *dst, float value) {
   uint32_t u32 = *((uint32_t *)&value);
   EncodeFixed32(dst, u32);
@@ -359,6 +372,19 @@ char *EncodeString2(const char *dst, int32_t len, const Slice &value) {
   p += value.size();
 
   return p;
+}
+
+// return real decode bytes
+int32_t DecodeString2(Slice *input, Slice *result) {
+  uint32_t len;
+  int32_t bytes = DecodeVarint32(input, &len);
+  if (bytes > 0 && input->size() >= len) {
+    *result = Slice(input->data(), len);
+    input->remove_prefix(len);
+    return bytes + len;
+  } else {
+    return -1;
+  }
 }
 
 }  // namespace vraft

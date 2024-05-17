@@ -44,8 +44,8 @@ struct LogEntry {
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
   int32_t ToString(const char *ptr, int32_t len);
-  bool FromString(std::string &s);
-  bool FromString(const char *ptr, int32_t len);
+  int32_t FromString(std::string &s);
+  int32_t FromString(const char *ptr, int32_t len);
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
@@ -87,27 +87,35 @@ inline int32_t LogEntry::ToString(const char *ptr, int32_t len) {
   return size;
 }
 
-inline bool LogEntry::FromString(std::string &s) {
+inline int32_t LogEntry::FromString(std::string &s) {
   return FromString(s.c_str(), s.size());
 }
 
-inline bool LogEntry::FromString(const char *ptr, int32_t len) {
+inline int32_t LogEntry::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
 
   index = DecodeFixed32(p);
   p += sizeof(index);
+  size += sizeof(index);
 
   append_entry.term = DecodeFixed64(p);
   p += sizeof(append_entry.term);
+  size += sizeof(append_entry.term);
 
   Slice result;
   Slice input(p, len - sizeof(index) - sizeof(append_entry.term));
-  bool b = DecodeString(&input, &result);
-  if (b) {
+  int32_t sz = DecodeString2(&input, &result);
+  if (sz > 0) {
     append_entry.value.clear();
     append_entry.value.append(result.data(), result.size());
+    size += sz;
+
+  } else {
+    return -1;
   }
-  return b;
+
+  return size;
 }
 
 inline nlohmann::json LogEntry::ToJson() {

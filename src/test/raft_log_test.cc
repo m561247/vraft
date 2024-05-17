@@ -808,8 +808,10 @@ TEST(LogEntry, test) {
   std::cout << entry.ToJsonString(false, false) << std::endl;
 
   vraft::LogEntry entry2;
-  bool b = entry2.FromString(str);
-  assert(b);
+  int32_t bytes2 = entry2.FromString(str);
+  assert(bytes2 > 0);
+  std::cout << "bytes2:" << bytes2 << std::endl;
+  EXPECT_EQ(bytes, bytes2);
 
   std::cout << "decoding:" << std::endl;
   std::cout << entry.ToJsonString(true, true) << std::endl;
