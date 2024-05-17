@@ -172,6 +172,7 @@ inline nlohmann::json AppendEntries::ToJson() {
   j["pre_log_index"] = pre_log_index;
   j["pre_log_term"] = pre_log_term;
   j["commit_index"] = commit_index;
+  j["entry_count"] = entries.size();
   for (int32_t i = 0; i < entries.size(); ++i) {
     j["entries"][i] = entries[i].ToJson();
   }
@@ -186,8 +187,9 @@ inline nlohmann::json AppendEntries::ToJsonTiny() {
   j["pidx"] = pre_log_index;
   j["ptm"] = pre_log_term;
   j["cmt"] = commit_index;
+  j["cnt"] = entries.size();
   for (int32_t i = 0; i < entries.size(); ++i) {
-    j["en"][i] = entries[i].ToJsonTiny();
+    j["etr"][i] = entries[i].ToJsonTiny();
   }
   return j;
 }
