@@ -35,12 +35,12 @@ TEST(RequestVoteReply, test) {
   b = msg2.FromString(msg_str);
   assert(b);
 
+  std::cout << "decoding:" << std::endl;
   std::cout << msg2.ToJsonString(true, true) << std::endl;
   std::cout << msg2.ToJsonString(true, false) << std::endl;
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  std::cout << "decoding:" << std::endl;
   EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
   EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
   EXPECT_EQ(msg.term, msg2.term);

@@ -1,4 +1,4 @@
-#include "request_vote.h"
+#include "append_entries_reply.h"
 
 #include <gtest/gtest.h>
 
@@ -7,7 +7,7 @@
 
 #include "util.h"
 
-TEST(RequestVote, test) {
+TEST(AppendEntriesReply, test) {
   uint32_t ip32;
   bool b = vraft::StringToIpU32("127.0.0.1", ip32);
   assert(b);
@@ -15,12 +15,12 @@ TEST(RequestVote, test) {
   vraft::RaftAddr src(ip32, 1234, 55);
   vraft::RaftAddr dest(ip32, 5678, 99);
 
-  vraft::RequestVote msg;
+  vraft::AppendEntriesReply msg;
   msg.src = src;
   msg.dest = dest;
   msg.term = 77;
-  msg.last_log_term = 88;
-  msg.last_log_index = 99;
+  msg.success = true;
+  msg.term = 100;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -32,7 +32,7 @@ TEST(RequestVote, test) {
   std::cout << msg.ToJsonString(false, true) << std::endl;
   std::cout << msg.ToJsonString(false, false) << std::endl;
 
-  vraft::RequestVote msg2;
+  vraft::AppendEntriesReply msg2;
   b = msg2.FromString(msg_str);
   assert(b);
 
@@ -45,7 +45,7 @@ TEST(RequestVote, test) {
   EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
   EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
   EXPECT_EQ(msg.term, msg2.term);
-  EXPECT_EQ(msg.last_log_term, msg2.last_log_term);
+  EXPECT_EQ(msg.success, msg2.success);
   EXPECT_EQ(msg.last_log_index, msg2.last_log_index);
 }
 

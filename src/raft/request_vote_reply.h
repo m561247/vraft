@@ -63,7 +63,7 @@ inline int32_t RequestVoteReply::ToString(const char *ptr, int32_t len) {
 
   EncodeFixed8(p, granted);
   p += sizeof(granted);
-  size += sizeof(granted);
+  size += sizeof(uint8_t);
 
   assert(size <= len);
   return size;
@@ -89,7 +89,7 @@ inline bool RequestVoteReply::FromString(const char *ptr, int32_t len) {
   p += sizeof(term);
 
   granted = DecodeFixed8(p);
-  p += sizeof(granted);
+  p += sizeof(uint8_t);
 
   return true;
 }
@@ -106,7 +106,7 @@ inline nlohmann::json RequestVoteReply::ToJson() {
 inline nlohmann::json RequestVoteReply::ToJsonTiny() {
   nlohmann::json j;
   j["src"] = src.ToString();
-  j["dest"] = dest.ToString();
+  j["dst"] = dest.ToString();
   j["tm"] = term;
   j["gr"] = granted;
   return j;
