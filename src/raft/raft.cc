@@ -98,4 +98,12 @@ int32_t Raft::OnPingReply(struct PingReply &msg) {
   return 0;
 }
 
+int32_t Raft::OnRequestVote(struct RequestVote &msg) { return 0; }
+
+int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) { return 0; }
+
+int32_t Raft::OnAppendEntries(struct AppendEntries &msg) { return 0; }
+
+int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) { return 0; }
+
 }  // namespace vraft

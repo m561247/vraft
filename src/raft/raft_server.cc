@@ -51,18 +51,38 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
         }
 
         case kRequestVote: {
+          RequestVote msg;
+          bool b = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(b);
+          buf->Retrieve(body_bytes);
+          raft_.OnRequestVote(msg);
           break;
         }
 
         case kRequestVoteReply: {
+          RequestVoteReply msg;
+          bool b = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(b);
+          buf->Retrieve(body_bytes);
+          raft_.OnRequestVoteReply(msg);
           break;
         }
 
         case kAppendEntries: {
+          AppendEntries msg;
+          int32_t bytes = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(bytes > 0);
+          buf->Retrieve(body_bytes);
+          raft_.OnAppendEntries(msg);
           break;
         }
 
         case kAppendEntriesReply: {
+          AppendEntriesReply msg;
+          bool b = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(b);
+          buf->Retrieve(body_bytes);
+          raft_.OnAppendEntriesReply(msg);
           break;
         }
 

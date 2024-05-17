@@ -63,7 +63,7 @@ TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test 
 
 # compile
 all: $(MAIN) $(EXAMPLE) $(TEST)
-main: $(EXE) 
+main: $(MAIN) 
 example: $(EXAMPLE)
 test: $(TEST)
 

@@ -144,7 +144,7 @@ std::string StrToHexStr(const char *ptr, int32_t size) {
   if (str.size() > 0) {
     str.pop_back();
   }
-  
+
   return str;
 }
 

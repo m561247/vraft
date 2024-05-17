@@ -123,7 +123,8 @@ inline nlohmann::json LogEntry::ToJson() {
   nlohmann::json j;
   j["index"] = index;
   j["term"] = append_entry.term;
-  j["value"] = StrToHexStr(append_entry.value.c_str(), append_entry.value.size());
+  j["value"] =
+      StrToHexStr(append_entry.value.c_str(), append_entry.value.size());
   j["this"] = PointerToHexStr(this);
   return j;
 }

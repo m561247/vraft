@@ -3,9 +3,13 @@
 
 #include <vector>
 
+#include "append_entries.h"
+#include "append_entries_reply.h"
 #include "config.h"
 #include "ping.h"
 #include "ping_reply.h"
+#include "request_vote.h"
+#include "request_vote_reply.h"
 #include "timer.h"
 
 namespace vraft {
@@ -26,6 +30,10 @@ class Raft final {
 
   int32_t OnPing(struct Ping &msg);
   int32_t OnPingReply(struct PingReply &msg);
+  int32_t OnRequestVote(struct RequestVote &msg);
+  int32_t OnRequestVoteReply(struct RequestVoteReply &msg);
+  int32_t OnAppendEntries(struct AppendEntries &msg);
+  int32_t OnAppendEntriesReply(struct AppendEntriesReply &msg);
 
   int16_t id() { return id_; }
   HostPort my_addr() { return my_addr_; }
