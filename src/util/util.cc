@@ -135,13 +135,23 @@ uint32_t Crc32(const void *data, size_t length) {
 std::string StrToHexStr(const char *ptr, int32_t size) {
   assert(size >= 0);
   std::string str;
-  char buf[2];
+  char buf[8];
   memset(buf, 0, sizeof(buf));
   for (int32_t i = 0; i < size; ++i) {
-    snprintf(buf, sizeof(buf), "%X", ptr[i]);
+    snprintf(buf, sizeof(buf), "0x%X ", ptr[i]);
     str.append(buf);
   }
+  if (str.size() > 0) {
+    str.pop_back();
+  }
+  
   return str;
+}
+
+std::string PointerToHexStr(void *p) {
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%p", p);
+  return std::string(buf);
 }
 
 }  // namespace vraft

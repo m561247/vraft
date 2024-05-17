@@ -10,6 +10,7 @@
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
 #include "raft_log.h"
+#include "util.h"
 
 namespace vraft {
 
@@ -176,6 +177,7 @@ inline nlohmann::json AppendEntries::ToJson() {
   for (int32_t i = 0; i < entries.size(); ++i) {
     j["entries"][i] = entries[i].ToJson();
   }
+  j["this"] = PointerToHexStr(this);
   return j;
 }
 
@@ -191,6 +193,7 @@ inline nlohmann::json AppendEntries::ToJsonTiny() {
   for (int32_t i = 0; i < entries.size(); ++i) {
     j["etr"][i] = entries[i].ToJsonTiny();
   }
+  j["ts"] = PointerToHexStr(this);
   return j;
 }
 

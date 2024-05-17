@@ -7,6 +7,7 @@
 #include "common.h"
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
+#include "util.h"
 
 namespace vraft {
 
@@ -100,6 +101,7 @@ inline nlohmann::json RequestVoteReply::ToJson() {
   j["dest"] = dest.ToString();
   j["term"] = term;
   j["granted"] = granted;
+  j["this"] = PointerToHexStr(this);
   return j;
 }
 
@@ -109,6 +111,7 @@ inline nlohmann::json RequestVoteReply::ToJsonTiny() {
   j["dst"] = dest.ToString();
   j["tm"] = term;
   j["gr"] = granted;
+  j["ts"] = PointerToHexStr(this);
   return j;
 }
 

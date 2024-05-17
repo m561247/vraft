@@ -8,6 +8,7 @@
 #include "message.h"
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
+#include "util.h"
 
 namespace vraft {
 
@@ -95,6 +96,7 @@ inline nlohmann::json Ping::ToJson() {
   j["src"] = src.ToString();
   j["dest"] = dest.ToString();
   j["msg"] = msg;
+  j["this"] = PointerToHexStr(this);
   return j;
 }
 
@@ -103,6 +105,7 @@ inline nlohmann::json Ping::ToJsonTiny() {
   j[0] = src.ToString();
   j[1] = dest.ToString();
   j[2] = msg;
+  j[3] = PointerToHexStr(this);
   return j;
 }
 

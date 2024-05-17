@@ -45,6 +45,17 @@ TEST(UTIL, StringToIpU32) {
   // EXPECT_EQ(ip_str, std::string("110.242.68.66"));
 }
 
+TEST(UTIL, PointerToHexStr) {
+  int a;
+  int *p = &a;
+  std::cout << vraft::PointerToHexStr(p) << std::endl;
+}
+
+TEST(UTIL, StrToHexStr) {
+  std::string s = "abc";
+  std::cout << vraft::StrToHexStr(s.c_str(), s.size()) << std::endl;
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

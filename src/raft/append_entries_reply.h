@@ -7,6 +7,7 @@
 #include "common.h"
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
+#include "util.h"
 
 namespace vraft {
 
@@ -110,6 +111,7 @@ inline nlohmann::json AppendEntriesReply::ToJson() {
   j["term"] = term;
   j["success"] = success;
   j["last_log_index"] = last_log_index;
+  j["this"] = PointerToHexStr(this);
   return j;
 }
 
@@ -120,6 +122,7 @@ inline nlohmann::json AppendEntriesReply::ToJsonTiny() {
   j["tm"] = term;
   j["suc"] = success;
   j["lidx"] = last_log_index;
+  j["ts"] = PointerToHexStr(this);
   return j;
 }
 

@@ -40,6 +40,8 @@ uint32_t Crc32(const void *data, size_t length);
 
 std::string StrToHexStr(const char *ptr, int32_t size);
 
+std::string PointerToHexStr(void *p);
+
 }  // namespace vraft
 
 #endif

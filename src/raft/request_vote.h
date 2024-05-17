@@ -7,6 +7,7 @@
 #include "common.h"
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
+#include "util.h"
 
 namespace vraft {
 
@@ -110,6 +111,7 @@ inline nlohmann::json RequestVote::ToJson() {
   j["term"] = term;
   j["last_log_index"] = last_log_index;
   j["last_log_term"] = last_log_term;
+  j["this"] = PointerToHexStr(this);
   return j;
 }
 
@@ -120,6 +122,7 @@ inline nlohmann::json RequestVote::ToJsonTiny() {
   j["tm"] = term;
   j["lidx"] = last_log_index;
   j["ltm"] = last_log_term;
+  j["ts"] = PointerToHexStr(this);
   return j;
 }
 

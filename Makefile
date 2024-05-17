@@ -55,6 +55,10 @@ TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test 
 # 默认目标
 all: $(EXE) $(TEST)
 
+exe: $(EXE) 
+
+test: $(TEST)
+
 # 模式规则，用于从.cc文件编译成.o文件
 %.o: %.cc
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c $< -o $@
