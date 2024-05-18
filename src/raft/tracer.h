@@ -2,6 +2,7 @@
 #define VRAFT_TRACER_H_
 
 #include <string>
+#include <vector>
 
 #include "clock.h"
 
@@ -25,11 +26,13 @@ class Tracer final {
   bool Enable() { enable_ = true; }
   bool Disable() { enable_ = false; }
 
-  void Init();
   void PrepareState0();
   void PrepareState1();
-  void PrepareEvent(EventType event_type, std::string &s);
+  void PrepareEvent(EventType event_type, std::string s);
   std::string Finish();
+
+ private:
+  void Init();
 
  private:
   bool enable_;
@@ -38,10 +41,12 @@ class Tracer final {
   char ts_buf_[32];
   std::string state0_;
   std::string state1_;
-  std::string event_;
+  std::vector<std::string> events_;
 };
 
-inline Tracer::Tracer(Raft *r, bool enable) : raft_(r), enable_(enable) {}
+inline Tracer::Tracer(Raft *r, bool enable) : raft_(r), enable_(enable) {
+  Init();
+}
 
 inline Tracer::~Tracer() {}
 

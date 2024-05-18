@@ -49,7 +49,6 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       config_mgr_(rc),
       vote_mgr_(rc.peers),
       index_mgr_(rc.peers),
-      tracer(this, true),
       commit_(0),
       leader_(0) {}
 
@@ -89,27 +88,9 @@ void Raft::Init() {
 }
 
 int32_t Raft::OnPing(struct Ping &msg) {
-  uint64_t ts = Clock::NSec();
-  std::string trace_log;
-  char trace_log_buf[256];
-
-  snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu state_0: ", ts);
-  trace_log.append(trace_log_buf);
-  trace_log.append(ToJsonString(true, true));
-
-  snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu event_r: ", ts);
-  trace_log.append(trace_log_buf);
-  trace_log.append(msg.ToJsonString(false, true));
-
-  snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu state_1: ", ts);
-  trace_log.append(trace_log_buf);
-  trace_log.append(ToJsonString(true, true));
-
-  vraft_logger.Info("%s", trace_log.c_str());
-
-  // vraft_logger.Info("%s recv ping from %s, msg:%s",
-  // msg.dest.ToString().c_str(),
-  //                  msg.src.ToString().c_str(), msg.msg.c_str());
+  Tracer tracer(this, true);
+  tracer.PrepareState0();
+  tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
 
   PingReply reply;
   reply.src = msg.dest;
@@ -126,8 +107,13 @@ int32_t Raft::OnPing(struct Ping &msg) {
 
   if (send_) {
     header_str.append(std::move(reply_str));
-    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+    send_(reply.dest.ToU64(), header_str.data(), header_str.size());
+
+    tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
   }
+
+  tracer.PrepareState1();
+  vraft_logger.Trace("%s", tracer.Finish().c_str());
 
   return 0;
 }

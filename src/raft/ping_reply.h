@@ -4,8 +4,11 @@
 #include <string>
 
 #include "allocator.h"
+#include "common.h"
 #include "message.h"
+#include "nlohmann/json.hpp"
 #include "raft_addr.h"
+#include "util.h"
 
 namespace vraft {
 
@@ -14,15 +17,24 @@ struct PingReply {
   RaftAddr dest;  // uint64_t
   std::string msg;
 
+  int32_t MaxBytes();
   int32_t ToString(std::string &s);
   int32_t ToString(const char *ptr, int32_t len);
   bool FromString(std::string &s);
   bool FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
+
+inline int32_t PingReply::MaxBytes() {
+  return sizeof(uint64_t) + sizeof(uint64_t) + 2 * sizeof(int32_t) + msg.size();
+}
 
 inline int32_t PingReply::ToString(std::string &s) {
   s.clear();
-  int32_t max_bytes = sizeof(src) + sizeof(dest) + sizeof(int32_t) + msg.size();
+  int32_t max_bytes = MaxBytes();
   char *ptr = reinterpret_cast<char *>(DefaultAllocator().Malloc(max_bytes));
   int32_t size = ToString(ptr, max_bytes);
   s.append(ptr, size);
@@ -77,6 +89,39 @@ inline bool PingReply::FromString(const char *ptr, int32_t len) {
     msg.append(result.data(), result.size());
   }
   return b;
+}
+
+inline nlohmann::json PingReply::ToJson() {
+  nlohmann::json j;
+  j["src"] = src.ToString();
+  j["dest"] = dest.ToString();
+  j["msg"] = msg;
+  j["this"] = PointerToHexStr(this);
+  return j;
+}
+
+inline nlohmann::json PingReply::ToJsonTiny() {
+  nlohmann::json j;
+  j[0] = src.ToString();
+  j[1] = dest.ToString();
+  j[2] = msg;
+  j[3] = PointerToHexStr(this);
+  return j;
+}
+
+inline std::string PingReply::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["pir"] = ToJsonTiny();
+  } else {
+    j["ping_reply"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
 }
 
 }  // namespace vraft

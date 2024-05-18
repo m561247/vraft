@@ -71,10 +71,6 @@ class Raft final {
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
 
- public:
-  Tracer tracer;
-  Checker checker;
-
  private:
   // path
   std::string home_path_;

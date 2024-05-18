@@ -7,6 +7,7 @@
 
 #include "coding.h"
 #include "ping.h"
+#include "ping_reply.h"
 #include "raft.h"
 
 TEST(Tracer, test) {
@@ -28,12 +29,19 @@ TEST(Tracer, test) {
   msg.dest = dest;
   msg.msg = "ping";
 
+  vraft::PingReply msg2;
+  msg2.src = dest;
+  msg2.dest = src;
+  msg2.msg = "pang";
+
   std::string event_str = msg.ToJsonString(false, true);
-  r.tracer.Init();
-  r.tracer.PrepareState0();
-  r.tracer.PrepareEvent(vraft::kRecv, event_str);
-  r.tracer.PrepareState1();
-  std::cout << r.tracer.Finish() << std::endl;
+  std::string event_str2 = msg2.ToJsonString(false, true);
+  vraft::Tracer tracer(&r, true);
+  tracer.PrepareState0();
+  tracer.PrepareEvent(vraft::kRecv, event_str);
+  tracer.PrepareEvent(vraft::kSend, event_str2);
+  tracer.PrepareState1();
+  std::cout << tracer.Finish() << std::endl;
   system("rm -rf /tmp/raft_tracer_test");
 }
 
