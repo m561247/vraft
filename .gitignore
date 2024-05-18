@@ -1,5 +1,8 @@
 build
 output
+vraft_9000
+vraft_9001
+vraft_9002
 
 # Prerequisites
 *.d

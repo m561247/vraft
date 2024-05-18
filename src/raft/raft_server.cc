@@ -138,12 +138,15 @@ int32_t RaftServer::Stop() {
 
 int32_t RaftServer::SendMsg(uint64_t dest_addr, const char *buf,
                             unsigned int size) {
+  int32_t rv = 0;
   TcpClientPtr client = GetClientOrCreate(dest_addr);
   if (client) {
-    client->CopySend(buf, size);
+    rv = client->CopySend(buf, size);
   } else {
+    rv = -1;
     vraft_logger.FError("GetClientOrCreate error");
   }
+  return rv;
 }
 
 TimerPtr RaftServer::MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,

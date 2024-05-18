@@ -245,8 +245,8 @@ inline nlohmann::json RaftLog::ToJson() {
 
 inline nlohmann::json RaftLog::ToJsonTiny() {
   nlohmann::json j;
-  j["b"] = begin_index_;
-  j["e"] = end_index_;
+  j[0] = begin_index_;
+  j[1] = end_index_;
   return j;
 }
 

@@ -37,8 +37,8 @@ void SendPing(Timer *timer) {
   }
 }
 
-// if path is empty, use rc to initialize, else use the data in path to
-// initialize
+// if path is empty, use rc to initialize,
+// else use the data in path to initialize
 Raft::Raft(const std::string &path, const RaftConfig &rc)
     : home_path_(path),
       conf_path_(path + "/conf"),
@@ -46,7 +46,9 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       log_path_(path + "/raft_log"),
       meta_(path + "/meta"),
       log_(path + "/raft_log"),
-      config_mgr_(rc) {}
+      config_mgr_(rc),
+      vote_mgr_(rc.peers),
+      index_mgr_(rc.peers) {}
 
 int32_t Raft::Start() {
   if (make_timer_) {
@@ -94,7 +96,7 @@ int32_t Raft::OnPing(struct Ping &msg) {
 
   snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu event_r: ", ts);
   trace_log.append(trace_log_buf);
-  trace_log.append(msg.ToJsonString(true, true));
+  trace_log.append(msg.ToJsonString(false, true));
 
   snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu state_1: ", ts);
   trace_log.append(trace_log_buf);
@@ -150,16 +152,41 @@ int32_t Raft::OnInstallSnapshotReply(struct InstallSnapshotReply &msg) {
 
 nlohmann::json Raft::ToJson() {
   nlohmann::json j;
+  j["index"] = index_mgr_.ToJson();
+  j["vote"] = vote_mgr_.ToJson();
+  j["config"] = config_mgr_.ToJson();
   j["log"] = log_.ToJson();
   j["meta"] = meta_.ToJson();
+  j["commit"] = commit_;
+  if (leader_.ToU64() == 0) {
+    j["leader"] = 0;
+  } else {
+    j["leader"] = leader_.ToString();
+  }
   j["this"] = PointerToHexStr(this);
   return j;
 }
 
 nlohmann::json Raft::ToJsonTiny() {
   nlohmann::json j;
+  j["me"] = config_mgr_.Current().me.ToString();
+  for (auto dest : config_mgr_.Current().peers) {
+    std::string key = "peer_";
+    key.append(dest.ToString());
+    j[key]["m"] = index_mgr_.indices[dest.ToU64()].match;
+    j[key]["n"] = index_mgr_.indices[dest.ToU64()].next;
+    j[key]["v"] = vote_mgr_.votes[dest.ToU64()];
+  }
+
   j["log"] = log_.ToJsonTiny();
-  j["meta"] = meta_.ToJsonTiny();
+  j["tm"] = meta_.term();
+  if (meta_.vote() == 0) {
+    j["vt"] = "0";
+  } else {
+    RaftAddr addr(meta_.vote());
+    j["vt"] = addr.ToString();
+  }
+  j["cmt"] = commit_;
   j["this"] = PointerToHexStr(this);
   return j;
 }

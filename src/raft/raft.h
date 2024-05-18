@@ -90,6 +90,10 @@ class Raft final {
   TimerPtr election_timer_;
   TimerPtr heartbeat_timer_;
 
+  // in memory
+  RaftIndex commit_;
+  RaftAddr leader_;
+
   // send msg func
   SendFunc send_;
   MakeTimerFunc make_timer_;
