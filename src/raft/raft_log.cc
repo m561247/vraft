@@ -80,6 +80,7 @@ void RaftLog::Init() {
   db_options_.comparator = U32Comparator();
   leveldb::DB *dbptr;
   leveldb::Status status = leveldb::DB::Open(db_options_, path_, &dbptr);
+  std::string err_str = status.ToString();
   assert(status.ok());
   db_.reset(dbptr);
 

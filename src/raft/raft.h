@@ -6,6 +6,7 @@
 
 #include "append_entries.h"
 #include "append_entries_reply.h"
+#include "checker.h"
 #include "config.h"
 #include "config_manager.h"
 #include "index_manager.h"
@@ -20,6 +21,7 @@
 #include "request_vote_reply.h"
 #include "solid_data.h"
 #include "timer.h"
+#include "tracer.h"
 #include "vote_manager.h"
 
 namespace vraft {
@@ -69,6 +71,10 @@ class Raft final {
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
 
+ public:
+  Tracer tracer;
+  Checker checker;
+
  private:
   // path
   std::string home_path_;
@@ -99,10 +105,6 @@ class Raft final {
   MakeTimerFunc make_timer_;
 
   friend void SendPing(Timer *timer);
-
-  //  RaftServer *raft_server_;
-  // HostPort my_addr_;
-  // std::vector<HostPort> peers_;
 };
 
 inline Raft::~Raft() {}

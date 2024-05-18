@@ -2,6 +2,7 @@
 #define VRAFT_RAFT_ADDR_H_
 
 #include <cstdint>
+#include <string>
 
 #include "coding.h"
 #include "util.h"
@@ -11,6 +12,7 @@ namespace vraft {
 class RaftAddr final {
  public:
   RaftAddr(uint32_t ip, uint16_t port, int16_t id);
+  RaftAddr(std::string ip_str, uint16_t port, int16_t id);
   RaftAddr(uint64_t u64 = 0);
   ~RaftAddr();
 
@@ -36,6 +38,12 @@ class RaftAddr final {
 
 inline RaftAddr::RaftAddr(uint32_t ip, uint16_t port, int16_t id)
     : ip_(ip), port_(port), id_(id) {}
+
+inline RaftAddr::RaftAddr(std::string ip_str, uint16_t port, int16_t id)
+    : port_(port), id_(id) {
+  bool b = StringToIpU32(ip_str, ip_);
+  assert(b);
+}
 
 inline RaftAddr::RaftAddr(uint64_t u64) { FromU64(u64, ip_, port_, id_); }
 

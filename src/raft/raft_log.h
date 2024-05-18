@@ -203,6 +203,9 @@ class U32ComparatorImpl : public leveldb::Comparator {
  private:
 };
 
+class RaftLog;
+using RaftLogUPtr = std::unique_ptr<RaftLog>;
+
 class RaftLog final {
  public:
   RaftLog(const std::string &path);

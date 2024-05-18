@@ -48,7 +48,10 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       log_(path + "/raft_log"),
       config_mgr_(rc),
       vote_mgr_(rc.peers),
-      index_mgr_(rc.peers) {}
+      index_mgr_(rc.peers),
+      tracer(this, true),
+      commit_(0),
+      leader_(0) {}
 
 int32_t Raft::Start() {
   if (make_timer_) {
