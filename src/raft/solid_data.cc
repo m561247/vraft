@@ -6,7 +6,9 @@
 
 namespace vraft {
 
-SolidData::SolidData(const std::string &path) : path_(path) {
+SolidData::SolidData(const std::string &path) : path_(path) {}
+
+void SolidData::Init() {
   db_options_.create_if_missing = true;
   db_options_.error_if_exists = false;
   leveldb::DB *dbptr;

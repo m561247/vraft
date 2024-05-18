@@ -107,7 +107,7 @@ void RaftLog::Init() {
   delete it;
 }
 
-RaftLog::RaftLog(const std::string &path) : path_(path) { Init(); }
+RaftLog::RaftLog(const std::string &path) : path_(path) {}
 
 int32_t RaftLog::Get(RaftIndex index, LogEntry &entry) { return 0; }
 

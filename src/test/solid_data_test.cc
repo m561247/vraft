@@ -10,6 +10,7 @@
 TEST(SolidData, construct) {
   system("rm -rf /tmp/soliddata_test_dir");
   vraft::SolidData solid_data("/tmp/soliddata_test_dir");
+  solid_data.Init();
   std::cout << "term: " << solid_data.term() << std::endl;
   std::cout << "vote: " << solid_data.vote() << std::endl;
   EXPECT_EQ(solid_data.term(), 0);
@@ -21,6 +22,7 @@ TEST(SolidData, persist) {
 
   {
     vraft::SolidData solid_data("/tmp/soliddata_test_dir");
+    solid_data.Init();
     std::cout << "term: " << solid_data.term() << std::endl;
     std::cout << "vote: " << solid_data.vote() << std::endl;
     EXPECT_EQ(solid_data.term(), 0);
@@ -41,6 +43,7 @@ TEST(SolidData, persist) {
 
   {
     vraft::SolidData solid_data("/tmp/soliddata_test_dir");
+    solid_data.Init();
     EXPECT_EQ(solid_data.term(), 4);
     EXPECT_EQ(solid_data.vote(), 7);
 

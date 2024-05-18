@@ -355,6 +355,7 @@ TEST(coding, test) {
 TEST(RaftLog, construct) {
   system("rm -rf /tmp/raftlog_test_dir");
   vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+  raft_log.Init();
 
   std::cout << "begin: " << raft_log.begin_index() << std::endl;
   std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -370,6 +371,7 @@ TEST(RaftLog, append) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -393,6 +395,7 @@ TEST(RaftLog, append) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -408,6 +411,7 @@ TEST(RaftLog, DeleteFrom) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -437,6 +441,7 @@ TEST(RaftLog, DeleteFrom) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -452,6 +457,7 @@ TEST(RaftLog, DeleteFrom2) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -481,6 +487,7 @@ TEST(RaftLog, DeleteFrom2) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -496,6 +503,7 @@ TEST(RaftLog, DeleteFrom3) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -525,6 +533,7 @@ TEST(RaftLog, DeleteFrom3) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -540,6 +549,7 @@ TEST(RaftLog, DeleteFrom4) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -581,6 +591,7 @@ TEST(RaftLog, DeleteFrom4) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -596,6 +607,7 @@ TEST(RaftLog, DeleteUtil) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -625,6 +637,7 @@ TEST(RaftLog, DeleteUtil) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -640,6 +653,7 @@ TEST(RaftLog, DeleteUtil2) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -669,6 +683,7 @@ TEST(RaftLog, DeleteUtil2) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -684,6 +699,7 @@ TEST(RaftLog, DeleteUtil3) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -719,6 +735,7 @@ TEST(RaftLog, DeleteUtil3) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -740,6 +757,7 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;
@@ -775,6 +793,7 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
 
     std::cout << "begin: " << raft_log.begin_index() << std::endl;
     std::cout << "end: " << raft_log.end_index() << std::endl;

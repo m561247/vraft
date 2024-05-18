@@ -20,6 +20,7 @@ class SolidData final {
   ~SolidData();
   SolidData(const SolidData &t) = delete;
   SolidData &operator=(const SolidData &t) = delete;
+  void Init();
 
   std::string path() const { return path_; }
 

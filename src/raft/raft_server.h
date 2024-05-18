@@ -65,6 +65,7 @@ inline RaftServer::RaftServer(Config &config)
     rc.peers.push_back(dest);
   }
   raft_ = std::make_unique<Raft>(config_.path(), rc);
+  raft_->Init();
   raft_->set_send(std::bind(&RaftServer::SendMsg, this, std::placeholders::_1,
                             std::placeholders::_2, std::placeholders::_3));
   raft_->set_make_timer(std::bind(

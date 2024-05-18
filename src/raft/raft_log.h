@@ -212,6 +212,7 @@ class RaftLog final {
   ~RaftLog();
   RaftLog(const RaftLog &t) = delete;
   RaftLog &operator=(const RaftLog &t) = delete;
+  void Init();
 
   int32_t Get(RaftIndex index, LogEntry &entry);
   int32_t Append(AppendEntry &entry);
@@ -224,9 +225,6 @@ class RaftLog final {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
-
- private:
-  void Init();
 
  private:
   RaftIndex begin_index_;

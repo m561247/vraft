@@ -85,10 +85,13 @@ void Raft::Init() {
   snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s/meta", home_path_.c_str());
   system(cmd_buf);
   assert(rv == 0);
+
+  meta_.Init();
+  log_.Init();
 }
 
 int32_t Raft::OnPing(struct Ping &msg) {
-  Tracer tracer(this, true);
+  Tracer tracer(this, false);
   tracer.PrepareState0();
   tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
 

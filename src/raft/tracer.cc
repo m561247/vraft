@@ -56,11 +56,13 @@ void Tracer::PrepareState1() {
 
 std::string Tracer::Finish() {
   std::string s;
-  s.append("\n" + state0_);
-  for (auto &e : events_) {
-    s.append("\n" + e);
+  if (enable_) {
+    s.append("\n" + state0_);
+    for (auto &e : events_) {
+      s.append("\n" + e);
+    }
+    s.append("\n" + state1_);
   }
-  s.append("\n" + state1_);
   return s;
 }
 }  // namespace vraft
