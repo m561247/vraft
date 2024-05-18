@@ -23,10 +23,13 @@ class RaftConfig final {
 
 inline nlohmann::json RaftConfig::ToJson() {
   nlohmann::json j;
-  j["me"] = me.ToString();
+  j["me"]["u64"] = me.ToU64();
+  j["me"]["str"] = me.ToString();
   int32_t i = 0;
   for (auto peer : peers) {
-    j["peers"][i++] = peer.ToString();
+    j["peers"][i]["u64"] = peer.ToU64();
+    j["peers"][i]["str"] = peer.ToString();
+    i++;
   }
   return j;
 }
@@ -64,6 +67,7 @@ class ConfigManager final {
   ConfigManager& operator=(const ConfigManager& t) = delete;
 
   RaftConfig& Current();
+  void SetCurrent(RaftConfig rc);
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
@@ -80,6 +84,12 @@ inline ConfigManager::~ConfigManager() {}
 
 inline RaftConfig& ConfigManager::Current() { return current_; }
 
+inline void ConfigManager::SetCurrent(RaftConfig rc) {
+  current_.me = rc.me;
+  current_.peers.clear();
+  current_.peers.swap(rc.peers);
+}
+
 inline nlohmann::json ConfigManager::ToJson() {
   nlohmann::json j;
   j = current_.ToJson();
@@ -95,9 +105,9 @@ inline nlohmann::json ConfigManager::ToJsonTiny() {
 inline std::string ConfigManager::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["vt_mgr"] = ToJsonTiny();
+    j["cf_mgr"] = ToJsonTiny();
   } else {
-    j["vote_manager"] = ToJson();
+    j["config_manager"] = ToJson();
   }
 
   if (one_line) {

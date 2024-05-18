@@ -16,6 +16,7 @@ class VoteManager final {
   ~VoteManager();
   VoteManager(const VoteManager &t) = delete;
   VoteManager &operator=(const VoteManager &t) = delete;
+  void Reset(const std::vector<RaftAddr> &peers);
 
  public:
   std::unordered_map<uint64_t, bool> votes;
@@ -32,6 +33,13 @@ inline VoteManager::VoteManager(const std::vector<RaftAddr> &peers) {
 }
 
 inline VoteManager::~VoteManager() {}
+
+inline void VoteManager::Reset(const std::vector<RaftAddr> &peers) {
+  votes.clear();
+  for (auto addr : peers) {
+    votes[addr.ToU64()] = false;
+  }
+}
 
 inline nlohmann::json VoteManager::ToJson() {
   nlohmann::json j;

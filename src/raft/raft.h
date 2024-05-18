@@ -72,6 +72,9 @@ class Raft final {
   std::string ToJsonString(bool tiny, bool one_line);
 
  private:
+  int32_t InitConfig();
+
+ private:
   // path
   std::string home_path_;
   std::string conf_path_;

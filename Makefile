@@ -30,7 +30,7 @@ APPEND_ENTRIES_TEST_SRCS := src/test/append_entries_test.cc $(COMMON_SRCS)
 CODING_TEST_SRCS := src/test/coding_test.cc $(COMMON_SRCS)
 APPEND_ENTRIES_REPLY_TEST_SRCS := src/test/append_entries_reply_test.cc $(COMMON_SRCS)
 TRACER_TEST_SRCS := src/test/tracer_test.cc $(COMMON_SRCS)
-
+RAFT_TEST_SRCS := src/test/raft_test.cc $(COMMON_SRCS)
 
 # generate .o
 # main
@@ -55,12 +55,13 @@ APPEND_ENTRIES_TEST_OBJECTS := $(APPEND_ENTRIES_TEST_SRCS:.cc=.o)
 CODING_TEST_OBJECTS := $(CODING_TEST_SRCS:.cc=.o)
 APPEND_ENTRIES_REPLY_TEST_OBJECTS := $(APPEND_ENTRIES_REPLY_TEST_SRCS:.cc=.o)
 TRACER_TEST_OBJECTS := $(TRACER_TEST_SRCS:.cc=.o)
+RAFT_TEST_OBJECTS := $(RAFT_TEST_SRCS:.cc=.o)
 
 
 # generate exe
 MAIN := vraft_server raft_log_tool raft_insight 
 EXAMPLE := echo_server echo_client 
-TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test request_vote_test request_vote_reply_test append_entries_test coding_test append_entries_reply_test tracer_test
+TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test request_vote_test request_vote_reply_test append_entries_test coding_test append_entries_reply_test tracer_test raft_test
 
 
 # compile
@@ -128,6 +129,9 @@ append_entries_reply_test: $(APPEND_ENTRIES_REPLY_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@	
 
 tracer_test: $(TRACER_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+raft_test: $(RAFT_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 # clean

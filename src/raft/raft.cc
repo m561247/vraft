@@ -1,6 +1,7 @@
 #include "raft.h"
 
 #include <cstdlib>
+#include <fstream>
 
 #include "clock.h"
 #include "raft_server.h"
@@ -41,7 +42,7 @@ void SendPing(Timer *timer) {
 // else use the data in path to initialize
 Raft::Raft(const std::string &path, const RaftConfig &rc)
     : home_path_(path),
-      conf_path_(path + "/conf"),
+      conf_path_(path + "/conf/conf.json"),
       meta_path_(path + "/meta"),
       log_path_(path + "/raft_log"),
       meta_(path + "/meta"),
@@ -77,17 +78,51 @@ void Raft::Init() {
   rv = system(cmd_buf);
   assert(rv == 0);
 
-  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s/raft_log",
-           home_path_.c_str());
+  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s", log_path_.c_str());
   system(cmd_buf);
   assert(rv == 0);
 
-  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s/meta", home_path_.c_str());
+  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s", meta_path_.c_str());
   system(cmd_buf);
+  assert(rv == 0);
+
+  rv = InitConfig();
   assert(rv == 0);
 
   meta_.Init();
   log_.Init();
+}
+
+int32_t Raft::InitConfig() {
+  std::ifstream read_file(conf_path_);
+  if (read_file) {
+    read_file.close();
+
+    // load config
+    std::ifstream json_file(conf_path_);
+    nlohmann::json j;
+    json_file >> j;
+    json_file.close();
+
+    RaftConfig rc;
+    rc.me = RaftAddr(j["config_manager"]["me"]["u64"]);
+    for (auto &peer : j["config_manager"]["peers"]) {
+      rc.peers.push_back(RaftAddr(peer["u64"]));
+    }
+    config_mgr_.SetCurrent(rc);
+
+    // reset managers
+    index_mgr_.Reset(rc.peers);
+    vote_mgr_.Reset(rc.peers);
+
+  } else {
+    // write config
+    std::ofstream write_file(conf_path_);
+    write_file << config_mgr_.ToJsonString(false, false);
+    write_file.close();
+  }
+
+  return 0;
 }
 
 int32_t Raft::OnPing(struct Ping &msg) {

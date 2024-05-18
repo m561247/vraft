@@ -18,8 +18,8 @@ TEST(Tracer, test) {
     uint16_t port = 9000 + i;
     rc.peers.push_back(vraft::RaftAddr("127.0.0.1", port, 100));
   }
-  system("mkdir -p /tmp/raft_tracer_test");
   vraft::Raft r("/tmp/raft_tracer_test", rc);
+  r.Init();
 
   vraft::RaftAddr src("127.0.0.1", 1234, 55);
   vraft::RaftAddr dest("127.0.0.1", 5678, 99);

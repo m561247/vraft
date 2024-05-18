@@ -20,6 +20,7 @@ class IndexManager final {
   ~IndexManager();
   IndexManager(const IndexManager &t) = delete;
   IndexManager &operator=(const IndexManager &t) = delete;
+  void Reset(const std::vector<RaftAddr> &peers);
 
  public:
   std::unordered_map<uint64_t, IndexItem> indices;
@@ -39,6 +40,16 @@ inline IndexManager::IndexManager(const std::vector<RaftAddr> &peers) {
 }
 
 inline IndexManager::~IndexManager() {}
+
+inline void IndexManager::Reset(const std::vector<RaftAddr> &peers) {
+  indices.clear();
+  for (auto addr : peers) {
+    IndexItem item;
+    item.next = 0;
+    item.match = 0;
+    indices[addr.ToU64()] = item;
+  }
+}
 
 inline nlohmann::json IndexManager::ToJson() {
   nlohmann::json j;
