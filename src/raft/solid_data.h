@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "leveldb/db.h"
+#include "nlohmann/json.hpp"
 
 namespace vraft {
 
@@ -28,6 +29,10 @@ class SolidData final {
   void IncrTerm();
   void SetTerm(uint64_t term);
   void SetVote(uint64_t vote);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 
  private:
   void PersistTerm();

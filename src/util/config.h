@@ -36,7 +36,7 @@ class Config final {
   const std::vector<HostPort> &peers() { return peers_; }
   uint8_t log_level() const { return log_level_; }
   bool enable_debug() const { return enable_debug_; }
-  const std::string &log_file() { return log_file_; }
+  const std::string &path() { return path_; }
   const RaftMode mode() { return mode_; }
 
  private:
@@ -47,7 +47,7 @@ class Config final {
   std::vector<HostPort> peers_;
   uint8_t log_level_;
   bool enable_debug_;
-  std::string log_file_;
+  std::string path_;
   RaftMode mode_;
 };
 
@@ -69,22 +69,22 @@ inline const std::string Config::UsageBanner(char *program_name) {
   snprintf(buf, sizeof(buf),
            "%s --mode=single --addr=127.0.0.1:9000 "
            "--peers=127.0.0.1:9001,127.0.0.1:9002 "
-           "--logfile=./log/vraft.log\n",
+           "--path=./vraft_9000\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9000 --peers=127.0.0.1:9001,127.0.0.1:9002 "
-           "--logfile=./log/vraft_server_9000.log\n",
+           "--path=./vraft_9000\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9001 --peers=127.0.0.1:9000,127.0.0.1:9002 "
-           "--logfile=./log/vraft_server_9001.log\n",
+           "--path=./vraft_9001\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9002 --peers=127.0.0.1:9000,127.0.0.1:9001 "
-           "--logfile=./log/vraft_server_9002.log\n",
+           "--path=./vraft_9002\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf), "%s -h\n", program_name);
@@ -106,7 +106,7 @@ inline const std::string Config::ToString() const {
     snprintf(buf, sizeof(buf), "\t%s\n", o.ToString().c_str());
     str.append(buf);
   }
-  snprintf(buf, sizeof(buf), "logfile: %s\n", log_file_.c_str());
+  snprintf(buf, sizeof(buf), "path: %s\n", path_.c_str());
   str.append(buf);
 
   return str;

@@ -16,6 +16,8 @@ enum MsgType {
   kRequestVoteReply,
   kAppendEntries,
   kAppendEntriesReply,
+  kInstallSnapshot,
+  kInstallSnapshotReply,
   kMsgNum,
 };
 

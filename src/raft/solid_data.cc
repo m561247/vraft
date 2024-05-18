@@ -1,6 +1,8 @@
 #include "solid_data.h"
 
 #include "coding.h"
+#include "common.h"
+#include "raft_addr.h"
 
 namespace vraft {
 
@@ -84,6 +86,45 @@ void SolidData::PersistVote() {
   leveldb::Status status =
       db_->Put(leveldb::WriteOptions(), sls_key, sls_value);
   assert(status.ok());
+}
+
+nlohmann::json SolidData::ToJson() {
+  nlohmann::json j;
+  j["term"] = term_;
+  if (vote_ == 0) {
+    j["vote"] = "0";
+  } else {
+    RaftAddr addr(vote_);
+    j["vote"] = addr.ToString();
+  }
+  return j;
+}
+
+nlohmann::json SolidData::ToJsonTiny() {
+  nlohmann::json j;
+  j["tm"] = term_;
+  if (vote_ == 0) {
+    j["vt"] = "0";
+  } else {
+    RaftAddr addr(vote_);
+    j["vt"] = addr.ToString();
+  }
+  return j;
+}
+
+std::string SolidData::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["meta"] = ToJsonTiny();
+  } else {
+    j["meta"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
 }
 
 }  // namespace vraft

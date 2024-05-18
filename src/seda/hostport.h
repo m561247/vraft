@@ -77,6 +77,7 @@ class HostPort final {
 
   bool convert_ok;
   sockaddr addr;
+  uint32_t ip32;
 
  private:
   void Init();
@@ -88,6 +89,9 @@ inline void HostPort::Init() {
   assert(convert_ok);
   assert(sizeof(addr) == sizeof(addr_in));
   memcpy(&addr, &addr_in, sizeof(addr_in));
+
+  convert_ok = StringToIpU32(host, ip32);
+  assert(convert_ok);
 }
 
 inline HostPort::HostPort() : host(""), port(0), convert_ok(false) {}

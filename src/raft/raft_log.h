@@ -218,6 +218,10 @@ class RaftLog final {
   RaftIndex begin_index() const { return begin_index_; };
   RaftIndex end_index() const { return end_index_; }
 
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+
  private:
   void Init();
 
@@ -231,6 +235,35 @@ class RaftLog final {
 };
 
 inline RaftLog::~RaftLog() {}
+
+inline nlohmann::json RaftLog::ToJson() {
+  nlohmann::json j;
+  j["begin"] = begin_index_;
+  j["end"] = end_index_;
+  return j;
+}
+
+inline nlohmann::json RaftLog::ToJsonTiny() {
+  nlohmann::json j;
+  j["b"] = begin_index_;
+  j["e"] = end_index_;
+  return j;
+}
+
+inline std::string RaftLog::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["raft_log"] = ToJsonTiny();
+  } else {
+    j["rlog"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
 
 }  // namespace vraft
 

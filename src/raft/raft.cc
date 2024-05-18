@@ -1,5 +1,8 @@
 #include "raft.h"
 
+#include <cstdlib>
+
+#include "clock.h"
 #include "raft_server.h"
 #include "util.h"
 #include "vraft_logger.h"
@@ -8,21 +11,14 @@ namespace vraft {
 
 void SendPing(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
-  for (auto &hostport : r->peers_) {
+  for (auto &dest_addr : r->Peers()) {
     Ping msg;
     msg.msg = "ping";
 
     uint32_t ip32;
     bool b = false;
 
-    b = StringToIpU32(r->my_addr_.host, ip32);
-    assert(b);
-    RaftAddr src_addr(ip32, r->my_addr_.port, r->id_);
-    msg.src = src_addr;
-
-    b = StringToIpU32(hostport.host, ip32);
-    assert(b);
-    RaftAddr dest_addr(ip32, hostport.port, r->id_);
+    msg.src = r->Me();
     msg.dest = dest_addr;
 
     std::string msg_str;
@@ -34,26 +30,32 @@ void SendPing(Timer *timer) {
     std::string header_str;
     header.ToString(header_str);
 
-    TcpClientPtr client = r->raft_server_->GetClientOrCreate(msg.dest.ToU64());
-    if (client) {
+    if (r->send_) {
       header_str.append(std::move(msg_str));
-      client->CopySend(header_str.data(), header_str.size());
-    } else {
-      vraft_logger.FError("GetClientOrCreate error");
+      r->send_(msg.dest.ToU64(), header_str.data(), header_str.size());
     }
   }
 }
 
-Raft::Raft(RaftServer *raft_server) : raft_server_(raft_server), id_(0) {
-  my_addr_ = raft_server_->config().my_addr();
-  for (auto peer : raft_server_->config().peers()) {
-    peers_.push_back(peer);
-  }
-
-  ping_timer_ = raft_server_->LoopPtr()->MakeTimer(0, 1000, SendPing, this);
-}
+// if path is empty, use rc to initialize, else use the data in path to
+// initialize
+Raft::Raft(const std::string &path, const RaftConfig &rc)
+    : home_path_(path),
+      conf_path_(path + "/conf"),
+      meta_path_(path + "/meta"),
+      log_path_(path + "/raft_log"),
+      meta_(path + "/meta"),
+      log_(path + "/raft_log"),
+      config_mgr_(rc) {}
 
 int32_t Raft::Start() {
+  if (make_timer_) {
+    ping_timer_ = make_timer_(0, 1000, SendPing, this);
+
+  } else {
+    return -1;
+  }
+
   ping_timer_->Start();
   return 0;
 }
@@ -63,9 +65,46 @@ int32_t Raft::Stop() {
   return 0;
 }
 
+void Raft::Init() {
+  int32_t rv;
+  char cmd_buf[256];
+
+  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s/conf", home_path_.c_str());
+  rv = system(cmd_buf);
+  assert(rv == 0);
+
+  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s/raft_log",
+           home_path_.c_str());
+  system(cmd_buf);
+  assert(rv == 0);
+
+  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s/meta", home_path_.c_str());
+  system(cmd_buf);
+  assert(rv == 0);
+}
+
 int32_t Raft::OnPing(struct Ping &msg) {
-  vraft_logger.Info("%s recv ping from %s, msg:%s", msg.dest.ToString().c_str(),
-                    msg.src.ToString().c_str(), msg.msg.c_str());
+  uint64_t ts = Clock::NSec();
+  std::string trace_log;
+  char trace_log_buf[256];
+
+  snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu state_0: ", ts);
+  trace_log.append(trace_log_buf);
+  trace_log.append(ToJsonString(true, true));
+
+  snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu event_r: ", ts);
+  trace_log.append(trace_log_buf);
+  trace_log.append(msg.ToJsonString(true, true));
+
+  snprintf(trace_log_buf, sizeof(trace_log_buf), "\n%llu state_1: ", ts);
+  trace_log.append(trace_log_buf);
+  trace_log.append(ToJsonString(true, true));
+
+  vraft_logger.Info("%s", trace_log.c_str());
+
+  // vraft_logger.Info("%s recv ping from %s, msg:%s",
+  // msg.dest.ToString().c_str(),
+  //                  msg.src.ToString().c_str(), msg.msg.c_str());
 
   PingReply reply;
   reply.src = msg.dest;
@@ -80,12 +119,9 @@ int32_t Raft::OnPing(struct Ping &msg) {
   std::string header_str;
   header.ToString(header_str);
 
-  TcpClientPtr client = raft_server_->GetClientOrCreate(reply.dest.ToU64());
-  if (client) {
+  if (send_) {
     header_str.append(std::move(reply_str));
-    client->CopySend(header_str.data(), header_str.size());
-  } else {
-    vraft_logger.FError("GetClientOrCreate error");
+    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
   }
 
   return 0;
@@ -105,5 +141,42 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) { return 0; }
 int32_t Raft::OnAppendEntries(struct AppendEntries &msg) { return 0; }
 
 int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) { return 0; }
+
+int32_t Raft::OnInstallSnapshot(struct InstallSnapshot &msg) { return 0; }
+
+int32_t Raft::OnInstallSnapshotReply(struct InstallSnapshotReply &msg) {
+  return 0;
+}
+
+nlohmann::json Raft::ToJson() {
+  nlohmann::json j;
+  j["log"] = log_.ToJson();
+  j["meta"] = meta_.ToJson();
+  j["this"] = PointerToHexStr(this);
+  return j;
+}
+
+nlohmann::json Raft::ToJsonTiny() {
+  nlohmann::json j;
+  j["log"] = log_.ToJsonTiny();
+  j["meta"] = meta_.ToJsonTiny();
+  j["this"] = PointerToHexStr(this);
+  return j;
+}
+
+std::string Raft::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["raft"] = ToJsonTiny();
+  } else {
+    j["raft"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
 
 }  // namespace vraft

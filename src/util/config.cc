@@ -16,12 +16,12 @@ void Config::Init(int32_t argc, char **argv) {
       "peers", "peer address, host_name:port,host_name:port",
       cxxopts::value<std::string>()->default_value(
           "127.0.0.1:9001,127.0.0.1:9002"))("h,help", "display help message")(
-      "logfile", "log path and file",
-      cxxopts::value<std::string>()->default_value("./log/vraft.log"))(
+      "path", "home path",
+      cxxopts::value<std::string>()->default_value("/tmp/vraft"))(
       "mode", "single/multi",
       cxxopts::value<std::string>()->default_value("single"))(
-      "loglevel", "debug/trace/info/warn/error/fatal/off",
-      cxxopts::value<std::string>()->default_value("debug"))(
+      "loglevel", "trace/debug/info/warn/error/fatal/off",
+      cxxopts::value<std::string>()->default_value("trace"))(
       "debug", "enable debug log");
 
   result_ = options_->parse(argc, argv);
@@ -39,8 +39,8 @@ void Config::Init(int32_t argc, char **argv) {
     }
   }
 
-  if (result_.count("logfile")) {
-    log_file_ = result_["logfile"].as<std::string>();
+  if (result_.count("path")) {
+    path_ = result_["path"].as<std::string>();
   }
 
   if (result_.count("mode")) {

@@ -29,7 +29,9 @@ int main(int argc, char **argv) {
                                         vraft::kLoggerTrace};
     logger_options.level = vraft::U8ToLevel(vraft::GetConfig().log_level());
     logger_options.enable_debug = vraft::GetConfig().enable_debug();
-    vraft::vraft_logger.Init(vraft::GetConfig().log_file(), logger_options);
+
+    std::string log_file = vraft::GetConfig().path() + "/log/vraft.log";
+    vraft::vraft_logger.Init(log_file, logger_options);
 
     std::signal(SIGINT, SignalHandler);
     std::signal(SIGSEGV, SignalHandler);

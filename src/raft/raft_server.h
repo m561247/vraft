@@ -23,23 +23,30 @@ class RaftServer final {
 
   int32_t Start();
   int32_t Stop();
-  TcpClientPtr GetClient(uint64_t dest_addr);
-  TcpClientPtr GetClientOrCreate(uint64_t dest_addr);
 
   Config &config() { return config_; }
   EventLoop *LoopPtr() { return &loop_; }
+
+ private:
+  // for raft func
+  TcpClientPtr GetClient(uint64_t dest_addr);
+  TcpClientPtr GetClientOrCreate(uint64_t dest_addr);
+  int32_t SendMsg(uint64_t dest_addr, const char *buf, unsigned int size);
+  TimerPtr MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
+                     const TimerFunctor &func, void *data);
 
  private:
   Config config_;
   EventLoop loop_;
   TcpServerPtr server_;
   std::unordered_map<uint64_t, TcpClientPtr> clients_;
-  Raft raft_;
+
+  RaftUPtr raft_;
 };
 
 // FIXME: raft_(this), maybe this has not finished construct
 inline RaftServer::RaftServer(Config &config)
-    : loop_("single_raft_loop"), config_(config), raft_(this) {
+    : loop_("single_raft_loop"), config_(config) {
   struct TcpOptions options;
   server_ = std::make_shared<TcpServer>(config_.my_addr(), "raft_server",
                                         options, &loop_);
@@ -49,6 +56,20 @@ inline RaftServer::RaftServer(Config &config)
   server_->set_on_message_cb(std::bind(&RaftServer::OnMessage, this,
                                        std::placeholders::_1,
                                        std::placeholders::_2));
+
+  RaftConfig rc;
+  RaftAddr me(config_.my_addr().ip32, config_.my_addr().port, 0);
+  rc.me = me;
+  for (auto hostport : config_.peers()) {
+    RaftAddr dest(hostport.ip32, hostport.port, 0);
+    rc.peers.push_back(dest);
+  }
+  raft_ = std::make_unique<Raft>(config_.path(), rc);
+  raft_->set_send(std::bind(&RaftServer::SendMsg, this, std::placeholders::_1,
+                            std::placeholders::_2, std::placeholders::_3));
+  raft_->set_make_timer(std::bind(
+      &RaftServer::MakeTimer, this, std::placeholders::_1,
+      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
 #if 0
   for (const auto &hostport : config_.peers()) {

@@ -38,7 +38,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);
           buf->Retrieve(body_bytes);
-          raft_.OnPing(msg);
+          raft_->OnPing(msg);
           break;
         }
         case kMsgPingReply: {
@@ -46,7 +46,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);
           buf->Retrieve(body_bytes);
-          raft_.OnPingReply(msg);
+          raft_->OnPingReply(msg);
           break;
         }
 
@@ -55,7 +55,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);
           buf->Retrieve(body_bytes);
-          raft_.OnRequestVote(msg);
+          raft_->OnRequestVote(msg);
           break;
         }
 
@@ -64,7 +64,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);
           buf->Retrieve(body_bytes);
-          raft_.OnRequestVoteReply(msg);
+          raft_->OnRequestVoteReply(msg);
           break;
         }
 
@@ -73,7 +73,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           int32_t bytes = msg.FromString(buf->BeginRead(), body_bytes);
           assert(bytes > 0);
           buf->Retrieve(body_bytes);
-          raft_.OnAppendEntries(msg);
+          raft_->OnAppendEntries(msg);
           break;
         }
 
@@ -82,7 +82,25 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);
           buf->Retrieve(body_bytes);
-          raft_.OnAppendEntriesReply(msg);
+          raft_->OnAppendEntriesReply(msg);
+          break;
+        }
+
+        case kInstallSnapshot: {
+          InstallSnapshot msg;
+          int32_t bytes = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(bytes > 0);
+          buf->Retrieve(body_bytes);
+          raft_->OnInstallSnapshot(msg);
+          break;
+        }
+
+        case kInstallSnapshotReply: {
+          InstallSnapshotReply msg;
+          bool b = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(b);
+          buf->Retrieve(body_bytes);
+          raft_->OnInstallSnapshotReply(msg);
           break;
         }
 
@@ -105,7 +123,7 @@ int32_t RaftServer::Start() {
   }
 #endif
 
-  rv = raft_.Start();
+  rv = raft_->Start();
   assert(rv == 0);
 
   rv = loop_.Loop();
@@ -113,9 +131,24 @@ int32_t RaftServer::Start() {
 }
 
 int32_t RaftServer::Stop() {
-  int32_t rv = raft_.Stop();
+  int32_t rv = raft_->Stop();
   assert(rv == 0);
   return rv;
+}
+
+int32_t RaftServer::SendMsg(uint64_t dest_addr, const char *buf,
+                            unsigned int size) {
+  TcpClientPtr client = GetClientOrCreate(dest_addr);
+  if (client) {
+    client->CopySend(buf, size);
+  } else {
+    vraft_logger.FError("GetClientOrCreate error");
+  }
+}
+
+TimerPtr RaftServer::MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
+                               const TimerFunctor &func, void *data) {
+  return loop_.MakeTimer(timeout_ms, repeat_ms, func, data);
 }
 
 }  // namespace vraft
