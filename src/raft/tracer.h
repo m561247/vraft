@@ -26,6 +26,9 @@ class Tracer final {
   bool Enable() { enable_ = true; }
   bool Disable() { enable_ = false; }
 
+  bool EnableTimeStamp() { timestamp_ = true; }
+  bool DisableTimeStamp() { timestamp_ = false; }
+
   void PrepareState0();
   void PrepareState1();
   void PrepareEvent(EventType event_type, std::string s);
@@ -33,9 +36,12 @@ class Tracer final {
 
  private:
   void Init();
+  std::string TimeStampStr();
 
  private:
   bool enable_;
+  bool timestamp_;
+
   Raft *raft_;
   uint64_t ts_;
   char ts_buf_[32];
@@ -44,7 +50,8 @@ class Tracer final {
   std::vector<std::string> events_;
 };
 
-inline Tracer::Tracer(Raft *r, bool enable) : raft_(r), enable_(enable) {
+inline Tracer::Tracer(Raft *r, bool enable)
+    : raft_(r), enable_(enable), timestamp_(false) {
   Init();
 }
 

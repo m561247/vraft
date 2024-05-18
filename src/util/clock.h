@@ -2,6 +2,7 @@
 #define VRAFT_CLOCK_H_
 
 #include <chrono>
+#include <string>
 
 namespace vraft {
 
@@ -36,6 +37,8 @@ class Clock final {
                std::chrono::system_clock::now().time_since_epoch())
         .count();
   }
+
+  static std::string NSecStr();
 
  private:
 };

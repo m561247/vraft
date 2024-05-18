@@ -154,4 +154,35 @@ std::string PointerToHexStr(void *p) {
   return std::string(buf);
 }
 
+std::string NsToString(uint64_t ns) {
+  // Convert ns to system time point
+  std::chrono::nanoseconds nano(ns);
+  std::chrono::system_clock::time_point time_point_ns =
+      std::chrono::system_clock::time_point(
+          std::chrono::duration_cast<std::chrono::system_clock::duration>(
+              nano));
+
+  // Convert time point to time_t, and then to tm for easy access of year,
+  // month, day, etc. system_clock::to_time_t() converts time point to time_t by
+  // truncating the fractional seconds
+  std::time_t time_t_ns = std::chrono::system_clock::to_time_t(time_point_ns);
+  std::tm tm = *std::localtime(&time_t_ns);
+
+  // Extract the nanosecond part by considering the truncation to seconds
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(nano);
+  uint64_t total_ns = nano.count();
+  uint64_t leftover_ns =
+      total_ns -
+      std::chrono::duration_cast<std::chrono::nanoseconds>(seconds).count();
+
+  // Stringstream to format strings with leading zeros & concatenation
+  std::ostringstream ss;
+  ss << std::put_time(&tm, "%Y:%m:%d %H:%M:%S")
+     << " ";  // format and add date and time up to seconds
+  ss << std::setw(9) << std::setfill('0')
+     << leftover_ns;  // format nanoseconds with padding
+
+  return ss.str();
+}
+
 }  // namespace vraft

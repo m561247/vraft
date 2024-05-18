@@ -108,7 +108,6 @@ int32_t Raft::OnPing(struct Ping &msg) {
   if (send_) {
     header_str.append(std::move(reply_str));
     send_(reply.dest.ToU64(), header_str.data(), header_str.size());
-
     tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
   }
 
@@ -158,9 +157,8 @@ nlohmann::json Raft::ToJson() {
 
 nlohmann::json Raft::ToJsonTiny() {
   nlohmann::json j;
-  j["me"] = config_mgr_.Current().me.ToString();
   for (auto dest : config_mgr_.Current().peers) {
-    std::string key = "peer_";
+    std::string key = "addr_";
     key.append(dest.ToString());
     j[key]["m"] = index_mgr_.indices[dest.ToU64()].match;
     j[key]["n"] = index_mgr_.indices[dest.ToU64()].next;
@@ -183,9 +181,9 @@ nlohmann::json Raft::ToJsonTiny() {
 std::string Raft::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["raft"] = ToJsonTiny();
+    j[config_mgr_.Current().me.ToString()] = ToJsonTiny();
   } else {
-    j["raft"] = ToJson();
+    j[config_mgr_.Current().me.ToString()] = ToJson();
   }
 
   if (one_line) {

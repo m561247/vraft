@@ -7,8 +7,12 @@
 #include <sys/socket.h>
 
 #include <cassert>
+#include <chrono>
 #include <cstring>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -41,6 +45,8 @@ uint32_t Crc32(const void *data, size_t length);
 std::string StrToHexStr(const char *ptr, int32_t size);
 
 std::string PointerToHexStr(void *p);
+
+std::string NsToString(uint64_t ns);
 
 }  // namespace vraft
 

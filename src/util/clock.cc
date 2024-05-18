@@ -1,3 +1,9 @@
 #include "clock.h"
 
-namespace vraft {}  // namespace vraft
+#include "util.h"
+
+namespace vraft {
+
+std::string Clock::NSecStr() { return NsToString(NSec()); }
+
+}  // namespace vraft
