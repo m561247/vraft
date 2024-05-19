@@ -92,14 +92,19 @@ class Raft final {
   std::string meta_path_;
   std::string log_path_;
 
-  // manager
-  ConfigManager config_mgr_;
-  IndexManager index_mgr_;
-  VoteManager vote_mgr_;
+  // memory data
+  enum State state_;
+  RaftIndex commit_;
+  RaftAddr leader_;
 
   // persistent data
   RaftLog log_;
   SolidData meta_;
+
+  // manager
+  ConfigManager config_mgr_;
+  IndexManager index_mgr_;
+  VoteManager vote_mgr_;
 
   // timer
   uint32_t ping_timer_ms_;
@@ -110,12 +115,7 @@ class Raft final {
   TimerPtr election_timer_;
   TimerPtr heartbeat_timer_;
 
-  // in memory
-  enum State state_;
-  RaftIndex commit_;
-  RaftAddr leader_;
-
-  // send msg func
+  // func
   SendFunc send_;
   MakeTimerFunc make_timer_;
 

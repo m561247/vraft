@@ -86,11 +86,12 @@ int32_t Raft::Start() {
     heartbeat_timer_ =
         make_timer_(0, heartbeat_timer_ms_, HeartbeatTimerFunc, this);
 
+    ping_timer_->Start();
+
   } else {
     return -1;
   }
 
-  ping_timer_->Start();
   return 0;
 }
 
@@ -136,9 +137,9 @@ int32_t Raft::InitConfig() {
     json_file.close();
 
     RaftConfig rc;
-    rc.me = RaftAddr(j["config_manager"]["me"]["u64"]);
+    rc.me = RaftAddr(j["config_manager"]["me"][0]);
     for (auto &peer : j["config_manager"]["peers"]) {
-      rc.peers.push_back(RaftAddr(peer["u64"]));
+      rc.peers.push_back(RaftAddr(peer[0]));
     }
     config_mgr_.SetCurrent(rc);
 

@@ -23,12 +23,12 @@ class RaftConfig final {
 
 inline nlohmann::json RaftConfig::ToJson() {
   nlohmann::json j;
-  j["me"]["u64"] = me.ToU64();
-  j["me"]["str"] = me.ToString();
+  j["me"][0] = me.ToU64();
+  j["me"][1] = me.ToString();
   int32_t i = 0;
   for (auto peer : peers) {
-    j["peers"][i]["u64"] = peer.ToU64();
-    j["peers"][i]["str"] = peer.ToString();
+    j["peers"][i][0] = peer.ToU64();
+    j["peers"][i][1] = peer.ToString();
     i++;
   }
   return j;

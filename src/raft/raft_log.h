@@ -205,9 +205,9 @@ class U32ComparatorImpl : public leveldb::Comparator {
 
 class RaftLog;
 using RaftLogUPtr = std::unique_ptr<RaftLog>;
- 
+
 // End points to the next one of the read "end", as same as stl
-// start from 1 
+// start from 1
 // 0 entry  : Begin:1, End:1
 // 1 entry  : Begin:1, End:2
 // 5 entries: Begin:1, End:6
