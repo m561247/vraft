@@ -10,7 +10,23 @@
 
 namespace vraft {
 
-void SendPing(Timer *timer) {
+char *StateToStr(enum State state) {
+  switch (state) {
+    case FOLLOWER:
+      return "FOLLOWER";
+      break;
+    case CANDIDATE:
+      return "CANDIDATE";
+      break;
+    case LEADER:
+      return "LEADER";
+      break;
+    default:
+      assert(0);
+  }
+}
+
+void PingTimerFunc(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   for (auto &dest_addr : r->Peers()) {
     Ping msg;
@@ -38,6 +54,10 @@ void SendPing(Timer *timer) {
   }
 }
 
+void ElectionTimerFunc(Timer *timer) {}
+
+void HeartbeatTimerFunc(Timer *timer) {}
+
 // if path is empty, use rc to initialize,
 // else use the data in path to initialize
 Raft::Raft(const std::string &path, const RaftConfig &rc)
@@ -50,12 +70,21 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       config_mgr_(rc),
       vote_mgr_(rc.peers),
       index_mgr_(rc.peers),
+      ping_timer_ms_(1000),
+      election_timer_ms_(1500),
+      heartbeat_timer_ms_(500),
+      random_election_ms_(election_timer_ms_, 2 * election_timer_ms_),
+      state_(FOLLOWER),
       commit_(0),
       leader_(0) {}
 
 int32_t Raft::Start() {
   if (make_timer_) {
-    ping_timer_ = make_timer_(0, 1000, SendPing, this);
+    ping_timer_ = make_timer_(0, ping_timer_ms_, PingTimerFunc, this);
+    election_timer_ =
+        make_timer_(0, random_election_ms_.Get(), ElectionTimerFunc, this);
+    heartbeat_timer_ =
+        make_timer_(0, heartbeat_timer_ms_, HeartbeatTimerFunc, this);
 
   } else {
     return -1;

@@ -37,9 +37,11 @@ int main(int argc, char **argv) {
     std::signal(SIGSEGV, SignalHandler);
     vraft::CodingInit();
 
+    vraft::EventLoop loop("vraft_server");
     if (vraft::GetConfig().mode() == vraft::kSingleMode) {
-      vraft::RaftServer raft_server(vraft::GetConfig());
+      vraft::RaftServer raft_server(vraft::GetConfig(), &loop);
       raft_server.Start();
+      loop.Loop();
 
     } else if (vraft::GetConfig().mode() == vraft::kSingleMode) {
       assert(0);

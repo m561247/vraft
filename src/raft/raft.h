@@ -19,6 +19,7 @@
 #include "raft_log.h"
 #include "request_vote.h"
 #include "request_vote_reply.h"
+#include "simple_random.h"
 #include "solid_data.h"
 #include "timer.h"
 #include "tracer.h"
@@ -26,16 +27,24 @@
 
 namespace vraft {
 
-using SendFunc = std::function<int32_t(uint64_t dest_addr, const char *buf,
-                                       unsigned int size)>;
-using MakeTimerFunc =
-    std::function<TimerPtr(uint64_t timeout_ms, uint64_t repeat_ms,
-                           const TimerFunctor &func, void *data)>;
+using SendFunc =
+    std::function<int32_t(uint64_t dest, const char *buf, unsigned int size)>;
+using MakeTimerFunc = std::function<TimerPtr(
+    uint64_t to_ms, uint64_t rp_ms, const TimerFunctor &func, void *data)>;
 
 class Raft;
 using RaftUPtr = std::unique_ptr<Raft>;
 
-void SendPing(Timer *timer);
+enum State {
+  FOLLOWER = 0,
+  CANDIDATE,
+  LEADER,
+};
+
+char *StateToStr(enum State state);
+void PingTimerFunc(Timer *timer);
+void ElectionTimerFunc(Timer *timer);
+void HeartbeatTimerFunc(Timer *timer);
 
 class Raft final {
  public:
@@ -91,11 +100,16 @@ class Raft final {
   SolidData meta_;
 
   // timer
+  uint32_t ping_timer_ms_;
+  uint32_t election_timer_ms_;
+  uint32_t heartbeat_timer_ms_;
+  SimpleRandom random_election_ms_;
   TimerPtr ping_timer_;
   TimerPtr election_timer_;
   TimerPtr heartbeat_timer_;
 
   // in memory
+  enum State state_;
   RaftIndex commit_;
   RaftAddr leader_;
 
@@ -103,7 +117,9 @@ class Raft final {
   SendFunc send_;
   MakeTimerFunc make_timer_;
 
-  friend void SendPing(Timer *timer);
+  friend void PingTimerFunc(Timer *timer);
+  friend void ElectionTimerFunc(Timer *timer);
+  friend void HeartbeatTimerFunc(Timer *timer);
 };
 
 inline Raft::~Raft() {}

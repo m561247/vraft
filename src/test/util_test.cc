@@ -4,6 +4,19 @@
 
 #include <iostream>
 
+#include "simple_random.h"
+
+TEST(SimpleRandom, test) {
+  vraft::SimpleRandom r(150, 300);
+  for (int i = 0; i < 10; ++i) {
+    uint32_t n = r.Get();
+    std::cout << n << " ";
+    EXPECT_LE(150, n);
+    EXPECT_GE(300, n);
+  }
+  std::cout << std::endl;
+}
+
 TEST(UTIL, MISC) { std::cout << vraft::IpU32ToIpString(32765) << std::endl; }
 
 TEST(UTIL, ToLower) {

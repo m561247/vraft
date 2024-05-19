@@ -13,7 +13,7 @@ namespace vraft {
 
 class RaftServer final {
  public:
-  RaftServer(Config &config);
+  RaftServer(Config &config, EventLoop *loop);
   ~RaftServer();
   RaftServer(const RaftServer &t) = delete;
   RaftServer &operator=(const RaftServer &t) = delete;
@@ -25,7 +25,7 @@ class RaftServer final {
   int32_t Stop();
 
   Config &config() { return config_; }
-  EventLoop *LoopPtr() { return &loop_; }
+  EventLoop *LoopPtr() { return loop_; }
 
  private:
   // for raft func
@@ -37,7 +37,7 @@ class RaftServer final {
 
  private:
   Config config_;
-  EventLoop loop_;
+  EventLoop *loop_;
   TcpServerPtr server_;
   std::unordered_map<uint64_t, TcpClientPtr> clients_;
 
@@ -45,11 +45,11 @@ class RaftServer final {
 };
 
 // FIXME: raft_(this), maybe this has not finished construct
-inline RaftServer::RaftServer(Config &config)
-    : loop_("single_raft_loop"), config_(config) {
+inline RaftServer::RaftServer(Config &config, EventLoop *loop)
+    : loop_(loop), config_(config) {
   struct TcpOptions options;
   server_ = std::make_shared<TcpServer>(config_.my_addr(), "raft_server",
-                                        options, &loop_);
+                                        options, loop_);
 
   server_->set_on_connection_cb(
       std::bind(&RaftServer::OnConnection, this, std::placeholders::_1));
@@ -110,7 +110,7 @@ inline TcpClientPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
     struct TcpOptions options;
     RaftAddr addr(dest_addr);
     HostPort hostport(IpU32ToIpString(addr.ip()), addr.port());
-    ptr = std::make_shared<TcpClient>("raft_client", &loop_, hostport, options);
+    ptr = std::make_shared<TcpClient>("raft_client", loop_, hostport, options);
     int32_t rv = ptr->Connect(100);
     if (rv == 0) {
       clients_.insert({dest_addr, ptr});

@@ -116,17 +116,9 @@ int32_t RaftServer::Start() {
   rv = server_->Start();
   assert(rv == 0);
 
-#if 0
-  for (auto pair : clients_) {
-    rv = pair.second->TimerConnect(INT64_MAX);
-    assert(rv == 0);
-  }
-#endif
-
   rv = raft_->Start();
   assert(rv == 0);
 
-  rv = loop_.Loop();
   return rv;
 }
 
@@ -151,7 +143,7 @@ int32_t RaftServer::SendMsg(uint64_t dest_addr, const char *buf,
 
 TimerPtr RaftServer::MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
                                const TimerFunctor &func, void *data) {
-  return loop_.MakeTimer(timeout_ms, repeat_ms, func, data);
+  return loop_->MakeTimer(timeout_ms, repeat_ms, func, data);
 }
 
 }  // namespace vraft
