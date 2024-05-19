@@ -120,6 +120,8 @@ void Raft::Init() {
 
   meta_.Init();
   log_.Init();
+
+  // reset managers
 }
 
 int32_t Raft::InitConfig() {
@@ -153,6 +155,10 @@ int32_t Raft::InitConfig() {
 
   return 0;
 }
+
+RaftIndex Raft::LastIndex() {}
+
+RaftTerm Raft::LastTerm() {}
 
 int32_t Raft::OnPing(struct Ping &msg) {
   Tracer tracer(this, false);
@@ -213,6 +219,7 @@ nlohmann::json Raft::ToJson() {
   j["log"] = log_.ToJson();
   j["meta"] = meta_.ToJson();
   j["commit"] = commit_;
+  j["state"] = std::string(StateToStr(state_));
   if (leader_.ToU64() == 0) {
     j["leader"] = 0;
   } else {
@@ -241,6 +248,7 @@ nlohmann::json Raft::ToJsonTiny() {
     j["vt"] = addr.ToString();
   }
   j["cmt"] = commit_;
+  j["sta"] = std::string(StateToStr(state_));
   j["this"] = PointerToHexStr(this);
   return j;
 }

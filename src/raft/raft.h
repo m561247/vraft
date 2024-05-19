@@ -82,6 +82,8 @@ class Raft final {
 
  private:
   int32_t InitConfig();
+  RaftIndex LastIndex();
+  RaftTerm LastTerm();
 
  private:
   // path

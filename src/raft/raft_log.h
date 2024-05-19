@@ -205,7 +205,14 @@ class U32ComparatorImpl : public leveldb::Comparator {
 
 class RaftLog;
 using RaftLogUPtr = std::unique_ptr<RaftLog>;
-
+ 
+// End points to the next one of the read "end", as same as stl
+// start from 1 
+// 0 entry  : Begin:1, End:1
+// 1 entry  : Begin:1, End:2
+// 5 entries: Begin:1, End:6
+// del 1-3  : Begin:4, End:6
+// del all  : Begin:6, End:6
 class RaftLog final {
  public:
   RaftLog(const std::string &path);
@@ -219,8 +226,9 @@ class RaftLog final {
   int32_t DeleteFrom(RaftIndex from_index);
   int32_t DeleteUtil(RaftIndex to_index);
 
-  RaftIndex begin_index() const { return begin_index_; };
-  RaftIndex end_index() const { return end_index_; }
+  RaftIndex LastIndex() const { return end_index_; }
+  RaftIndex Begin() const { return begin_index_; };
+  RaftIndex End() const { return end_index_; }
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
