@@ -136,9 +136,9 @@ raft_test: $(RAFT_TEST_OBJECTS)
 
 # clean
 clean:
-	find output/main/ -type f ! -name 'valgrind.sh' | xargs rm -f
-	find output/example/ -type f ! -name 'valgrind.sh' | xargs rm -f
-	find output/test/ -type f ! -name 'valgrind.sh' | xargs rm -f
+	find output/main/ -type f ! -name '*.sh' | xargs rm -f
+	find output/example/ -type f ! -name '*.sh' | xargs rm -f
+	find output/test/ -type f ! -name '*.sh' | xargs rm -f
 	find ./src/ -name "*.o" | xargs rm -f
 
 
