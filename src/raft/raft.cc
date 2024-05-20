@@ -30,28 +30,7 @@ char *StateToStr(enum State state) {
 void PingPeers(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   for (auto &dest_addr : r->Peers()) {
-    Ping msg;
-    msg.msg = "ping";
-
-    uint32_t ip32;
-    bool b = false;
-
-    msg.src = r->Me();
-    msg.dest = dest_addr;
-
-    std::string msg_str;
-    int32_t bytes = msg.ToString(msg_str);
-
-    MsgHeader header;
-    header.body_bytes = bytes;
-    header.type = kMsgPing;
-    std::string header_str;
-    header.ToString(header_str);
-
-    if (r->send_) {
-      header_str.append(std::move(msg_str));
-      r->send_(msg.dest.ToU64(), header_str.data(), header_str.size());
-    }
+    r->DoPing(dest_addr.ToU64());
   }
 }
 
@@ -206,6 +185,10 @@ RaftTerm Raft::LastTerm() {
   }
 }
 
+RaftIndex Raft::PreIndex() {}
+
+RaftTerm Raft::PreTerm() {}
+
 bool Raft::VoteForMyself() { return (meta_.vote() == Me().ToU64()); }
 
 void Raft::StepDown(RaftTerm new_term) {
@@ -242,7 +225,7 @@ int32_t Raft::OnPing(struct Ping &msg) {
 
   MsgHeader header;
   header.body_bytes = bytes;
-  header.type = kMsgPingReply;
+  header.type = kPingReply;
   std::string header_str;
   header.ToString(header_str);
 
@@ -278,6 +261,81 @@ int32_t Raft::OnInstallSnapshot(struct InstallSnapshot &msg) { return 0; }
 int32_t Raft::OnInstallSnapshotReply(struct InstallSnapshotReply &msg) {
   return 0;
 }
+
+int32_t Raft::DoPing(uint64_t dest) {
+  Ping msg;
+  msg.src = Me();
+  msg.dest = RaftAddr(dest);
+  msg.msg = "ping";
+
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kPing;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(dest, header_str.data(), header_str.size());
+  }
+  return 0;
+}
+
+int32_t Raft::DoRequestVote(uint64_t dest) {
+  RequestVote msg;
+  msg.src = Me();
+  msg.dest = RaftAddr(dest);
+  msg.term = meta_.term();
+
+  msg.last_log_index = LastIndex();
+  msg.last_log_term = LastTerm();
+
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kRequestVote;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(dest, header_str.data(), header_str.size());
+  }
+  return 0;
+}
+
+int32_t Raft::DoAppendEntries(uint64_t dest) {
+  AppendEntries msg;
+  msg.src = Me();
+  msg.dest = RaftAddr(dest);
+  msg.term = meta_.term();
+
+  msg.pre_log_index = PreIndex();
+  msg.pre_log_term = PreTerm();
+  msg.commit_index = commit_;
+
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kRequestVote;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(dest, header_str.data(), header_str.size());
+  }
+  return 0;
+}
+
+int32_t Raft::DoInstallSnapshot(uint64_t dest) { return 0; }
 
 nlohmann::json Raft::ToJson() {
   nlohmann::json j;

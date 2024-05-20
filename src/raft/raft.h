@@ -69,6 +69,12 @@ class Raft final {
   int32_t OnInstallSnapshot(struct InstallSnapshot &msg);
   int32_t OnInstallSnapshotReply(struct InstallSnapshotReply &msg);
 
+  // send message
+  int32_t DoPing(uint64_t dest);
+  int32_t DoRequestVote(uint64_t dest);
+  int32_t DoAppendEntries(uint64_t dest);
+  int32_t DoInstallSnapshot(uint64_t dest);
+
   // utils
   int16_t Id() { return config_mgr_.Current().me.id(); }
   RaftAddr Me() { return config_mgr_.Current().me; }
@@ -86,6 +92,8 @@ class Raft final {
   int32_t InitConfig();
   RaftIndex LastIndex();
   RaftTerm LastTerm();
+  RaftIndex PreIndex();
+  RaftTerm PreTerm();
   bool VoteForMyself();
   void StepDown(RaftTerm new_term);
   void BecomeLeader();

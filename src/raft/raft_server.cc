@@ -33,7 +33,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
 
       // parse body
       switch (header.type) {
-        case kMsgPing: {
+        case kPing: {
           Ping msg;
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);
@@ -41,7 +41,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
           raft_->OnPing(msg);
           break;
         }
-        case kMsgPingReply: {
+        case kPingReply: {
           PingReply msg;
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
           assert(b);

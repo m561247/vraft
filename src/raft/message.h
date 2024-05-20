@@ -10,8 +10,8 @@
 namespace vraft {
 
 enum MsgType {
-  kMsgPing = 0,
-  kMsgPingReply,
+  kPing = 0,
+  kPingReply,
   kRequestVote,
   kRequestVoteReply,
   kAppendEntries,
