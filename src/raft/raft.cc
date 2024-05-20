@@ -1,5 +1,6 @@
 #include "raft.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 
@@ -78,6 +79,7 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       random_election_ms_(election_timer_ms_, 2 * election_timer_ms_),
       state_(FOLLOWER),
       commit_(0),
+      last_apply_(0),
       leader_(0) {}
 
 int32_t Raft::Start() {
@@ -126,6 +128,8 @@ void Raft::Init() {
   sm_.Init();
 
   // reset managers
+  index_mgr_.ResetNext(LastIndex() + 1);
+  index_mgr_.ResetMatch(0);
 }
 
 int32_t Raft::InitConfig() {
@@ -160,9 +164,29 @@ int32_t Raft::InitConfig() {
   return 0;
 }
 
-RaftIndex Raft::LastIndex() {}
+RaftIndex Raft::LastIndex() {
+  RaftIndex snapshot_last = sm_.LastIndex();
+  RaftIndex log_last = log_.Last();
+  RaftIndex last = std::min(snapshot_last, log_last);
+  return last;
+}
 
-RaftTerm Raft::LastTerm() {}
+RaftTerm Raft::LastTerm() {
+  RaftIndex snapshot_last = sm_.LastIndex();
+  RaftIndex log_last = log_.Last();
+
+  if (log_last >= snapshot_last) {  // log is newer
+    if (log_last == 0) {            // no log, no snapshot
+      return meta_.term();          // return current term
+
+    } else {                                       // has log
+      return log_.LastEntry()->append_entry.term;  // return last log term
+    }
+
+  } else {  // snapshot is newer
+    return sm_.LastTerm();
+  }
+}
 
 int32_t Raft::OnPing(struct Ping &msg) {
   Tracer tracer(this, false);
@@ -223,6 +247,7 @@ nlohmann::json Raft::ToJson() {
   j["log"] = log_.ToJson();
   j["meta"] = meta_.ToJson();
   j["commit"] = commit_;
+  j["last_apply"] = last_apply_;
   j["state"] = std::string(StateToStr(state_));
   if (leader_.ToU64() == 0) {
     j["leader"] = 0;
@@ -252,8 +277,9 @@ nlohmann::json Raft::ToJsonTiny() {
     j["vt"] = addr.ToString();
   }
   j["cmt"] = commit_;
+  j["lapl"] = last_apply_;
   j["sta"] = std::string(StateToStr(state_));
-  j["this"] = PointerToHexStr(this);
+  j["ts"] = PointerToHexStr(this);
   return j;
 }
 

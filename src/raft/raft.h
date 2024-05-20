@@ -74,12 +74,13 @@ class Raft final {
   RaftAddr Me() { return config_mgr_.Current().me; }
   std::vector<RaftAddr> Peers() { return config_mgr_.Current().peers; }
 
-  void set_send(SendFunc func) { send_ = func; }
-  void set_make_timer(MakeTimerFunc func) { make_timer_ = func; }
-
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+
+  // set
+  void set_send(SendFunc func) { send_ = func; }
+  void set_make_timer(MakeTimerFunc func) { make_timer_ = func; }
 
  private:
   int32_t InitConfig();
@@ -97,6 +98,7 @@ class Raft final {
   // memory data
   enum State state_;
   RaftIndex commit_;
+  RaftIndex last_apply_;
   RaftAddr leader_;
 
   // persistent data

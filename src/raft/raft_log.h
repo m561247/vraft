@@ -38,6 +38,9 @@ struct AppendEntry {
   std::string value;
 };
 
+struct LogEntry;
+using LogEntryPtr = std::shared_ptr<LogEntry>;
+
 struct LogEntry {
   RaftIndex index;
   AppendEntry append_entry;
@@ -217,10 +220,11 @@ class RaftLog final {
   void Init();
   void Check();
 
-  int32_t Get(RaftIndex index, LogEntry &entry);
   int32_t Append(AppendEntry &entry);
   int32_t DeleteFrom(RaftIndex from_index);
   int32_t DeleteUtil(RaftIndex to_index);
+  int32_t Get(RaftIndex index, LogEntry &entry);
+  LogEntryPtr LastEntry();
 
   RaftIndex First() const { return first_; };
   RaftIndex Last() const { return last_; }

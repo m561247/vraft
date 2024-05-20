@@ -21,6 +21,8 @@ class IndexManager final {
   IndexManager(const IndexManager &t) = delete;
   IndexManager &operator=(const IndexManager &t) = delete;
   void Reset(const std::vector<RaftAddr> &peers);
+  void ResetNext(RaftIndex index);
+  void ResetMatch(RaftIndex index);
 
  public:
   std::unordered_map<uint64_t, IndexItem> indices;
@@ -48,6 +50,18 @@ inline void IndexManager::Reset(const std::vector<RaftAddr> &peers) {
     item.next = 0;
     item.match = 0;
     indices[addr.ToU64()] = item;
+  }
+}
+
+inline void IndexManager::ResetNext(RaftIndex index) {
+  for (auto &peer : indices) {
+    peer.second.next = index;
+  }
+}
+
+inline void IndexManager::ResetMatch(RaftIndex index) {
+  for (auto &peer : indices) {
+    peer.second.match = index;
   }
 }
 

@@ -18,7 +18,7 @@ class StateMachine final {
   ~StateMachine();
   StateMachine(const StateMachine &t) = delete;
   StateMachine &operator=(const StateMachine &t) = delete;
-  void Init() {}
+  void Init() { Restore(); }
 
   virtual int32_t Restore() { return 0; }
   virtual int32_t Apply(LogEntry *entry) { return 0; }

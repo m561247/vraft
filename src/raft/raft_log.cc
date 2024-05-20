@@ -223,6 +223,19 @@ int32_t RaftLog::Get(RaftIndex index, LogEntry &entry) {
   return 0;
 }
 
+LogEntryPtr RaftLog::LastEntry() {
+  Check();
+  if (last_ == 0) {
+    return nullptr;
+
+  } else {
+    LogEntryPtr ptr = std::make_shared<LogEntry>();
+    int32_t rv = Get(last_, *(ptr.get()));
+    assert(rv == 0);
+    return ptr;
+  }
+}
+
 int32_t RaftLog::Append(AppendEntry &entry) {
   Check();
   RaftIndex tmp_first, tmp_last, tmp_append;
