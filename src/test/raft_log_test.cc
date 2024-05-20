@@ -357,26 +357,29 @@ TEST(RaftLog, construct) {
   vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
   raft_log.Init();
 
-  std::cout << "begin: " << raft_log.Begin() << std::endl;
-  std::cout << "end: " << raft_log.End() << std::endl;
-
-  EXPECT_EQ(raft_log.Begin(), 0);
-  EXPECT_EQ(raft_log.End(), 0);
+  std::cout << "first: " << raft_log.First() << std::endl;
+  std::cout << "last: " << raft_log.Last() << std::endl;
+  std::cout << "append: " << raft_log.Append() << std::endl;
+  EXPECT_EQ(raft_log.First(), 0);
+  EXPECT_EQ(raft_log.Last(), 0);
+  EXPECT_EQ(raft_log.Append(), 1);
 
   system("rm -rf /tmp/raftlog_test_dir");
 }
 
-TEST(RaftLog, append) {
+TEST(RaftLog, Append) {
   system("rm -rf /tmp/raftlog_test_dir");
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
 
     for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
@@ -387,20 +390,24 @@ TEST(RaftLog, append) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 5);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 5);
+    EXPECT_EQ(raft_log.Append(), 6);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 5);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 5);
+    EXPECT_EQ(raft_log.Append(), 6);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
@@ -413,10 +420,12 @@ TEST(RaftLog, DeleteFrom) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
 
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
@@ -427,26 +436,32 @@ TEST(RaftLog, DeleteFrom) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteFrom(7);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 6);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 6);
+    EXPECT_EQ(raft_log.Append(), 7);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 6);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 6);
+    EXPECT_EQ(raft_log.Append(), 7);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
@@ -459,10 +474,12 @@ TEST(RaftLog, DeleteFrom2) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
 
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
@@ -473,44 +490,34 @@ TEST(RaftLog, DeleteFrom2) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteFrom(1);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 11);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-  }
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 11);
 
-  system("rm -rf /tmp/raftlog_test_dir");
-}
-
-TEST(RaftLog, DeleteFrom3) {
-  system("rm -rf /tmp/raftlog_test_dir");
-
-  {
-    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
-    raft_log.Init();
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
       char buf[32];
@@ -519,84 +526,76 @@ TEST(RaftLog, DeleteFrom3) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 15);
+    EXPECT_EQ(raft_log.Append(), 16);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 15);
+    EXPECT_EQ(raft_log.Append(), 16);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 15);
+    EXPECT_EQ(raft_log.Append(), 16);
+
+    raft_log.DeleteFrom(13);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 12);
+    EXPECT_EQ(raft_log.Append(), 13);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 12);
+    EXPECT_EQ(raft_log.Append(), 13);
 
     raft_log.DeleteFrom(0);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 13);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-  }
-
-  system("rm -rf /tmp/raftlog_test_dir");
-}
-
-TEST(RaftLog, DeleteFrom4) {
-  system("rm -rf /tmp/raftlog_test_dir");
-
-  {
-    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
-    raft_log.Init();
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-
-    for (int i = 0; i < 10; ++i) {
-      vraft::AppendEntry entry;
-      entry.term = i * 10;
-      char buf[32];
-      snprintf(buf, sizeof(buf), "value_%d", i);
-      entry.value = buf;
-      raft_log.Append(entry);
-    }
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
-
-    raft_log.DeleteFrom(7);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 6);
-
-    raft_log.DeleteFrom(2);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 1);
-
-    raft_log.DeleteFrom(1);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-  }
-
-  {
-    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
-    raft_log.Init();
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 13);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
@@ -609,10 +608,12 @@ TEST(RaftLog, DeleteUtil) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
 
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
@@ -623,44 +624,54 @@ TEST(RaftLog, DeleteUtil) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+
+    raft_log.DeleteUtil(5);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteUtil(100);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 11);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-  }
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 11);
 
-  system("rm -rf /tmp/raftlog_test_dir");
-}
-
-TEST(RaftLog, DeleteUtil2) {
-  system("rm -rf /tmp/raftlog_test_dir");
-
-  {
-    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
-    raft_log.Init();
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
       char buf[32];
@@ -669,84 +680,44 @@ TEST(RaftLog, DeleteUtil2) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
-
-    raft_log.DeleteUtil(7);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 8);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 15);
+    EXPECT_EQ(raft_log.Append(), 16);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 8);
-    EXPECT_EQ(raft_log.End(), 10);
-  }
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 11);
+    EXPECT_EQ(raft_log.Last(), 15);
+    EXPECT_EQ(raft_log.Append(), 16);
 
-  system("rm -rf /tmp/raftlog_test_dir");
-}
-
-TEST(RaftLog, DeleteUtil3) {
-  system("rm -rf /tmp/raftlog_test_dir");
-
-  {
-    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
-    raft_log.Init();
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
-
-    for (int i = 0; i < 10; ++i) {
-      vraft::AppendEntry entry;
-      entry.term = i * 10;
-      char buf[32];
-      snprintf(buf, sizeof(buf), "value_%d", i);
-      entry.value = buf;
-      raft_log.Append(entry);
-    }
-
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
-
-    raft_log.DeleteUtil(7);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 8);
-    EXPECT_EQ(raft_log.End(), 10);
-
-    raft_log.DeleteUtil(9);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 10);
-    EXPECT_EQ(raft_log.End(), 10);
+    raft_log.DeleteUtil(15);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 16);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 10);
-    EXPECT_EQ(raft_log.End(), 10);
-
-    raft_log.DeleteUtil(10);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 16);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
@@ -759,10 +730,12 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
 
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
@@ -773,38 +746,60 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
       raft_log.Append(entry);
     }
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 1);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteUtil(5);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 6);
-    EXPECT_EQ(raft_log.End(), 10);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteFrom(7);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 6);
-    EXPECT_EQ(raft_log.End(), 6);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 6);
+    EXPECT_EQ(raft_log.Append(), 7);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 6);
-    EXPECT_EQ(raft_log.End(), 6);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 6);
+    EXPECT_EQ(raft_log.Append(), 7);
 
     raft_log.DeleteUtil(6);
-    std::cout << "begin: " << raft_log.Begin() << std::endl;
-    std::cout << "end: " << raft_log.End() << std::endl;
-    EXPECT_EQ(raft_log.Begin(), 0);
-    EXPECT_EQ(raft_log.End(), 0);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 7);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 7);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");

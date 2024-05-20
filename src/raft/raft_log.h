@@ -206,13 +206,8 @@ class U32ComparatorImpl : public leveldb::Comparator {
 class RaftLog;
 using RaftLogUPtr = std::unique_ptr<RaftLog>;
 
-// End points to the next one of the read "end", as same as stl
-// start from 1
-// 0 entry  : Begin:1, End:1
-// 1 entry  : Begin:1, End:2
-// 5 entries: Begin:1, End:6
-// del 1-3  : Begin:4, End:6
-// del all  : Begin:6, End:6
+const char kAppendKey[sizeof(RaftIndex)] = {0};
+
 class RaftLog final {
  public:
   RaftLog(const std::string &path);
@@ -220,23 +215,25 @@ class RaftLog final {
   RaftLog(const RaftLog &t) = delete;
   RaftLog &operator=(const RaftLog &t) = delete;
   void Init();
+  void Check();
 
   int32_t Get(RaftIndex index, LogEntry &entry);
   int32_t Append(AppendEntry &entry);
   int32_t DeleteFrom(RaftIndex from_index);
   int32_t DeleteUtil(RaftIndex to_index);
 
-  RaftIndex LastIndex() const { return end_index_; }
-  RaftIndex Begin() const { return begin_index_; };
-  RaftIndex End() const { return end_index_; }
+  RaftIndex First() const { return first_; };
+  RaftIndex Last() const { return last_; }
+  RaftIndex Append() const { return append_; }
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
 
  private:
-  RaftIndex begin_index_;
-  RaftIndex end_index_;
+  RaftIndex first_;
+  RaftIndex last_;
+  RaftIndex append_;
 
   std::string path_;
   leveldb::Options db_options_;
@@ -247,15 +244,15 @@ inline RaftLog::~RaftLog() {}
 
 inline nlohmann::json RaftLog::ToJson() {
   nlohmann::json j;
-  j["begin"] = begin_index_;
-  j["end"] = end_index_;
+  j["first"] = first_;
+  j["last"] = last_;
   return j;
 }
 
 inline nlohmann::json RaftLog::ToJsonTiny() {
   nlohmann::json j;
-  j[0] = begin_index_;
-  j[1] = end_index_;
+  j[0] = first_;
+  j[1] = last_;
   return j;
 }
 

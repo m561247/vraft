@@ -86,44 +86,142 @@ void RaftLog::Init() {
 
   leveldb::ReadOptions ro;
   leveldb::Iterator *it = db_->NewIterator(ro);
+
+  // maybe init first
   it->SeekToFirst();
+  if (!it->Valid()) {
+    leveldb::WriteBatch batch;
+    char value_buf[sizeof(RaftIndex)];
+    EncodeFixed32(value_buf, 1);
+    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
+              leveldb::Slice(value_buf, sizeof(value_buf)));
+    leveldb::WriteOptions wo;
+    wo.sync = true;
+    leveldb::Status s = db_->Write(wo, &batch);
+    assert(s.ok());
+
+    first_ = 0;
+    last_ = 0;
+    append_ = 1;
+  }
+  delete it;
+
+  // init
+  it = db_->NewIterator(ro);
+  it->SeekToLast();
+  assert(it->Valid());
+  assert(it->key().ToString().size() == sizeof(RaftIndex));
+  RaftIndex key_index = DecodeFixed32(it->key().ToString().c_str());
+
+  if (key_index == 0) {
+    // no value
+    first_ = 0;
+    last_ = 0;
+    assert(it->value().ToString().size() == sizeof(RaftIndex));
+    append_ = DecodeFixed32(it->value().ToString().c_str());
+
+  } else {  // has value
+    // last, value index
+    std::string key_str = it->key().ToString();
+    RaftIndex value_index = DecodeFixed32(key_str.c_str());
+    last_ = ValueIndexToLogIndex(value_index);
+
+    // first, term index
+    it->SeekToFirst();
+    it->Next();
+    key_str = it->key().ToString();
+    RaftIndex term_index = DecodeFixed32(key_str.c_str());
+    first_ = TermIndexToLogIndex(term_index);
+
+    // append
+    append_ = last_ + 1;
+  }
+
+  delete it;
+  Check();
+
+#if 0
   if (it->Valid()) {
     std::string begin_key_str = it->key().ToString();
     assert(begin_key_str.size() == sizeof(RaftIndex));
     RaftIndex term_index = DecodeFixed32(begin_key_str.c_str());
-    begin_index_ = TermIndexToLogIndex(term_index);
+    first_ = TermIndexToLogIndex(term_index);
 
     it->SeekToLast();
     assert(it->Valid());
     std::string end_key_str = it->key().ToString();
     assert(end_key_str.size() == sizeof(RaftIndex));
     RaftIndex value_index = DecodeFixed32(end_key_str.c_str());
-    end_index_ = ValueIndexToLogIndex(value_index);
+    last_ = ValueIndexToLogIndex(value_index);
 
   } else {
-    begin_index_ = 0;
-    end_index_ = 0;
+    // init first
+    leveldb::WriteBatch batch;
+    char value_buf[sizeof(RaftIndex)];
+    EncodeFixed32(value_buf, 1);
+    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
+              leveldb::Slice(value_buf, sizeof(value_buf)));
+    leveldb::WriteOptions wo;
+    wo.sync = true;
+    leveldb::Status s = db_->Write(wo, &batch);
+    assert(s.ok());
+
+    first_ = 0;
+    last_ = 0;
+    append_ = 1;
   }
   delete it;
+#endif
+}
+
+void RaftLog::Check() {
+  if (first_ == last_) {
+    if (first_ == 0) {
+      // no value
+      assert(append_ >= 1);
+    }
+
+    if (first_ > 0) {
+      // has value
+      assert(append_ == last_ + 1);
+    }
+
+  } else {
+    // has value
+    assert(first_ <= last_);
+    assert(first_ >= 1);
+    assert(append_ == last_ + 1);
+  }
 }
 
 RaftLog::RaftLog(const std::string &path) : path_(path) {}
 
-int32_t RaftLog::Get(RaftIndex index, LogEntry &entry) { return 0; }
+int32_t RaftLog::Get(RaftIndex index, LogEntry &entry) {
+  Check();
+  return 0;
+}
 
 int32_t RaftLog::Append(AppendEntry &entry) {
-  if (begin_index_ == 0 && end_index_ == 0) {
-    begin_index_ = 1;
-    end_index_ = 1;
+  Check();
+  RaftIndex tmp_first, tmp_last, tmp_append;
+
+  if (first_ == last_ && first_ == 0) {
+    // no value
+    tmp_first = append_;
+    tmp_last = append_;
+    tmp_append = append_ + 1;
+
   } else {
-    assert(begin_index_ > 0);
-    assert(end_index_ > 0);
-    assert(end_index_ >= begin_index_);
-    ++end_index_;
+    // has value
+    // do not need to persist append index every time
+
+    tmp_first = first_;
+    tmp_last = last_ + 1;
+    tmp_append = tmp_last + 1;
   }
 
   leveldb::WriteBatch batch;
-  RaftIndex log_index = end_index_;
+  RaftIndex log_index = tmp_last;
 
   char term_key[sizeof(RaftIndex)];
   EncodeTermKey(log_index, term_key);
@@ -141,29 +239,59 @@ int32_t RaftLog::Append(AppendEntry &entry) {
   wo.sync = true;
   leveldb::Status s = db_->Write(wo, &batch);
   assert(s.ok());
+
+  // update index after persist value
+  // do not need to persist append index every time
+  first_ = tmp_first;
+  last_ = tmp_last;
+  append_ = tmp_append;
+
+  Check();
   return 0;
 }
 
 int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
-  if (begin_index_ == 0 && end_index_ == 0) {
-    return 0;
-  }
-  assert(begin_index_ > 0);
-  assert(end_index_ > 0);
-  assert(end_index_ >= begin_index_);
+  Check();
+  RaftIndex tmp_first, tmp_last, tmp_append;
 
-  if (from_index > end_index_) {
+  // no value
+  if (first_ == last_ && first_ == 0) {
     return 0;
   }
 
-  if (from_index < begin_index_) {
-    from_index = begin_index_;
+  // has value
+  assert(first_ > 0);
+  assert(last_ > 0);
+  assert(last_ >= first_);
+  assert(append_ == last_ + 1);
+
+  // adjust from index
+  if (from_index > last_) {
+    return 0;
   }
-  assert(begin_index_ <= from_index);
-  assert(from_index <= end_index_);
+
+  // adjust from index
+  if (from_index < first_) {
+    from_index = first_;
+  }
+  assert(first_ <= from_index);
+  assert(from_index <= last_);
+
+  // save update index
+  if (from_index == first_) {
+    tmp_first = 0;
+    tmp_last = 0;
+    tmp_append = last_ + 1;
+
+  } else {
+    assert(from_index > first_);
+    tmp_first = first_;
+    tmp_last = from_index - 1;
+    tmp_append = from_index;
+  }
 
   leveldb::WriteBatch batch;
-  for (RaftIndex i = from_index; i <= end_index_; ++i) {
+  for (RaftIndex i = from_index; i <= last_; ++i) {
     char term_key[sizeof(RaftIndex)];
     EncodeTermKey(i, term_key);
     batch.Delete(leveldb::Slice(term_key, sizeof(term_key)));
@@ -173,37 +301,68 @@ int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
     batch.Delete(leveldb::Slice(value_key, sizeof(value_key)));
   }
 
+  // need to persist append index
+  if (from_index == first_) {
+    char value_buf[sizeof(RaftIndex)];
+    EncodeFixed32(value_buf, tmp_append);
+    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
+              leveldb::Slice(value_buf, sizeof(value_buf)));
+  }
+
   leveldb::Status s = db_->Write(leveldb::WriteOptions(), &batch);
   assert(s.ok());
 
-  end_index_ = from_index - 1;
-  if (end_index_ == 0) {
-    begin_index_ = 0;
-  }
+  // update index
+  first_ = tmp_first;
+  last_ = tmp_last;
+  append_ = tmp_append;
 
+  Check();
   return 0;
 }
 
 int32_t RaftLog::DeleteUtil(RaftIndex to_index) {
-  if (begin_index_ == 0 && end_index_ == 0) {
-    return 0;
-  }
-  assert(begin_index_ > 0);
-  assert(end_index_ > 0);
-  assert(end_index_ >= begin_index_);
+  Check();
+  RaftIndex tmp_first, tmp_last, tmp_append;
 
-  if (to_index < begin_index_) {
+  // no value
+  if (first_ == last_ && first_ == 0) {
     return 0;
   }
 
-  if (to_index > end_index_) {
-    to_index = end_index_;
+  // has value
+  assert(first_ > 0);
+  assert(last_ > 0);
+  assert(last_ >= first_);
+  assert(append_ == last_ + 1);
+
+  // adjust to index
+  if (to_index < first_) {
+    return 0;
   }
-  assert(begin_index_ <= to_index);
-  assert(to_index <= end_index_);
+
+  // adjust to index
+  if (to_index > last_) {
+    to_index = last_;
+  }
+  assert(first_ <= to_index);
+  assert(to_index <= last_);
+
+  // save update index
+  if (to_index == last_) {
+    tmp_first = 0;
+    tmp_last = 0;
+    tmp_append = last_ + 1;
+
+  } else {
+    assert(to_index < last_);
+    tmp_first = to_index + 1;
+    tmp_last = last_;
+    tmp_append = last_ + 1;
+  }
 
   leveldb::WriteBatch batch;
-  for (RaftIndex i = begin_index_; i <= to_index; ++i) {
+  for (RaftIndex i = first_; i <= to_index; ++i) {
     char term_key[sizeof(RaftIndex)];
     EncodeTermKey(i, term_key);
     batch.Delete(leveldb::Slice(term_key, sizeof(term_key)));
@@ -213,15 +372,23 @@ int32_t RaftLog::DeleteUtil(RaftIndex to_index) {
     batch.Delete(leveldb::Slice(value_key, sizeof(value_key)));
   }
 
+  // need to persist append index
+  if (to_index == last_) {
+    char value_buf[sizeof(RaftIndex)];
+    EncodeFixed32(value_buf, tmp_append);
+    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
+              leveldb::Slice(value_buf, sizeof(value_buf)));
+  }
+
   leveldb::Status s = db_->Write(leveldb::WriteOptions(), &batch);
   assert(s.ok());
 
-  begin_index_ = to_index + 1;
-  if (begin_index_ > end_index_) {
-    begin_index_ = 0;
-    end_index_ = 0;
-  }
+  // update index
+  first_ = tmp_first;
+  last_ = tmp_last;
+  append_ = tmp_append;
 
+  Check();
   return 0;
 }
 
