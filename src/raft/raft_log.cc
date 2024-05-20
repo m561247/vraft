@@ -198,6 +198,28 @@ RaftLog::RaftLog(const std::string &path) : path_(path) {}
 
 int32_t RaftLog::Get(RaftIndex index, LogEntry &entry) {
   Check();
+
+  char term_key[sizeof(RaftIndex)];
+  EncodeTermKey(index, term_key);
+  leveldb::ReadOptions ro;
+  leveldb::Status s;
+  std::string value;
+  s = db_->Get(ro, leveldb::Slice(term_key, sizeof(term_key)), &value);
+  if (s.ok()) {
+    assert(value.size() == sizeof(RaftTerm));
+    entry.index = index;
+    entry.append_entry.term = DecodeFixed64(value.c_str());
+
+  } else {
+    return -1;
+  }
+
+  char value_key[sizeof(RaftIndex)];
+  EncodeValueKey(index, value_key);
+  s = db_->Get(ro, leveldb::Slice(value_key, sizeof(value_key)), &value);
+  assert(s.ok());
+  entry.append_entry.value = value;
+
   return 0;
 }
 

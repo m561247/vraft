@@ -805,6 +805,74 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
   system("rm -rf /tmp/raftlog_test_dir");
 }
 
+TEST(RaftLog, Get) {
+  system("rm -rf /tmp/raftlog_test_dir");
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
+
+    for (int i = 0; i < 10; ++i) {
+      vraft::AppendEntry entry;
+      entry.term = i * 10;
+      char buf[32];
+      snprintf(buf, sizeof(buf), "value_%d", i);
+      entry.value = buf;
+      raft_log.Append(entry);
+    }
+
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+
+    for (vraft::RaftIndex i = 1; i <= 10; ++i) {
+      vraft::LogEntry entry;
+      int32_t rv = raft_log.Get(i, entry);
+      EXPECT_EQ(rv, 0);
+      std::cout << entry.ToJsonString(true, true) << std::endl;
+
+      EXPECT_EQ(entry.index, i);
+      EXPECT_EQ(entry.append_entry.term, (i - 1) * 10);
+
+      char buf[32];
+      snprintf(buf, sizeof(buf), "value_%d", i - 1);
+      EXPECT_EQ(entry.append_entry.value, std::string(buf));
+    }
+
+    {
+      vraft::LogEntry entry;
+      int32_t rv = raft_log.Get(11, entry);
+      EXPECT_EQ(rv, -1);
+    }
+
+    raft_log.DeleteFrom(5);
+    std::cout << "first: " << raft_log.First() << std::endl;
+    std::cout << "last: " << raft_log.Last() << std::endl;
+    std::cout << "append: " << raft_log.Append() << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 4);
+    EXPECT_EQ(raft_log.Append(), 5);
+
+    {
+      vraft::LogEntry entry;
+      int32_t rv = raft_log.Get(5, entry);
+      EXPECT_EQ(rv, -1);
+    }
+  }
+
+  system("rm -rf /tmp/raftlog_test_dir");
+}
+
 TEST(LogEntry, test) {
   vraft::LogEntry entry;
   entry.index = 3;
