@@ -324,7 +324,7 @@ int32_t Raft::DoAppendEntries(uint64_t dest) {
 
   MsgHeader header;
   header.body_bytes = bytes;
-  header.type = kRequestVote;
+  header.type = kAppendEntries;
   std::string header_str;
   header.ToString(header_str);
 
