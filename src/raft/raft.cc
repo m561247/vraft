@@ -27,7 +27,7 @@ char *StateToStr(enum State state) {
   }
 }
 
-void PingTimerFunc(Timer *timer) {
+void PingPeers(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   for (auto &dest_addr : r->Peers()) {
     Ping msg;
@@ -55,9 +55,25 @@ void PingTimerFunc(Timer *timer) {
   }
 }
 
-void ElectionTimerFunc(Timer *timer) {}
+void Elect(Timer *timer) {
+  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  r->meta_.IncrTerm();
+  r->state_ = CANDIDATE;
+  r->leader_ = 0;
 
-void HeartbeatTimerFunc(Timer *timer) {}
+  // vote for myself
+  r->meta_.SetVote(r->Me().ToU64());
+
+  // reset election timer
+  r->election_timer_->Again(r->random_election_ms_.Get(), 0);
+
+  // only myself
+  if (r->vote_mgr_.QuorumAll(r->VoteForMyself())) {
+    r->BecomeLeader();
+  }
+}
+
+void HeartBeat(Timer *timer) {}
 
 // if path is empty, use rc to initialize,
 // else use the data in path to initialize
@@ -83,18 +99,20 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       leader_(0) {}
 
 int32_t Raft::Start() {
+  // user maybe set make_timer after Init()
   if (make_timer_) {
-    ping_timer_ = make_timer_(0, ping_timer_ms_, PingTimerFunc, this);
-    election_timer_ =
-        make_timer_(0, random_election_ms_.Get(), ElectionTimerFunc, this);
-    heartbeat_timer_ =
-        make_timer_(0, heartbeat_timer_ms_, HeartbeatTimerFunc, this);
+    ping_timer_ = make_timer_(0, ping_timer_ms_, PingPeers, this);
+    election_timer_ = make_timer_(random_election_ms_.Get(), 0, Elect, this);
+    heartbeat_timer_ = make_timer_(0, heartbeat_timer_ms_, HeartBeat, this);
 
     ping_timer_->Start();
 
   } else {
     return -1;
   }
+
+  // become follower
+  StepDown(meta_.term());
 
   return 0;
 }
@@ -187,6 +205,28 @@ RaftTerm Raft::LastTerm() {
     return sm_.LastTerm();
   }
 }
+
+bool Raft::VoteForMyself() { return (meta_.vote() == Me().ToU64()); }
+
+void Raft::StepDown(RaftTerm new_term) {
+  assert(meta_.term() <= new_term);
+  if (meta_.term() < new_term) {  // newer term
+    meta_.SetTerm(new_term);
+    meta_.SetVote(0);
+    leader_ = 0;
+    state_ = FOLLOWER;
+
+  } else {  // equal term
+    if (state_ != FOLLOWER) {
+      state_ = FOLLOWER;
+    }
+  }
+
+  // start election timer
+  election_timer_->Start();
+}
+
+void Raft::BecomeLeader() {}
 
 int32_t Raft::OnPing(struct Ping &msg) {
   Tracer tracer(this, false);

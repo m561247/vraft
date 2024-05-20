@@ -43,9 +43,9 @@ enum State {
 };
 
 char *StateToStr(enum State state);
-void PingTimerFunc(Timer *timer);
-void ElectionTimerFunc(Timer *timer);
-void HeartbeatTimerFunc(Timer *timer);
+void PingPeers(Timer *timer);
+void Elect(Timer *timer);
+void HeartBeat(Timer *timer);
 
 class Raft final {
  public:
@@ -86,6 +86,9 @@ class Raft final {
   int32_t InitConfig();
   RaftIndex LastIndex();
   RaftTerm LastTerm();
+  bool VoteForMyself();
+  void StepDown(RaftTerm new_term);
+  void BecomeLeader();
 
  private:
   // path
@@ -126,9 +129,9 @@ class Raft final {
   SendFunc send_;
   MakeTimerFunc make_timer_;
 
-  friend void PingTimerFunc(Timer *timer);
-  friend void ElectionTimerFunc(Timer *timer);
-  friend void HeartbeatTimerFunc(Timer *timer);
+  friend void PingPeers(Timer *timer);
+  friend void Elect(Timer *timer);
+  friend void HeartBeat(Timer *timer);
 };
 
 inline Raft::~Raft() {}

@@ -34,6 +34,7 @@ class Timer final {
   int32_t Start();
   int32_t Stop();
   int32_t Again();
+  int32_t Again(uint64_t timeout_ms, uint64_t repeat_ms);
   bool IsStart();
 
   EventLoop *loop() const { return loop_; }

@@ -16,6 +16,7 @@ void SolidData::Init() {
   assert(status.ok());
   db_.reset(dbptr);
 
+  // maybe init first
   {
     std::string value;
     leveldb::Slice sls_key(reinterpret_cast<const char *>(&kTermKey),
@@ -34,6 +35,7 @@ void SolidData::Init() {
     }
   }
 
+  // maybe init first
   {
     std::string value;
     leveldb::Slice sls_key(reinterpret_cast<const char *>(&kVoteKey),
