@@ -364,6 +364,9 @@ TEST(RaftLog, construct) {
   EXPECT_EQ(raft_log.Last(), 0);
   EXPECT_EQ(raft_log.Append(), 1);
 
+  std::cout << raft_log.ToJsonString(true, true) << std::endl;
+  std::cout << raft_log.ToJsonString(false, false) << std::endl;
+
   system("rm -rf /tmp/raftlog_test_dir");
 }
 

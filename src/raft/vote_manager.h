@@ -10,6 +10,11 @@
 
 namespace vraft {
 
+struct VoteItem {
+  bool grant;
+  bool done;
+};
+
 class VoteManager final {
  public:
   VoteManager(const std::vector<RaftAddr> &peers);
@@ -22,7 +27,7 @@ class VoteManager final {
   bool QuorumAll(bool my_vote);
 
  public:
-  std::unordered_map<uint64_t, bool> votes;
+  std::unordered_map<uint64_t, VoteItem> votes;
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
@@ -31,7 +36,8 @@ class VoteManager final {
 
 inline VoteManager::VoteManager(const std::vector<RaftAddr> &peers) {
   for (auto addr : peers) {
-    votes[addr.ToU64()] = false;
+    VoteItem vote_item = {false, false};
+    votes[addr.ToU64()] = vote_item;
   }
 }
 
@@ -39,8 +45,9 @@ inline VoteManager::~VoteManager() {}
 
 inline void VoteManager::Reset(const std::vector<RaftAddr> &peers) {
   votes.clear();
+  VoteItem vote_item = {false, false};
   for (auto addr : peers) {
-    votes[addr.ToU64()] = false;
+    votes[addr.ToU64()] = vote_item;
   }
 }
 
@@ -50,7 +57,7 @@ inline bool VoteManager::Majority(bool my_vote) {
     ++vote_count;
   }
   for (auto &v : votes) {
-    if (v.second == true) {
+    if (v.second.grant == true) {
       ++vote_count;
     }
   }
@@ -62,7 +69,7 @@ inline bool VoteManager::QuorumAll(bool my_vote) {
     return false;
   }
   for (auto &v : votes) {
-    if (v.second == false) {
+    if (v.second.grant == false) {
       return false;
     }
   }
@@ -73,7 +80,8 @@ inline nlohmann::json VoteManager::ToJson() {
   nlohmann::json j;
   for (auto peer : votes) {
     RaftAddr addr(peer.first);
-    j[addr.ToString()] = peer.second;
+    j[addr.ToString()]["grant"] = peer.second.grant;
+    j[addr.ToString()]["done"] = peer.second.done;
   }
   return j;
 }
@@ -82,7 +90,8 @@ inline nlohmann::json VoteManager::ToJsonTiny() {
   nlohmann::json j;
   for (auto peer : votes) {
     RaftAddr addr(peer.first);
-    j[addr.ToString()] = peer.second;
+    j[addr.ToString()]["gr"] = peer.second.grant;
+    j[addr.ToString()]["dn"] = peer.second.done;
   }
   return j;
 }

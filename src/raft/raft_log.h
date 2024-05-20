@@ -250,22 +250,37 @@ inline nlohmann::json RaftLog::ToJson() {
   nlohmann::json j;
   j["first"] = first_;
   j["last"] = last_;
+  j["append"] = append_;
+  LogEntryPtr ptr = LastEntry();
+  if (ptr) {
+    j["last_term"] = ptr->append_entry.term;
+  } else {
+    j["last_term"] = 0;
+  }
+
   return j;
 }
 
 inline nlohmann::json RaftLog::ToJsonTiny() {
   nlohmann::json j;
-  j[0] = first_;
-  j[1] = last_;
+  j["idx"][0] = first_;
+  j["idx"][1] = last_;
+  j["idx"][2] = append_;
+  LogEntryPtr ptr = LastEntry();
+  if (ptr) {
+    j["ltm"] = ptr->append_entry.term;
+  } else {
+    j["ltm"] = 0;
+  }
   return j;
 }
 
 inline std::string RaftLog::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["raft_log"] = ToJsonTiny();
+    j["rlog"] = ToJsonTiny();
   } else {
-    j["rlog"] = ToJson();
+    j["raft_log"] = ToJson();
   }
 
   if (one_line) {

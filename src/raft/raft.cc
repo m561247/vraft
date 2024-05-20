@@ -303,9 +303,10 @@ nlohmann::json Raft::ToJsonTiny() {
   for (auto dest : config_mgr_.Current().peers) {
     std::string key = "addr_";
     key.append(dest.ToString());
-    j[key]["m"] = index_mgr_.indices[dest.ToU64()].match;
-    j[key]["n"] = index_mgr_.indices[dest.ToU64()].next;
-    j[key]["v"] = vote_mgr_.votes[dest.ToU64()];
+    j[key]["ma"] = index_mgr_.indices[dest.ToU64()].match;
+    j[key]["ne"] = index_mgr_.indices[dest.ToU64()].next;
+    j[key]["gr"] = vote_mgr_.votes[dest.ToU64()].grant;
+    j[key]["dn"] = vote_mgr_.votes[dest.ToU64()].done;
   }
 
   j["log"] = log_.ToJsonTiny();
