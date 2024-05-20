@@ -64,12 +64,14 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
     : home_path_(path),
       conf_path_(path + "/conf/conf.json"),
       meta_path_(path + "/meta"),
-      log_path_(path + "/raft_log"),
+      log_path_(path + "/rlog"),
+      sm_path_(path + "/sm"),
       meta_(path + "/meta"),
-      log_(path + "/raft_log"),
+      log_(path + "/rlog"),
       config_mgr_(rc),
       vote_mgr_(rc.peers),
       index_mgr_(rc.peers),
+      sm_(path + "/sm"),
       ping_timer_ms_(1000),
       election_timer_ms_(1500),
       heartbeat_timer_ms_(500),
@@ -121,6 +123,7 @@ void Raft::Init() {
 
   meta_.Init();
   log_.Init();
+  sm_.Init();
 
   // reset managers
 }

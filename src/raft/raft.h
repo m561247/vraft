@@ -21,6 +21,7 @@
 #include "request_vote_reply.h"
 #include "simple_random.h"
 #include "solid_data.h"
+#include "state_machine.h"
 #include "timer.h"
 #include "tracer.h"
 #include "vote_manager.h"
@@ -91,6 +92,7 @@ class Raft final {
   std::string conf_path_;
   std::string meta_path_;
   std::string log_path_;
+  std::string sm_path_;
 
   // memory data
   enum State state_;
@@ -105,6 +107,9 @@ class Raft final {
   ConfigManager config_mgr_;
   IndexManager index_mgr_;
   VoteManager vote_mgr_;
+
+  // state machine
+  StateMachine sm_;
 
   // timer
   uint32_t ping_timer_ms_;
