@@ -10,31 +10,88 @@ namespace vraft {
 // log_index: 1 2 3
 // term_key : 1 3 5
 // value_key: 2 4 6
-RaftIndex LogIndexToTermIndex(RaftIndex log_index) { return log_index * 2 - 1; }
+RaftIndex LogIndexToMetaIndex(RaftIndex log_index) { return log_index * 2 - 1; }
 
-RaftIndex TermIndexToLogIndex(RaftIndex term_index) {
+RaftIndex MetaIndexToLogIndex(RaftIndex term_index) {
   assert(term_index % 2 == 1);
   return (term_index + 1) / 2;
 }
 
-RaftIndex LogIndexToValueIndex(RaftIndex log_index) { return log_index * 2; }
+RaftIndex LogIndexToDataIndex(RaftIndex log_index) { return log_index * 2; }
 
-RaftIndex ValueIndexToLogIndex(RaftIndex value_index) {
+RaftIndex DataIndexToLogIndex(RaftIndex value_index) {
   assert(value_index % 2 == 0);
   return value_index / 2;
 }
 
-void EncodeValueKey(RaftIndex log_index, char *dst) {
-  RaftIndex value_key = LogIndexToValueIndex(log_index);
-  EncodeFixed32(dst, value_key);
+void EncodeDataKey(char *buf, int32_t len, RaftIndex log_index) {
+  assert(len >= sizeof(RaftIndex));
+  RaftIndex value_key = LogIndexToDataIndex(log_index);
+  EncodeFixed32(buf, value_key);
 }
 
-void EncodeTermKey(RaftIndex log_index, char *dst) {
-  RaftIndex term_index = LogIndexToTermIndex(log_index);
-  EncodeFixed32(dst, term_index);
+void EncodeMetaKey(char *buf, int32_t len, RaftIndex log_index) {
+  assert(len >= sizeof(RaftIndex));
+  RaftIndex term_index = LogIndexToMetaIndex(log_index);
+  EncodeFixed32(buf, term_index);
+}
+int32_t MetaValueBytes() { return sizeof(RaftTerm) + sizeof(uint32_t) * 3; }
+
+void EncodeMetaValue(char *buf, int32_t len, RaftTerm term, uint32_t entry_type,
+                     uint32_t chk_ths, uint32_t chk_all) {
+  assert(len >= MetaValueBytes());
+  char *p = buf;
+  EncodeFixed64(p, term);
+  p += sizeof(term);
+
+  EncodeFixed32(p, entry_type);
+  p += sizeof(entry_type);
+
+  EncodeFixed32(p, chk_ths);
+  p += sizeof(chk_ths);
+
+  EncodeFixed32(p, chk_all);
+  p += sizeof(chk_all);
 }
 
-void EncodeTermValue(RaftTerm term, char *dst) { EncodeFixed64(dst, term); }
+void DecodeMetaValue(const char *buf, int32_t len, RaftTerm &term,
+                     EntryType &entry_type, uint32_t &chk_ths,
+                     uint32_t &chk_all) {
+  char *p = const_cast<char *>(buf);
+  uint32_t u32 = 0;
+
+  term = DecodeFixed64(p);
+  p += sizeof(term);
+
+  u32 = DecodeFixed32(p);
+  p += sizeof(u32);
+  entry_type = U32ToEntryType(u32);
+
+  chk_ths = DecodeFixed32(p);
+  p += sizeof(chk_ths);
+
+  chk_all = DecodeFixed32(p);
+  p += sizeof(chk_all);
+}
+
+void EncodeZeroValue(char *buf, RaftIndex append, uint32_t checksum) {
+  char *p = buf;
+  EncodeFixed32(p, append);
+  p += sizeof(append);
+
+  EncodeFixed32(p, checksum);
+  p += sizeof(checksum);
+}
+
+void DecodeZeroValue(const char *buf, RaftIndex &append, uint32_t &checksum) {
+  char *p = const_cast<char *>(buf);
+
+  append = DecodeFixed32(p);
+  p += sizeof(append);
+
+  checksum = DecodeFixed32(p);
+  p += sizeof(checksum);
+}
 
 const leveldb::Comparator *U32Comparator() {
   static NoDestructor<U32ComparatorImpl> singleton;
@@ -91,10 +148,10 @@ void RaftLog::Init() {
   it->SeekToFirst();
   if (!it->Valid()) {
     leveldb::WriteBatch batch;
-    char value_buf[sizeof(RaftIndex)];
-    EncodeFixed32(value_buf, 1);
-    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
-              leveldb::Slice(value_buf, sizeof(value_buf)));
+    char zero_value[sizeof(RaftIndex) + sizeof(uint32_t)];
+    EncodeZeroValue(zero_value, 1, 0);
+    batch.Put(leveldb::Slice(kZeroKey, sizeof(kZeroKey)),
+              leveldb::Slice(zero_value, sizeof(zero_value)));
     leveldb::WriteOptions wo;
     wo.sync = true;
     leveldb::Status s = db_->Write(wo, &batch);
@@ -111,30 +168,38 @@ void RaftLog::Init() {
   it->SeekToLast();
   assert(it->Valid());
   assert(it->key().ToString().size() == sizeof(RaftIndex));
-  RaftIndex key_index = DecodeFixed32(it->key().ToString().c_str());
+  RaftIndex index = DecodeFixed32(it->key().ToString().c_str());
 
-  if (key_index == 0) {
+  if (index == 0) {
     // no value
     first_ = 0;
     last_ = 0;
-    assert(it->value().ToString().size() == sizeof(RaftIndex));
-    append_ = DecodeFixed32(it->value().ToString().c_str());
+
+    // get zero value
+    assert(it->value().ToString().size() ==
+           sizeof(RaftIndex) + sizeof(uint32_t));
+
+    // append, checksum
+    DecodeZeroValue(it->value().ToString().c_str(), append_, last_checksum_);
 
   } else {  // has value
-    // last, value index
-    std::string key_str = it->key().ToString();
-    RaftIndex value_index = DecodeFixed32(key_str.c_str());
-    last_ = ValueIndexToLogIndex(value_index);
+    // last, data index
+    RaftIndex data_index = DecodeFixed32(it->key().ToString().c_str());
+    last_ = DataIndexToLogIndex(data_index);
 
-    // first, term index
+    // first, meta index
     it->SeekToFirst();
     it->Next();
-    key_str = it->key().ToString();
-    RaftIndex term_index = DecodeFixed32(key_str.c_str());
-    first_ = TermIndexToLogIndex(term_index);
+    RaftIndex meta_index = DecodeFixed32(it->key().ToString().c_str());
+    first_ = MetaIndexToLogIndex(meta_index);
 
     // append
     append_ = last_ + 1;
+
+    // checksum
+    LogEntryPtr ptr = LastEntry();
+    assert(ptr);
+    last_checksum_ = ptr->chk_all;
   }
 
   delete it;
@@ -161,29 +226,29 @@ void RaftLog::Check() {
   }
 }
 
-RaftLog::RaftLog(const std::string &path) : path_(path) {}
+RaftLog::RaftLog(const std::string &path) : path_(path), checksum_(true) {}
 
 int32_t RaftLog::Get(RaftIndex index, LogEntry &entry) {
   Check();
 
-  char term_key[sizeof(RaftIndex)];
-  EncodeTermKey(index, term_key);
+  char meta_key[sizeof(RaftIndex)];
+  EncodeMetaKey(meta_key, sizeof(RaftIndex), index);
   leveldb::ReadOptions ro;
   leveldb::Status s;
   std::string value;
-  s = db_->Get(ro, leveldb::Slice(term_key, sizeof(term_key)), &value);
+  s = db_->Get(ro, leveldb::Slice(meta_key, sizeof(meta_key)), &value);
   if (s.ok()) {
-    assert(value.size() == sizeof(RaftTerm));
+    assert(value.size() == MetaValueBytes());
     entry.index = index;
-    entry.append_entry.term = DecodeFixed64(value.c_str());
-
+    DecodeMetaValue(value.c_str(), value.size(), entry.append_entry.term,
+                    entry.append_entry.type, entry.chk_ths, entry.chk_all);
   } else {
     return -1;
   }
 
-  char value_key[sizeof(RaftIndex)];
-  EncodeValueKey(index, value_key);
-  s = db_->Get(ro, leveldb::Slice(value_key, sizeof(value_key)), &value);
+  char data_key[sizeof(RaftIndex)];
+  EncodeDataKey(data_key, sizeof(RaftIndex), index);
+  s = db_->Get(ro, leveldb::Slice(data_key, sizeof(data_key)), &value);
   assert(s.ok());
   entry.append_entry.value = value;
 
@@ -203,9 +268,10 @@ LogEntryPtr RaftLog::LastEntry() {
   }
 }
 
-int32_t RaftLog::Append(AppendEntry &entry) {
+int32_t RaftLog::AppendOne(AppendEntry &entry) {
   Check();
   RaftIndex tmp_first, tmp_last, tmp_append;
+  uint32_t tmp_checksum = 0;
 
   if (first_ == last_ && first_ == 0) {
     // no value
@@ -225,16 +291,36 @@ int32_t RaftLog::Append(AppendEntry &entry) {
   leveldb::WriteBatch batch;
   RaftIndex log_index = tmp_last;
 
-  char term_key[sizeof(RaftIndex)];
-  EncodeTermKey(log_index, term_key);
-  char term_value[sizeof(RaftTerm)];
-  EncodeTermValue(entry.term, term_value);
-  batch.Put(leveldb::Slice(term_key, sizeof(term_key)),
-            leveldb::Slice(term_value, sizeof(term_value)));
+  char meta_key[sizeof(RaftIndex)];
+  EncodeMetaKey(meta_key, sizeof(RaftIndex), log_index);
 
-  char value_key[sizeof(RaftIndex)];
-  EncodeValueKey(log_index, value_key);
-  batch.Put(leveldb::Slice(value_key, sizeof(value_key)),
+  char meta_value[sizeof(RaftTerm) + 3 * sizeof(uint32_t)];
+  if (checksum_) {
+    LogEntry log_entry;
+    log_entry.index = append_;
+    log_entry.append_entry = entry;
+
+    log_entry.CheckThis();
+    log_entry.CheckAll(last_checksum_);
+
+    // save tmp_checksum
+    tmp_checksum = log_entry.chk_all;
+
+    EncodeMetaValue(meta_value, sizeof(RaftTerm) + 3 * sizeof(uint32_t),
+                    log_entry.append_entry.term, log_entry.append_entry.type,
+                    log_entry.chk_ths, log_entry.chk_all);
+
+  } else {
+    EncodeMetaValue(meta_value, sizeof(RaftTerm) + 3 * sizeof(uint32_t),
+                    entry.term, entry.type, 0, 0);
+  }
+
+  batch.Put(leveldb::Slice(meta_key, sizeof(meta_key)),
+            leveldb::Slice(meta_value, sizeof(meta_value)));
+
+  char data_key[sizeof(RaftIndex)];
+  EncodeDataKey(data_key, sizeof(RaftIndex), log_index);
+  batch.Put(leveldb::Slice(data_key, sizeof(data_key)),
             leveldb::Slice(entry.value.c_str(), entry.value.size()));
 
   leveldb::WriteOptions wo;
@@ -248,9 +334,14 @@ int32_t RaftLog::Append(AppendEntry &entry) {
   last_ = tmp_last;
   append_ = tmp_append;
 
+  // update last_checksum_
+  last_checksum_ = tmp_checksum;
+
   Check();
   return 0;
 }
+
+int32_t RaftLog::AppendSome(std::vector<AppendEntry> &entries) { return 0; }
 
 int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
   Check();
@@ -294,21 +385,21 @@ int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
 
   leveldb::WriteBatch batch;
   for (RaftIndex i = from_index; i <= last_; ++i) {
-    char term_key[sizeof(RaftIndex)];
-    EncodeTermKey(i, term_key);
-    batch.Delete(leveldb::Slice(term_key, sizeof(term_key)));
+    char meta_key[sizeof(RaftIndex)];
+    EncodeMetaKey(meta_key, sizeof(RaftIndex), i);
+    batch.Delete(leveldb::Slice(meta_key, sizeof(meta_key)));
 
-    char value_key[sizeof(RaftIndex)];
-    EncodeValueKey(i, value_key);
-    batch.Delete(leveldb::Slice(value_key, sizeof(value_key)));
+    char data_key[sizeof(RaftIndex)];
+    EncodeDataKey(data_key, sizeof(RaftIndex), i);
+    batch.Delete(leveldb::Slice(data_key, sizeof(data_key)));
   }
 
   // need to persist append index
   if (from_index == first_) {
-    char value_buf[sizeof(RaftIndex)];
-    EncodeFixed32(value_buf, tmp_append);
-    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
-              leveldb::Slice(value_buf, sizeof(value_buf)));
+    char zero_value[sizeof(RaftIndex) + sizeof(uint32_t)];
+    EncodeZeroValue(zero_value, tmp_append, last_checksum_);
+    batch.Put(leveldb::Slice(kZeroKey, sizeof(kZeroKey)),
+              leveldb::Slice(zero_value, sizeof(zero_value)));
   }
 
   leveldb::Status s = db_->Write(leveldb::WriteOptions(), &batch);
@@ -365,21 +456,21 @@ int32_t RaftLog::DeleteUtil(RaftIndex to_index) {
 
   leveldb::WriteBatch batch;
   for (RaftIndex i = first_; i <= to_index; ++i) {
-    char term_key[sizeof(RaftIndex)];
-    EncodeTermKey(i, term_key);
-    batch.Delete(leveldb::Slice(term_key, sizeof(term_key)));
+    char meta_key[sizeof(RaftIndex)];
+    EncodeMetaKey(meta_key, sizeof(RaftIndex), i);
+    batch.Delete(leveldb::Slice(meta_key, sizeof(meta_key)));
 
-    char value_key[sizeof(RaftIndex)];
-    EncodeValueKey(i, value_key);
-    batch.Delete(leveldb::Slice(value_key, sizeof(value_key)));
+    char data_key[sizeof(RaftIndex)];
+    EncodeDataKey(data_key, sizeof(RaftIndex), i);
+    batch.Delete(leveldb::Slice(data_key, sizeof(data_key)));
   }
 
   // need to persist append index
   if (to_index == last_) {
-    char value_buf[sizeof(RaftIndex)];
-    EncodeFixed32(value_buf, tmp_append);
-    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
-              leveldb::Slice(value_buf, sizeof(value_buf)));
+    char zero_value[sizeof(RaftIndex) + sizeof(uint32_t)];
+    EncodeZeroValue(zero_value, tmp_append, last_checksum_);
+    batch.Put(leveldb::Slice(kZeroKey, sizeof(kZeroKey)),
+              leveldb::Slice(zero_value, sizeof(zero_value)));
   }
 
   leveldb::Status s = db_->Write(leveldb::WriteOptions(), &batch);

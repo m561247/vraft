@@ -177,15 +177,6 @@ const leveldb::Comparator *TestI32Comparator() {
 
 //--------------------------------------------------------------------------
 
-TEST(coding, test2) {
-  uint32_t u32 = 78;
-  char buf[sizeof(uint32_t)];
-  vraft::EncodeFixed32(buf, u32);
-
-  uint32_t u32_2 = vraft::DecodeFixed32(buf);
-  std::cout << u32 << " " << u32_2 << std::endl;
-}
-
 TEST(leveldb, test_i64) {
   system("rm -rf /tmp/leveldb_test_dir");
   std::string path = "/tmp/leveldb_test_dir";
@@ -339,40 +330,55 @@ TEST(leveldb, test_u32) {
 // term_key : 1 3 5
 // value_key: 2 4 6
 TEST(coding, test) {
-  EXPECT_EQ(vraft::LogIndexToTermIndex(1), 1);
-  EXPECT_EQ(vraft::LogIndexToTermIndex(3), 5);
+  EXPECT_EQ(vraft::LogIndexToMetaIndex(1), 1);
+  EXPECT_EQ(vraft::LogIndexToMetaIndex(3), 5);
 
-  EXPECT_EQ(vraft::LogIndexToValueIndex(1), 2);
-  EXPECT_EQ(vraft::LogIndexToValueIndex(3), 6);
+  EXPECT_EQ(vraft::LogIndexToDataIndex(1), 2);
+  EXPECT_EQ(vraft::LogIndexToDataIndex(3), 6);
 
-  EXPECT_EQ(vraft::TermIndexToLogIndex(1), 1);
-  EXPECT_EQ(vraft::TermIndexToLogIndex(5), 3);
+  EXPECT_EQ(vraft::MetaIndexToLogIndex(1), 1);
+  EXPECT_EQ(vraft::MetaIndexToLogIndex(5), 3);
 
-  EXPECT_EQ(vraft::ValueIndexToLogIndex(2), 1);
-  EXPECT_EQ(vraft::ValueIndexToLogIndex(6), 3);
+  EXPECT_EQ(vraft::DataIndexToLogIndex(2), 1);
+  EXPECT_EQ(vraft::DataIndexToLogIndex(6), 3);
+}
+
+TEST(coding, test2) {
+  uint32_t u32 = 78;
+  char buf[sizeof(uint32_t)];
+  vraft::EncodeFixed32(buf, u32);
+
+  uint32_t u32_2 = vraft::DecodeFixed32(buf);
+  std::cout << u32 << " " << u32_2 << std::endl;
+}
+
+TEST(coding, test3) {
+  char *ptr = (char *)malloc(vraft::MetaValueBytes());
+
+  vraft::RaftTerm term = 5;
+  uint32_t entry_type = 3;
+  uint32_t chk_ths = 88;
+  uint32_t chk_all = 99;
+  vraft::EncodeMetaValue(ptr, vraft::MetaValueBytes(), term, entry_type,
+                         chk_ths, chk_all);
+
+  vraft::RaftTerm term2;
+  vraft::EntryType entry_type2;
+  uint32_t chk_ths2;
+  uint32_t chk_all2;
+  vraft::DecodeMetaValue(ptr, vraft::MetaValueBytes(), term2, entry_type2,
+                         chk_ths2, chk_all2);
+
+  EXPECT_EQ(term, term2);
+  EXPECT_EQ(vraft::U32ToEntryType(entry_type), entry_type2);
+  EXPECT_EQ(chk_ths, chk_ths2);
+  EXPECT_EQ(chk_all, chk_all2);
+
+  free(ptr);
 }
 
 TEST(RaftLog, construct) {
   system("rm -rf /tmp/raftlog_test_dir");
-  vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
-  raft_log.Init();
-
-  std::cout << "first: " << raft_log.First() << std::endl;
-  std::cout << "last: " << raft_log.Last() << std::endl;
-  std::cout << "append: " << raft_log.Append() << std::endl;
-  EXPECT_EQ(raft_log.First(), 0);
-  EXPECT_EQ(raft_log.Last(), 0);
-  EXPECT_EQ(raft_log.Append(), 1);
-
-  std::cout << raft_log.ToJsonString(true, true) << std::endl;
-  std::cout << raft_log.ToJsonString(false, false) << std::endl;
-
-  system("rm -rf /tmp/raftlog_test_dir");
-}
-
-TEST(RaftLog, Append) {
-  system("rm -rf /tmp/raftlog_test_dir");
-
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
@@ -384,18 +390,37 @@ TEST(RaftLog, Append) {
     EXPECT_EQ(raft_log.Last(), 0);
     EXPECT_EQ(raft_log.Append(), 1);
 
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    std::cout << raft_log.ToJsonString(false, false) << std::endl;
+  }
+  system("rm -rf /tmp/raftlog_test_dir");
+}
+
+TEST(RaftLog, Append) {
+  system("rm -rf /tmp/raftlog_test_dir");
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
+
     for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
+      std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
+                << std::endl;
+      std::cout << raft_log.ToJsonString(true, true) << std::endl;
     }
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 5);
     EXPECT_EQ(raft_log.Append(), 6);
@@ -405,12 +430,60 @@ TEST(RaftLog, Append) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 5);
     EXPECT_EQ(raft_log.Append(), 6);
+  }
+
+  system("rm -rf /tmp/raftlog_test_dir");
+}
+
+TEST(RaftLog, CheckSum) {
+  system("rm -rf /tmp/raftlog_test_dir");
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
+
+    for (int i = 0; i < 10; ++i) {
+      vraft::AppendEntry entry;
+      entry.term = i * 10;
+      entry.type = vraft::kData;
+      char buf[32];
+      snprintf(buf, sizeof(buf), "value_%d", i);
+      entry.value = buf;
+      raft_log.AppendOne(entry);
+      std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
+                << std::endl;
+      std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    }
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+
+    raft_log.DeleteFrom(1);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
@@ -423,9 +496,7 @@ TEST(RaftLog, DeleteFrom) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
     EXPECT_EQ(raft_log.Append(), 1);
@@ -433,23 +504,23 @@ TEST(RaftLog, DeleteFrom) {
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
+      std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
+                << std::endl;
+      std::cout << raft_log.ToJsonString(true, true) << std::endl;
     }
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 10);
     EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteFrom(7);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 6);
     EXPECT_EQ(raft_log.Append(), 7);
@@ -459,9 +530,7 @@ TEST(RaftLog, DeleteFrom) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 6);
     EXPECT_EQ(raft_log.Append(), 7);
@@ -487,10 +556,11 @@ TEST(RaftLog, DeleteFrom2) {
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -523,10 +593,11 @@ TEST(RaftLog, DeleteFrom2) {
     for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -621,10 +692,11 @@ TEST(RaftLog, DeleteUtil) {
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -677,10 +749,11 @@ TEST(RaftLog, DeleteUtil) {
     for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -743,10 +816,11 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -825,10 +899,11 @@ TEST(RaftLog, Get) {
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
       entry.term = i * 10;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -898,10 +973,11 @@ TEST(RaftLog, LastEntry) {
     for (int i = 0; i < 10; ++i) {
       vraft::AppendEntry entry;
       entry.term = 100;
+      entry.type = vraft::kData;
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.Append(entry);
+      raft_log.AppendOne(entry);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;

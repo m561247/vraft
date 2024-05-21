@@ -19,20 +19,6 @@
 
 namespace vraft {
 
-// log_index: 1 2 3
-// term_key : 1 3 5
-// value_key: 2 4 6
-RaftIndex LogIndexToTermIndex(RaftIndex log_index);
-RaftIndex TermIndexToLogIndex(RaftIndex term_index);
-RaftIndex LogIndexToValueIndex(RaftIndex log_index);
-RaftIndex ValueIndexToLogIndex(RaftIndex value_index);
-
-void EncodeValueKey(RaftIndex log_index, char *dst);
-void EncodeTermKey(RaftIndex log_index, char *dst);
-void EncodeTermValue(RaftTerm term, char *dst);
-
-const leveldb::Comparator *U32Comparator();
-
 enum EntryType {
   kUnknown = 0,
   kData,
@@ -40,7 +26,7 @@ enum EntryType {
   kConfig,
 };
 
-inline enum EntryType U32ToEntryType(uint32_t u32) {
+inline EntryType U32ToEntryType(uint32_t u32) {
   switch (u32) {
     case 0:
       return kUnknown;
@@ -70,6 +56,30 @@ inline const char *EntryTypeToStr(enum EntryType e) {
   }
 }
 
+// log_index: 1 2 3
+// term_key : 1 3 5
+// value_key: 2 4 6
+RaftIndex LogIndexToMetaIndex(RaftIndex log_index);
+RaftIndex MetaIndexToLogIndex(RaftIndex term_index);
+RaftIndex LogIndexToDataIndex(RaftIndex log_index);
+RaftIndex DataIndexToLogIndex(RaftIndex value_index);
+
+// log-index --> term-index --> [term, type, check_this, check_all]
+// log-index --> value-index --> [value]
+void EncodeDataKey(char *buf, int32_t len, RaftIndex log_index);
+void EncodeMetaKey(char *buf, int32_t len, RaftIndex log_index);
+int32_t MetaValueBytes();
+void EncodeMetaValue(char *buf, int32_t len, RaftTerm term, uint32_t entry_type,
+                     uint32_t chk_ths, uint32_t chk_all);
+void DecodeMetaValue(const char *buf, int32_t len, RaftTerm &term,
+                     EntryType &entry_type, uint32_t &chk_ths,
+                     uint32_t &chk_all);
+const leveldb::Comparator *U32Comparator();
+
+const char kZeroKey[sizeof(RaftIndex)] = {0};
+void EncodeZeroValue(char *buf, RaftIndex append, uint32_t checksum);
+void DecodeZeroValue(const char *buf, RaftIndex &append, uint32_t &checksum);
+
 struct AppendEntry {
   RaftTerm term;   // uint64_t
   EntryType type;  // uint32_t
@@ -82,7 +92,7 @@ using LogEntryPtr = std::shared_ptr<LogEntry>;
 struct LogEntry {
   RaftIndex index;
   uint32_t chk_ths;  // checksum [index + term + type + value]
-  uint32_t chk_all;  // checksum [pre checksum + chk_ths]
+  uint32_t chk_all;  // checksum [pre chk_all + chk_ths]
   AppendEntry append_entry;
 
   void CheckThis();
@@ -333,8 +343,6 @@ class U32ComparatorImpl : public leveldb::Comparator {
 class RaftLog;
 using RaftLogUPtr = std::unique_ptr<RaftLog>;
 
-const char kAppendKey[sizeof(RaftIndex)] = {0};
-
 class RaftLog final {
  public:
   RaftLog(const std::string &path);
@@ -344,11 +352,15 @@ class RaftLog final {
   void Init();
   void Check();
 
-  int32_t Append(AppendEntry &entry);
+  int32_t AppendOne(AppendEntry &entry);
+  int32_t AppendSome(std::vector<AppendEntry> &entries);
   int32_t DeleteFrom(RaftIndex from_index);
   int32_t DeleteUtil(RaftIndex to_index);
   int32_t Get(RaftIndex index, LogEntry &entry);
   LogEntryPtr LastEntry();
+
+  void EnableCheckSum() { checksum_ = true; }
+  void DisableCheckSum() { checksum_ = false; }
 
   RaftIndex First() const { return first_; };
   RaftIndex Last() const { return last_; }
@@ -362,6 +374,8 @@ class RaftLog final {
   RaftIndex first_;
   RaftIndex last_;
   RaftIndex append_;
+  bool checksum_;
+  uint32_t last_checksum_;
 
   std::string path_;
   leveldb::Options db_options_;
@@ -375,6 +389,7 @@ inline nlohmann::json RaftLog::ToJson() {
   j["first"] = first_;
   j["last"] = last_;
   j["append"] = append_;
+  j["checksum"] = U32ToHexStr(last_checksum_);
   LogEntryPtr ptr = LastEntry();
   if (ptr) {
     j["last_term"] = ptr->append_entry.term;
@@ -387,9 +402,10 @@ inline nlohmann::json RaftLog::ToJson() {
 
 inline nlohmann::json RaftLog::ToJsonTiny() {
   nlohmann::json j;
-  j["idx"][0] = first_;
-  j["idx"][1] = last_;
-  j["idx"][2] = append_;
+  j["fst"] = first_;
+  j["lst"] = last_;
+  j["apd"] = append_;
+  j["chk"] = U32ToHexStr(last_checksum_);
   LogEntryPtr ptr = LastEntry();
   if (ptr) {
     j["ltm"] = ptr->append_entry.term;
