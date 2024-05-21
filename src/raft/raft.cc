@@ -27,7 +27,7 @@ char *StateToStr(enum State state) {
   }
 }
 
-void PingPeers(Timer *timer) {
+void Tick(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   for (auto &dest_addr : r->Peers()) {
     r->DoPing(dest_addr.ToU64());
@@ -60,6 +60,8 @@ void Elect(Timer *timer) {
   }
 }
 
+void ElectRpc(Timer *timer) {}
+
 void HeartBeat(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   if (r->state_ == LEADER) {  // if necessary??
@@ -83,6 +85,7 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       config_mgr_(rc),
       vote_mgr_(rc.peers),
       index_mgr_(rc.peers),
+      timer_mgr_(rc.peers),
       sm_(path + "/sm"),
       ping_timer_ms_(1000),
       election_timer_ms_(1500),
@@ -94,17 +97,22 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       leader_(0) {}
 
 int32_t Raft::Start() {
-  // user maybe set make_timer after Init()
-  if (make_timer_) {
-    ping_timer_ = make_timer_(0, ping_timer_ms_, PingPeers, this);
-    election_timer_ = make_timer_(random_election_ms_.Get(), 0, Elect, this);
-    heartbeat_timer_ = make_timer_(0, heartbeat_timer_ms_, HeartBeat, this);
+  // make timer
+  assert(make_timer_);
+  timer_mgr_.set_maketimer_func(make_timer_);
+  timer_mgr_.set_tick_func(Tick);
+  timer_mgr_.set_election_func(Elect);
+  timer_mgr_.set_election_rpc_func(ElectRpc);
+  timer_mgr_.set_heartbeat_func(HeartBeat);
+  timer_mgr_.set_data(this);
+  timer_mgr_.MakeTimer();
 
-    ping_timer_->Start();
+  timer_mgr_.tick->Start();
 
-  } else {
-    return -1;
-  }
+  /*
+  ping_timer_ = make_timer_(0, ping_timer_ms_, Tick, this);
+  ping_timer_->Start();
+  */
 
   // become follower
   StepDown(meta_.term());
@@ -166,6 +174,7 @@ int32_t Raft::InitConfig() {
     // reset managers
     index_mgr_.Reset(rc.peers);
     vote_mgr_.Reset(rc.peers);
+    timer_mgr_.Reset(rc.peers);
 
   } else {
     // write config

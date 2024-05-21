@@ -23,18 +23,11 @@
 #include "solid_data.h"
 #include "state_machine.h"
 #include "timer.h"
+#include "timer_manager.h"
 #include "tracer.h"
 #include "vote_manager.h"
 
 namespace vraft {
-
-using SendFunc =
-    std::function<int32_t(uint64_t dest, const char *buf, unsigned int size)>;
-using MakeTimerFunc = std::function<TimerPtr(
-    uint64_t to_ms, uint64_t rp_ms, const TimerFunctor &func, void *data)>;
-
-class Raft;
-using RaftUPtr = std::unique_ptr<Raft>;
 
 enum State {
   FOLLOWER = 0,
@@ -43,9 +36,13 @@ enum State {
 };
 
 char *StateToStr(enum State state);
-void PingPeers(Timer *timer);
+void Tick(Timer *timer);
 void Elect(Timer *timer);
+void ElectRpc(Timer *timer);
 void HeartBeat(Timer *timer);
+
+class Raft;
+using RaftUPtr = std::unique_ptr<Raft>;
 
 class Raft final {
  public:
@@ -79,7 +76,6 @@ class Raft final {
   int16_t Id() { return config_mgr_.Current().me.id(); }
   RaftAddr Me() { return config_mgr_.Current().me; }
   std::vector<RaftAddr> Peers() { return config_mgr_.Current().peers; }
-
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
@@ -106,7 +102,7 @@ class Raft final {
   std::string log_path_;
   std::string sm_path_;
 
-  // memory data
+  // in-memory data
   enum State state_;
   RaftIndex commit_;
   RaftIndex last_apply_;
@@ -120,6 +116,7 @@ class Raft final {
   ConfigManager config_mgr_;
   IndexManager index_mgr_;
   VoteManager vote_mgr_;
+  TimerManager timer_mgr_;
 
   // state machine
   StateMachine sm_;
@@ -137,7 +134,7 @@ class Raft final {
   SendFunc send_;
   MakeTimerFunc make_timer_;
 
-  friend void PingPeers(Timer *timer);
+  friend void Tick(Timer *timer);
   friend void Elect(Timer *timer);
   friend void HeartBeat(Timer *timer);
 };

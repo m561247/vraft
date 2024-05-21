@@ -20,6 +20,7 @@ class IndexManager final {
   ~IndexManager();
   IndexManager(const IndexManager &t) = delete;
   IndexManager &operator=(const IndexManager &t) = delete;
+
   void Reset(const std::vector<RaftAddr> &peers);
   void ResetNext(RaftIndex index);
   void ResetMatch(RaftIndex index);

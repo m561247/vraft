@@ -11,13 +11,15 @@
 namespace vraft {
 
 class Timer;
-class EventLoop;
+using TimerPtr = std::shared_ptr<Timer>;
+using TimerFunctor = std::function<void(Timer *)>;
+using MakeTimerFunc = std::function<TimerPtr(
+    uint64_t to_ms, uint64_t rp_ms, const TimerFunctor &func, void *data)>;
 
 using TimerId = int64_t;
-using TimerPtr = std::shared_ptr<Timer>;
 using TimerMap = std::map<TimerId, TimerPtr>;
-using TimerFunctor = std::function<void(Timer *)>;
 
+class EventLoop;
 TimerPtr CreateTimer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
                      const TimerFunctor &cb);
 void HandleUvTimer(UvTimer *uv_timer);
@@ -49,6 +51,9 @@ class Timer final {
     repeat_counter_ = repeat_times;
   }
 
+  uint64_t dest_addr() { return dest_addr_; }
+  void set_dest_addr(uint64_t dest_addr) { dest_addr_ = dest_addr; }
+
  public:
   void *data;
 
@@ -61,6 +66,7 @@ class Timer final {
   uint64_t repeat_ms_;
   int64_t repeat_times_;
   int64_t repeat_counter_;
+  uint64_t dest_addr_;
   const TimerFunctor cb_;
 
   EventLoop *loop_;
