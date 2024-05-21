@@ -36,23 +36,39 @@ void PingPeers(Timer *timer) {
 
 void Elect(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
-  r->meta_.IncrTerm();
-  r->state_ = CANDIDATE;
-  r->leader_ = 0;
+  if (r->state_ == FOLLOWER || r->state_ == CANDIDATE) {  // if necessary??
+    r->meta_.IncrTerm();
+    r->state_ = CANDIDATE;
+    r->leader_ = 0;
+    r->vote_mgr_.Clear();
 
-  // vote for myself
-  r->meta_.SetVote(r->Me().ToU64());
+    // vote for myself
+    r->meta_.SetVote(r->Me().ToU64());
 
-  // reset election timer
-  r->election_timer_->Again(r->random_election_ms_.Get(), 0);
+    // send request-vote
+    for (auto &dest_addr : r->Peers()) {
+      r->DoRequestVote(dest_addr.ToU64());
+    }
 
-  // only myself
-  if (r->vote_mgr_.QuorumAll(r->VoteForMyself())) {
-    r->BecomeLeader();
+    // reset election timer
+    r->election_timer_->Again(r->random_election_ms_.Get(), 0);
+
+    // only myself
+    if (r->vote_mgr_.QuorumAll(r->VoteForMyself())) {
+      r->BecomeLeader();
+    }
   }
 }
 
-void HeartBeat(Timer *timer) {}
+void HeartBeat(Timer *timer) {
+  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  if (r->state_ == LEADER) {  // if necessary??
+    // send append-entries
+    for (auto &dest_addr : r->Peers()) {
+      r->DoAppendEntries(dest_addr.ToU64());
+    }
+  }
+}
 
 // if path is empty, use rc to initialize,
 // else use the data in path to initialize
@@ -205,11 +221,30 @@ void Raft::StepDown(RaftTerm new_term) {
     }
   }
 
+  // close heartbeat timer
+  heartbeat_timer_->Stop();
+
   // start election timer
   election_timer_->Start();
 }
 
-void Raft::BecomeLeader() {}
+void Raft::BecomeLeader() {
+  assert(state_ == CANDIDATE);
+  state_ = LEADER;
+  leader_ = Me().ToU64();
+
+  // stop election timer
+  election_timer_->Stop();
+
+  // reset index manager
+  index_mgr_.ResetNext(LastIndex() + 1);
+  index_mgr_.ResetMatch(0);
+
+  // append noop
+
+  // start heartbeat timer
+  heartbeat_timer_->Start();
+}
 
 int32_t Raft::OnPing(struct Ping &msg) {
   Tracer tracer(this, false);

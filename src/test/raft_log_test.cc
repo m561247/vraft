@@ -927,7 +927,10 @@ TEST(LogEntry, test) {
   vraft::LogEntry entry;
   entry.index = 3;
   entry.append_entry.term = 100;
+  entry.append_entry.type = vraft::kData;
   entry.append_entry.value = "hello";
+  entry.CheckThis();
+  entry.CheckAll(5);
 
   std::string str;
   int32_t bytes = entry.ToString(str);
@@ -952,7 +955,10 @@ TEST(LogEntry, test) {
   std::cout << entry.ToJsonString(false, false) << std::endl;
 
   EXPECT_EQ(entry.index, entry2.index);
+  EXPECT_EQ(entry.chk_ths, entry2.chk_ths);
+  EXPECT_EQ(entry.chk_all, entry2.chk_all);
   EXPECT_EQ(entry.append_entry.term, entry2.append_entry.term);
+  EXPECT_EQ(entry.append_entry.type, entry2.append_entry.type);
   EXPECT_EQ(entry.append_entry.value, entry2.append_entry.value);
 }
 

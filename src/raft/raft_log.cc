@@ -139,39 +139,6 @@ void RaftLog::Init() {
 
   delete it;
   Check();
-
-#if 0
-  if (it->Valid()) {
-    std::string begin_key_str = it->key().ToString();
-    assert(begin_key_str.size() == sizeof(RaftIndex));
-    RaftIndex term_index = DecodeFixed32(begin_key_str.c_str());
-    first_ = TermIndexToLogIndex(term_index);
-
-    it->SeekToLast();
-    assert(it->Valid());
-    std::string end_key_str = it->key().ToString();
-    assert(end_key_str.size() == sizeof(RaftIndex));
-    RaftIndex value_index = DecodeFixed32(end_key_str.c_str());
-    last_ = ValueIndexToLogIndex(value_index);
-
-  } else {
-    // init first
-    leveldb::WriteBatch batch;
-    char value_buf[sizeof(RaftIndex)];
-    EncodeFixed32(value_buf, 1);
-    batch.Put(leveldb::Slice(kAppendKey, sizeof(kAppendKey)),
-              leveldb::Slice(value_buf, sizeof(value_buf)));
-    leveldb::WriteOptions wo;
-    wo.sync = true;
-    leveldb::Status s = db_->Write(wo, &batch);
-    assert(s.ok());
-
-    first_ = 0;
-    last_ = 0;
-    append_ = 1;
-  }
-  delete it;
-#endif
 }
 
 void RaftLog::Check() {

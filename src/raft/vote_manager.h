@@ -25,6 +25,7 @@ class VoteManager final {
   void Reset(const std::vector<RaftAddr> &peers);
   bool Majority(bool my_vote);
   bool QuorumAll(bool my_vote);
+  void Clear();
 
  public:
   std::unordered_map<uint64_t, VoteItem> votes;
@@ -74,6 +75,13 @@ inline bool VoteManager::QuorumAll(bool my_vote) {
     }
   }
   return true;
+}
+
+inline void VoteManager::Clear() {
+  for (auto &v : votes) {
+    v.second.grant = false;
+    v.second.done = false;
+  }
 }
 
 inline nlohmann::json VoteManager::ToJson() {

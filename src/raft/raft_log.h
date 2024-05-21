@@ -33,8 +33,46 @@ void EncodeTermValue(RaftTerm term, char *dst);
 
 const leveldb::Comparator *U32Comparator();
 
+enum EntryType {
+  kUnknown = 0,
+  kData,
+  kNoop,
+  kConfig,
+};
+
+inline enum EntryType U32ToEntryType(uint32_t u32) {
+  switch (u32) {
+    case 0:
+      return kUnknown;
+    case 1:
+      return kData;
+    case 2:
+      return kNoop;
+    case 3:
+      return kConfig;
+    default:
+      assert(0);
+  }
+}
+
+inline const char *EntryTypeToStr(enum EntryType e) {
+  switch (e) {
+    case kUnknown:
+      return "Unknown";
+    case kData:
+      return "Data";
+    case kNoop:
+      return "Noop";
+    case kConfig:
+      return "Config";
+    default:
+      assert(0);
+  }
+}
+
 struct AppendEntry {
-  RaftTerm term;
+  RaftTerm term;   // uint64_t
+  EntryType type;  // uint32_t
   std::string value;
 };
 
@@ -43,7 +81,12 @@ using LogEntryPtr = std::shared_ptr<LogEntry>;
 
 struct LogEntry {
   RaftIndex index;
+  uint32_t chk_ths;  // checksum [index + term + type + value]
+  uint32_t chk_all;  // checksum [pre checksum + chk_ths]
   AppendEntry append_entry;
+
+  void CheckThis();
+  void CheckAll(uint32_t pre_chksum);
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -56,9 +99,58 @@ struct LogEntry {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
+inline void LogEntry::CheckThis() {
+  int32_t max_bytes = sizeof(RaftIndex) + sizeof(append_entry.term) +
+                      sizeof(uint32_t) + 2 * sizeof(int32_t) +
+                      append_entry.value.size();
+  char *ptr = reinterpret_cast<char *>(DefaultAllocator().Malloc(max_bytes));
+  char *p = ptr;
+  int32_t size = 0;
+
+  EncodeFixed32(p, index);
+  p += sizeof(index);
+  size += sizeof(index);
+
+  EncodeFixed64(p, append_entry.term);
+  p += sizeof(append_entry.term);
+  size += sizeof(append_entry.term);
+
+  EncodeFixed32(p, append_entry.type);
+  p += sizeof(append_entry.type);
+  size += sizeof(append_entry.type);
+
+  EncodeFixed32(p, index);
+  p += sizeof(index);
+  size += sizeof(index);
+
+  Slice sls(append_entry.value.c_str(), append_entry.value.size());
+  char *p2 = EncodeString2(p, max_bytes - size, sls);
+  size += (p2 - p);
+
+  chk_ths = Crc32(ptr, size);
+  DefaultAllocator().Free(ptr);
+}
+
+inline void LogEntry::CheckAll(uint32_t pre_chksum) {
+  char buf[sizeof(uint32_t) * 2];
+  char *p = buf;
+  int32_t size = 0;
+
+  EncodeFixed32(p, pre_chksum);
+  p += sizeof(pre_chksum);
+  size += sizeof(pre_chksum);
+
+  EncodeFixed32(p, chk_ths);
+  p += sizeof(chk_ths);
+  size += sizeof(chk_ths);
+
+  chk_all = Crc32(buf, sizeof(uint32_t) * 2);
+}
+
 inline int32_t LogEntry::MaxBytes() {
-  return sizeof(RaftIndex) + sizeof(append_entry.term) + 2 * sizeof(int32_t) +
-         append_entry.value.size();
+  return sizeof(RaftIndex) + sizeof(chk_ths) + sizeof(chk_all) +
+         sizeof(append_entry.term) + sizeof(append_entry.type) +
+         2 * sizeof(int32_t) + append_entry.value.size();
 }
 
 inline int32_t LogEntry::ToString(std::string &s) {
@@ -79,9 +171,22 @@ inline int32_t LogEntry::ToString(const char *ptr, int32_t len) {
   p += sizeof(index);
   size += sizeof(index);
 
+  EncodeFixed32(p, chk_ths);
+  p += sizeof(chk_ths);
+  size += sizeof(chk_ths);
+
+  EncodeFixed32(p, chk_all);
+  p += sizeof(chk_all);
+  size += sizeof(chk_all);
+
   EncodeFixed64(p, append_entry.term);
   p += sizeof(append_entry.term);
   size += sizeof(append_entry.term);
+
+  uint32_t u32 = append_entry.type;
+  EncodeFixed32(p, u32);
+  p += sizeof(u32);
+  size += sizeof(u32);
 
   Slice sls(append_entry.value.c_str(), append_entry.value.size());
   char *p2 = EncodeString2(p, len - size, sls);
@@ -103,9 +208,22 @@ inline int32_t LogEntry::FromString(const char *ptr, int32_t len) {
   p += sizeof(index);
   size += sizeof(index);
 
+  chk_ths = DecodeFixed32(p);
+  p += sizeof(chk_ths);
+  size += sizeof(chk_ths);
+
+  chk_all = DecodeFixed32(p);
+  p += sizeof(chk_all);
+  size += sizeof(chk_all);
+
   append_entry.term = DecodeFixed64(p);
   p += sizeof(append_entry.term);
   size += sizeof(append_entry.term);
+
+  uint32_t u32 = DecodeFixed32(p);
+  p += sizeof(u32);
+  size += sizeof(u32);
+  append_entry.type = U32ToEntryType(u32);
 
   Slice result;
   Slice input(p, len - sizeof(index) - sizeof(append_entry.term));
@@ -126,8 +244,11 @@ inline nlohmann::json LogEntry::ToJson() {
   nlohmann::json j;
   j["index"] = index;
   j["term"] = append_entry.term;
+  j["type"] = std::string(EntryTypeToStr(append_entry.type));
   j["value"] =
       StrToHexStr(append_entry.value.c_str(), append_entry.value.size());
+  j["chk_ths"] = U32ToHexStr(chk_ths);
+  j["chk_all"] = U32ToHexStr(chk_all);
   j["this"] = PointerToHexStr(this);
   return j;
 }
@@ -136,7 +257,10 @@ inline nlohmann::json LogEntry::ToJsonTiny() {
   nlohmann::json j;
   j["idx"] = index;
   j["tm"] = append_entry.term;
+  j["tp"] = std::string(EntryTypeToStr(append_entry.type));
   j["val"] = StrToHexStr(append_entry.value.c_str(), append_entry.value.size());
+  j["ckt"] = U32ToHexStr(chk_ths);
+  j["cka"] = U32ToHexStr(chk_all);
   j["ts"] = PointerToHexStr(this);
   return j;
 }

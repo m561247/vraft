@@ -154,6 +154,12 @@ std::string PointerToHexStr(void *p) {
   return std::string(buf);
 }
 
+std::string U32ToHexStr(uint32_t x) {
+  char buf[32];
+  snprintf(buf, sizeof(buf), "0x%X", x);
+  return std::string(buf);
+}
+
 std::string NsToString(uint64_t ns) {
   // Convert ns to system time point
   std::chrono::nanoseconds nano(ns);

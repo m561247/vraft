@@ -46,6 +46,8 @@ std::string StrToHexStr(const char *ptr, int32_t size);
 
 std::string PointerToHexStr(void *p);
 
+std::string U32ToHexStr(uint32_t x);
+
 std::string NsToString(uint64_t ns);
 
 }  // namespace vraft
