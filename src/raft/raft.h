@@ -122,11 +122,9 @@ class Raft final {
   StateMachine sm_;
 
   // timer
-  uint32_t ping_timer_ms_;
   uint32_t election_timer_ms_;
   uint32_t heartbeat_timer_ms_;
   SimpleRandom random_election_ms_;
-  TimerPtr ping_timer_;
   TimerPtr election_timer_;
   TimerPtr heartbeat_timer_;
 

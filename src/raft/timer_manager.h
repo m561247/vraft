@@ -25,6 +25,7 @@ class TimerManager final {
   void MakeElection();
   void MakeElectionPpc();
   void MakeHeartbeat();
+  void Stop();
 
   void set_data(void *data);
   void set_tick_func(TimerFunctor func);
@@ -98,6 +99,28 @@ inline void TimerManager::MakeElectionPpc() {
   for (auto &item : election_rpc) {
     item.second = maketimer_func_(0, 0, election_rpc_func_, data_);
     item.second->set_dest_addr(item.first);
+  }
+}
+
+inline void TimerManager::Stop() {
+  if (tick) {
+    tick->Stop();
+  }
+
+  if (election) {
+    election->Stop();
+  }
+
+  for (auto &item : election_rpc) {
+    if (item.second) {
+      item.second->Stop();
+    }
+  }
+
+  for (auto &item : heartbeat) {
+    if (item.second) {
+      item.second->Stop();
+    }
   }
 }
 

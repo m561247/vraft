@@ -87,7 +87,6 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       index_mgr_(rc.peers),
       timer_mgr_(rc.peers),
       sm_(path + "/sm"),
-      ping_timer_ms_(1000),
       election_timer_ms_(1500),
       heartbeat_timer_ms_(500),
       random_election_ms_(election_timer_ms_, 2 * election_timer_ms_),
@@ -107,10 +106,8 @@ int32_t Raft::Start() {
   timer_mgr_.set_data(this);
   timer_mgr_.MakeTimer();
 
-  // timer_mgr_.tick->Start();
-
-  ping_timer_ = make_timer_(0, ping_timer_ms_, Tick, this);
-  ping_timer_->Start();
+  // start tick
+  timer_mgr_.tick->Start();
 
   // become follower
   // StepDown(meta_.term());
@@ -119,7 +116,7 @@ int32_t Raft::Start() {
 }
 
 int32_t Raft::Stop() {
-  ping_timer_->Stop();
+  timer_mgr_.Stop();
   return 0;
 }
 
