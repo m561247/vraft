@@ -107,15 +107,13 @@ int32_t Raft::Start() {
   timer_mgr_.set_data(this);
   timer_mgr_.MakeTimer();
 
-  timer_mgr_.tick->Start();
+  // timer_mgr_.tick->Start();
 
-  /*
   ping_timer_ = make_timer_(0, ping_timer_ms_, Tick, this);
   ping_timer_->Start();
-  */
 
   // become follower
-  StepDown(meta_.term());
+  // StepDown(meta_.term());
 
   return 0;
 }
@@ -256,6 +254,9 @@ void Raft::BecomeLeader() {
 }
 
 int32_t Raft::OnPing(struct Ping &msg) {
+  vraft_logger.Info("%s recv ping from %s, msg:%s", msg.dest.ToString().c_str(),
+                    msg.src.ToString().c_str(), msg.msg.c_str());
+
   Tracer tracer(this, false);
   tracer.PrepareState0();
   tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));

@@ -32,8 +32,11 @@ class Config final {
   const cxxopts::ParseResult &result() const { return result_; }
   const std::string ToString() const;
 
+  void set_my_addr(HostPort my_addr) { my_addr_ = my_addr; }
+  void set_path(std::string path) { path_ = path; }
+
   const HostPort &my_addr() { return my_addr_; }
-  const std::vector<HostPort> &peers() { return peers_; }
+  std::vector<HostPort> &peers() { return peers_; }
   uint8_t log_level() const { return log_level_; }
   bool enable_debug() const { return enable_debug_; }
   const std::string &path() { return path_; }

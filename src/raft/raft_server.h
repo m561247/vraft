@@ -1,6 +1,7 @@
 #ifndef VRAFT_RAFT_SERVER_H_
 #define VRAFT_RAFT_SERVER_H_
 
+#include <memory>
 #include <unordered_map>
 
 #include "allocator.h"
@@ -10,6 +11,9 @@
 #include "tcp_server.h"
 
 namespace vraft {
+
+class RaftServer;
+using RaftServerPtr = std::shared_ptr<RaftServer>;
 
 class RaftServer final {
  public:
