@@ -71,19 +71,6 @@ inline RaftServer::RaftServer(Config &config, EventLoop *loop)
   raft_->set_make_timer(std::bind(
       &RaftServer::MakeTimer, this, std::placeholders::_1,
       std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-#if 0
-  for (const auto &hostport : config_.peers()) {
-    TcpClientPtr ptr =
-        std::make_shared<TcpClient>("raft_client", &loop_, hostport, options);
-
-    uint32_t ip;
-    bool b = StringToIpU32(hostport.host, ip);
-    assert(b);
-    RaftAddr dest_addr(ip, hostport.port, 0);
-    clients_.insert({dest_addr.ToU64(), ptr});
-  }
-#endif
 }
 
 inline RaftServer::~RaftServer() {}

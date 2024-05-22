@@ -136,6 +136,7 @@ class Raft final {
 
   friend void Tick(Timer *timer);
   friend void Elect(Timer *timer);
+  friend void ElectRpc(Timer *timer);
   friend void HeartBeat(Timer *timer);
 };
 
