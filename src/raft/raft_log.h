@@ -64,17 +64,26 @@ RaftIndex MetaIndexToLogIndex(RaftIndex term_index);
 RaftIndex LogIndexToDataIndex(RaftIndex log_index);
 RaftIndex DataIndexToLogIndex(RaftIndex value_index);
 
-// log-index --> term-index --> [term, type, check_this, check_all]
-// log-index --> value-index --> [value]
+// log-index --> term-index --> [term, type, pre_check_all, check_this,
+// check_all] log-index --> value-index --> [value]
+struct MetaValue {
+  RaftTerm term;
+  EntryType type;  // uint32_t
+  uint32_t pre_chk_all;
+  uint32_t chk_ths;
+  uint32_t chk_all;
+};
+using MetaValuePtr = std::shared_ptr<MetaValue>;
+
+int32_t MetaValueBytes();
 void EncodeDataKey(char *buf, int32_t len, RaftIndex log_index);
 void EncodeMetaKey(char *buf, int32_t len, RaftIndex log_index);
-int32_t MetaValueBytes();
-void EncodeMetaValue(char *buf, int32_t len, RaftTerm term, uint32_t entry_type,
-                     uint32_t chk_ths, uint32_t chk_all);
-void DecodeMetaValue(const char *buf, int32_t len, RaftTerm &term,
-                     EntryType &entry_type, uint32_t &chk_ths,
-                     uint32_t &chk_all);
+void EncodeMetaValue(char *buf, int32_t len, MetaValue &meta);
+void DecodeMetaValue(const char *buf, int32_t len, MetaValue &meta);
+
 const leveldb::Comparator *U32Comparator();
+
+struct ZeroValue {};
 
 const char kZeroKey[sizeof(RaftIndex)] = {0};
 void EncodeZeroValue(char *buf, RaftIndex append, uint32_t checksum);
@@ -91,12 +100,14 @@ using LogEntryPtr = std::shared_ptr<LogEntry>;
 
 struct LogEntry {
   RaftIndex index;
-  uint32_t chk_ths;  // checksum [index + term + type + value]
-  uint32_t chk_all;  // checksum [pre chk_all + chk_ths]
+  uint32_t pre_chk_all;  // current checksum of log
+  uint32_t chk_ths;      // checksum [index + term + type + value]
+  uint32_t chk_all;      // checksum [pre_chk_all + chk_ths]
   AppendEntry append_entry;
 
+  void CheckSum();
   void CheckThis();
-  void CheckAll(uint32_t pre_chksum);
+  void CheckAll();
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -109,6 +120,12 @@ struct LogEntry {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
+inline void LogEntry::CheckSum() {
+  CheckThis();
+  CheckAll();
+}
+
+// checksum [index + term + type + value]
 inline void LogEntry::CheckThis() {
   int32_t max_bytes = sizeof(RaftIndex) + sizeof(append_entry.term) +
                       sizeof(uint32_t) + 2 * sizeof(int32_t) +
@@ -141,14 +158,14 @@ inline void LogEntry::CheckThis() {
   DefaultAllocator().Free(ptr);
 }
 
-inline void LogEntry::CheckAll(uint32_t pre_chksum) {
+inline void LogEntry::CheckAll() {
   char buf[sizeof(uint32_t) * 2];
   char *p = buf;
   int32_t size = 0;
 
-  EncodeFixed32(p, pre_chksum);
-  p += sizeof(pre_chksum);
-  size += sizeof(pre_chksum);
+  EncodeFixed32(p, pre_chk_all);
+  p += sizeof(pre_chk_all);
+  size += sizeof(pre_chk_all);
 
   EncodeFixed32(p, chk_ths);
   p += sizeof(chk_ths);
@@ -158,9 +175,10 @@ inline void LogEntry::CheckAll(uint32_t pre_chksum) {
 }
 
 inline int32_t LogEntry::MaxBytes() {
-  return sizeof(RaftIndex) + sizeof(chk_ths) + sizeof(chk_all) +
-         sizeof(append_entry.term) + sizeof(append_entry.type) +
-         2 * sizeof(int32_t) + append_entry.value.size();
+  return sizeof(RaftIndex) + sizeof(pre_chk_all) + sizeof(chk_ths) +
+         sizeof(chk_all) + sizeof(append_entry.term) +
+         sizeof(append_entry.type) + 2 * sizeof(int32_t) +
+         append_entry.value.size();
 }
 
 inline int32_t LogEntry::ToString(std::string &s) {
@@ -257,6 +275,7 @@ inline nlohmann::json LogEntry::ToJson() {
   j["type"] = std::string(EntryTypeToStr(append_entry.type));
   j["value"] =
       StrToHexStr(append_entry.value.c_str(), append_entry.value.size());
+  j["pre_chk_all"] = U32ToHexStr(pre_chk_all);
   j["chk_ths"] = U32ToHexStr(chk_ths);
   j["chk_all"] = U32ToHexStr(chk_all);
   j["this"] = PointerToHexStr(this);
@@ -269,8 +288,9 @@ inline nlohmann::json LogEntry::ToJsonTiny() {
   j["tm"] = append_entry.term;
   j["tp"] = std::string(EntryTypeToStr(append_entry.type));
   j["val"] = StrToHexStr(append_entry.value.c_str(), append_entry.value.size());
-  j["ckt"] = U32ToHexStr(chk_ths);
-  j["cka"] = U32ToHexStr(chk_all);
+  j["ck"][0] = U32ToHexStr(pre_chk_all);
+  j["ck"][1] = U32ToHexStr(chk_ths);
+  j["ck"][2] = U32ToHexStr(chk_all);
   j["ts"] = PointerToHexStr(this);
   return j;
 }
@@ -357,7 +377,10 @@ class RaftLog final {
   int32_t DeleteFrom(RaftIndex from_index);
   int32_t DeleteUtil(RaftIndex to_index);
   int32_t Get(RaftIndex index, LogEntry &entry);
+  int32_t GetMeta(RaftIndex index, MetaValue &meta);
+  int32_t GetValue(RaftIndex index, std::string *value);
   LogEntryPtr LastEntry();
+  MetaValuePtr LastMeta();
 
   void EnableCheckSum() { checksum_ = true; }
   void DisableCheckSum() { checksum_ = false; }
@@ -365,6 +388,7 @@ class RaftLog final {
   RaftIndex First() const { return first_; };
   RaftIndex Last() const { return last_; }
   RaftIndex Append() const { return append_; }
+  RaftIndex LastCheck() const { return last_checksum_; }
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
@@ -390,9 +414,9 @@ inline nlohmann::json RaftLog::ToJson() {
   j["last"] = last_;
   j["append"] = append_;
   j["checksum"] = U32ToHexStr(last_checksum_);
-  LogEntryPtr ptr = LastEntry();
+  MetaValuePtr ptr = LastMeta();
   if (ptr) {
-    j["last_term"] = ptr->append_entry.term;
+    j["last_term"] = ptr->term;
   } else {
     j["last_term"] = 0;
   }
@@ -406,9 +430,9 @@ inline nlohmann::json RaftLog::ToJsonTiny() {
   j["lst"] = last_;
   j["apd"] = append_;
   j["chk"] = U32ToHexStr(last_checksum_);
-  LogEntryPtr ptr = LastEntry();
+  MetaValuePtr ptr = LastMeta();
   if (ptr) {
-    j["ltm"] = ptr->append_entry.term;
+    j["ltm"] = ptr->term;
   } else {
     j["ltm"] = 0;
   }

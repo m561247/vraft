@@ -199,8 +199,8 @@ RaftTerm Raft::LastTerm() {
     if (log_last == 0) {            // no log, no snapshot
       return meta_.term();          // return current term
 
-    } else {                                       // has log
-      return log_.LastEntry()->append_entry.term;  // return last log term
+    } else {                         // has log
+      return log_.LastMeta()->term;  // return last log term
     }
 
   } else {  // snapshot is newer
