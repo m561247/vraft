@@ -346,6 +346,7 @@ int32_t RaftLog::AppendSome(std::vector<AppendEntry> &entries) { return 0; }
 int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
   Check();
   RaftIndex tmp_first, tmp_last, tmp_append;
+  uint32_t tmp_checksum = 0;
 
   // no value
   if (first_ == last_ && first_ == 0) {
@@ -374,7 +375,7 @@ int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
   if (from_index == first_) {
     tmp_first = 0;
     tmp_last = 0;
-    tmp_append = last_ + 1;
+    tmp_append = from_index;
 
   } else {
     assert(from_index > first_);
@@ -417,6 +418,7 @@ int32_t RaftLog::DeleteFrom(RaftIndex from_index) {
 int32_t RaftLog::DeleteUtil(RaftIndex to_index) {
   Check();
   RaftIndex tmp_first, tmp_last, tmp_append;
+  uint32_t tmp_checksum = 0;
 
   // no value
   if (first_ == last_ && first_ == 0) {

@@ -546,9 +546,7 @@ TEST(RaftLog, DeleteFrom2) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
     EXPECT_EQ(raft_log.Append(), 1);
@@ -563,32 +561,26 @@ TEST(RaftLog, DeleteFrom2) {
       raft_log.AppendOne(entry);
     }
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 10);
     EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteFrom(1);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
-    EXPECT_EQ(raft_log.Append(), 11);
+    EXPECT_EQ(raft_log.Append(), 1);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
-    EXPECT_EQ(raft_log.Append(), 11);
+    EXPECT_EQ(raft_log.Append(), 1);
 
     for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;
@@ -600,76 +592,62 @@ TEST(RaftLog, DeleteFrom2) {
       raft_log.AppendOne(entry);
     }
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
-    EXPECT_EQ(raft_log.First(), 11);
-    EXPECT_EQ(raft_log.Last(), 15);
-    EXPECT_EQ(raft_log.Append(), 16);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 5);
+    EXPECT_EQ(raft_log.Append(), 6);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
-    EXPECT_EQ(raft_log.First(), 11);
-    EXPECT_EQ(raft_log.Last(), 15);
-    EXPECT_EQ(raft_log.Append(), 16);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 5);
+    EXPECT_EQ(raft_log.Append(), 6);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
-    EXPECT_EQ(raft_log.First(), 11);
-    EXPECT_EQ(raft_log.Last(), 15);
-    EXPECT_EQ(raft_log.Append(), 16);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 5);
+    EXPECT_EQ(raft_log.Append(), 6);
 
-    raft_log.DeleteFrom(13);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
-    EXPECT_EQ(raft_log.First(), 11);
-    EXPECT_EQ(raft_log.Last(), 12);
-    EXPECT_EQ(raft_log.Append(), 13);
+    raft_log.DeleteFrom(3);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 2);
+    EXPECT_EQ(raft_log.Append(), 3);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
-    EXPECT_EQ(raft_log.First(), 11);
-    EXPECT_EQ(raft_log.Last(), 12);
-    EXPECT_EQ(raft_log.Append(), 13);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 2);
+    EXPECT_EQ(raft_log.Append(), 3);
 
     raft_log.DeleteFrom(0);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
-    EXPECT_EQ(raft_log.Append(), 13);
+    EXPECT_EQ(raft_log.Append(), 1);
   }
 
   {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
-    EXPECT_EQ(raft_log.Append(), 13);
+    EXPECT_EQ(raft_log.Append(), 1);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
@@ -806,9 +784,7 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
     EXPECT_EQ(raft_log.Append(), 1);
@@ -823,25 +799,19 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
       raft_log.AppendOne(entry);
     }
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 1);
     EXPECT_EQ(raft_log.Last(), 10);
     EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteUtil(5);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 6);
     EXPECT_EQ(raft_log.Last(), 10);
     EXPECT_EQ(raft_log.Append(), 11);
 
     raft_log.DeleteFrom(7);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 6);
     EXPECT_EQ(raft_log.Last(), 6);
     EXPECT_EQ(raft_log.Append(), 7);
@@ -851,17 +821,13 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 6);
     EXPECT_EQ(raft_log.Last(), 6);
     EXPECT_EQ(raft_log.Append(), 7);
 
     raft_log.DeleteUtil(6);
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
     EXPECT_EQ(raft_log.Append(), 7);
@@ -871,12 +837,80 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
     vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
     raft_log.Init();
 
-    std::cout << "first: " << raft_log.First() << std::endl;
-    std::cout << "last: " << raft_log.Last() << std::endl;
-    std::cout << "append: " << raft_log.Append() << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
     EXPECT_EQ(raft_log.First(), 0);
     EXPECT_EQ(raft_log.Last(), 0);
     EXPECT_EQ(raft_log.Append(), 7);
+  }
+
+  system("rm -rf /tmp/raftlog_test_dir");
+}
+
+TEST(RaftLog, DeleteFrom_DeleteUtil2) {
+  system("rm -rf /tmp/raftlog_test_dir");
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 1);
+
+    for (int i = 0; i < 10; ++i) {
+      vraft::AppendEntry entry;
+      entry.term = i * 10;
+      entry.type = vraft::kData;
+      char buf[32];
+      snprintf(buf, sizeof(buf), "value_%d", i);
+      entry.value = buf;
+      raft_log.AppendOne(entry);
+    }
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 1);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+
+    raft_log.DeleteUtil(5);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 10);
+    EXPECT_EQ(raft_log.Append(), 11);
+
+    raft_log.DeleteFrom(8);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 7);
+    EXPECT_EQ(raft_log.Append(), 8);
+  }
+
+  {
+    vraft::RaftLog raft_log("/tmp/raftlog_test_dir");
+    raft_log.Init();
+
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 6);
+    EXPECT_EQ(raft_log.Last(), 7);
+    EXPECT_EQ(raft_log.Append(), 8);
+
+    raft_log.DeleteFrom(3);
+    std::cout << raft_log.ToJsonString(true, true) << std::endl;
+    EXPECT_EQ(raft_log.First(), 0);
+    EXPECT_EQ(raft_log.Last(), 0);
+    EXPECT_EQ(raft_log.Append(), 6);
   }
 
   system("rm -rf /tmp/raftlog_test_dir");
