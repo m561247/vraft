@@ -88,8 +88,6 @@ class Raft final {
   int32_t InitConfig();
   RaftIndex LastIndex();
   RaftTerm LastTerm();
-  RaftIndex PreIndex();
-  RaftTerm PreTerm();
   bool VoteForMyself();
   void StepDown(RaftTerm new_term);
   void BecomeLeader();

@@ -205,10 +205,6 @@ RaftTerm Raft::LastTerm() {
   }
 }
 
-RaftIndex Raft::PreIndex() {}
-
-RaftTerm Raft::PreTerm() {}
-
 bool Raft::VoteForMyself() { return (meta_.vote() == Me().ToU64()); }
 
 void Raft::StepDown(RaftTerm new_term) {
