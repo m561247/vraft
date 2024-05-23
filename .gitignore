@@ -3,6 +3,8 @@ output
 vraft_9000
 vraft_9001
 vraft_9002
+raft_insight_test
+err
 
 # Prerequisites
 *.d
