@@ -65,6 +65,8 @@ void Logger::Fatal(const char *format, ...) {
   DoLog(format, arguments,
         std::bind(&Logger::DoLogFatal, this, std::placeholders::_1));
   va_end(arguments);
+
+  assert(0);
 }
 
 void Logger::FTrace(const char *format, ...) {
@@ -125,6 +127,7 @@ void Logger::FFatal(const char *format, ...) {
   va_end(arguments);
 
   logger_->flush();
+  assert(0);
 }
 
 void Logger::DoLog(const char *format, std::va_list arguments, LogFunc func) {

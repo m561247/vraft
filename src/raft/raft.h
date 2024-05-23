@@ -38,7 +38,7 @@ enum State {
 char *StateToStr(enum State state);
 void Tick(Timer *timer);
 void Elect(Timer *timer);
-void ElectRpc(Timer *timer);
+void RequestVoteRpc(Timer *timer);
 void HeartBeat(Timer *timer);
 
 class Raft;
@@ -67,10 +67,13 @@ class Raft final {
   int32_t OnInstallSnapshotReply(struct InstallSnapshotReply &msg);
 
   // send message
-  int32_t DoPing(uint64_t dest);
-  int32_t DoRequestVote(uint64_t dest);
-  int32_t DoAppendEntries(uint64_t dest);
-  int32_t DoInstallSnapshot(uint64_t dest);
+  int32_t SendPing(uint64_t dest);
+  int32_t SendRequestVote(uint64_t dest);
+  int32_t SendAppendEntries(uint64_t dest);
+  int32_t SendInstallSnapshot(uint64_t dest);
+  int32_t SendRequestVoteReply(RequestVoteReply &msg);
+  int32_t SendAppendEntriesReply(AppendEntriesReply &msg);
+  int32_t SendInstallSnapshotReply(InstallSnapshotReply &msg);
 
   // utils
   int16_t Id() { return config_mgr_.Current().me.id(); }
@@ -79,6 +82,7 @@ class Raft final {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+  void Print();
 
   // set
   void set_send(SendFunc func) { send_ = func; }
@@ -86,12 +90,13 @@ class Raft final {
 
  private:
   int32_t InitConfig();
-  RaftIndex LastIndex();
-  RaftTerm LastTerm();
-  bool VoteForMyself();
-  void StepDown(RaftTerm new_term);
+  bool IfSelfVote();
   void BecomeLeader();
   void AppendNoop();
+  RaftIndex LastIndex();
+  RaftTerm LastTerm();
+  RaftTerm GetTerm(RaftIndex index);
+  void StepDown(RaftTerm new_term);
 
  private:
   // path
@@ -126,7 +131,7 @@ class Raft final {
 
   friend void Tick(Timer *timer);
   friend void Elect(Timer *timer);
-  friend void ElectRpc(Timer *timer);
+  friend void RequestVoteRpc(Timer *timer);
   friend void HeartBeat(Timer *timer);
 };
 

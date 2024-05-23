@@ -29,8 +29,9 @@ char *StateToStr(enum State state) {
 
 void Tick(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
+  vraft_logger.FInfo("%s", r->ToJsonString(true, true).c_str());
   for (auto &dest_addr : r->Peers()) {
-    r->DoPing(dest_addr.ToU64());
+    r->SendPing(dest_addr.ToU64());
   }
 }
 
@@ -40,39 +41,37 @@ void Elect(Timer *timer) {
 
   r->meta_.IncrTerm();
   r->state_ = CANDIDATE;
-  r->leader_ = 0;
+  r->leader_ = RaftAddr(0);
   r->vote_mgr_.Clear();
 
   // vote for myself
   r->meta_.SetVote(r->Me().ToU64());
 
   // only myself, become leader
-  if (r->vote_mgr_.QuorumAll(r->VoteForMyself())) {
+  if (r->vote_mgr_.QuorumAll(r->IfSelfVote())) {
     r->BecomeLeader();
     return;
   }
 
   // start request-vote
-  r->timer_mgr_.AgainElectionRpc();
+  r->timer_mgr_.StartRequestVote();
 
   // reset election timer
   r->timer_mgr_.AgainElection();
 }
 
-void ElectRpc(Timer *timer) {
+void RequestVoteRpc(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   assert(r->state_ == CANDIDATE);
-  int32_t rv = r->DoRequestVote(timer->dest_addr());
+  int32_t rv = r->SendRequestVote(timer->dest_addr());
   assert(rv == 0);
-  timer->Again();
 }
 
 void HeartBeat(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
   assert(r->state_ == LEADER);
-  int32_t rv = r->DoAppendEntries(timer->dest_addr());
+  int32_t rv = r->SendAppendEntries(timer->dest_addr());
   assert(rv == 0);
-  timer->Again();
 }
 
 // if path is empty, use rc to initialize,
@@ -101,7 +100,7 @@ int32_t Raft::Start() {
   timer_mgr_.set_maketimer_func(make_timer_);
   timer_mgr_.set_tick_func(Tick);
   timer_mgr_.set_election_func(Elect);
-  timer_mgr_.set_requestvote_func(ElectRpc);
+  timer_mgr_.set_requestvote_func(RequestVoteRpc);
   timer_mgr_.set_heartbeat_func(HeartBeat);
   timer_mgr_.set_data(this);
   timer_mgr_.MakeTimer();
@@ -110,7 +109,7 @@ int32_t Raft::Start() {
   timer_mgr_.StartTick();
 
   // become follower
-  // StepDown(meta_.term());
+  StepDown(meta_.term());
 
   return 0;
 }
@@ -205,14 +204,30 @@ RaftTerm Raft::LastTerm() {
   }
 }
 
-bool Raft::VoteForMyself() { return (meta_.vote() == Me().ToU64()); }
+RaftTerm Raft::GetTerm(RaftIndex index) {
+  assert(index >= 0);
+  if (index == 0) {
+    return 0;
+  }
+
+  assert(index >= 1);
+  MetaValue meta;
+  int32_t rv = log_.GetMeta(index, meta);
+  if (rv == 0) {
+    return meta.term;
+  } else {
+    return sm_.LastTerm();
+  }
+}
+
+bool Raft::IfSelfVote() { return (meta_.vote() == Me().ToU64()); }
 
 void Raft::StepDown(RaftTerm new_term) {
   assert(meta_.term() <= new_term);
   if (meta_.term() < new_term) {  // newer term
     meta_.SetTerm(new_term);
     meta_.SetVote(0);
-    leader_ = 0;
+    leader_ = RaftAddr(0);
     state_ = FOLLOWER;
 
   } else {  // equal term
@@ -225,6 +240,7 @@ void Raft::StepDown(RaftTerm new_term) {
   timer_mgr_.StopHeartBeat();
 
   // start election timer
+  timer_mgr_.StopRequestVote();
   timer_mgr_.AgainElection();
 }
 
@@ -235,7 +251,7 @@ void Raft::BecomeLeader() {
 
   // stop election timer
   timer_mgr_.StopElection();
-  timer_mgr_.StopElectionRpc();
+  timer_mgr_.StopRequestVote();
 
   // reset index manager
   index_mgr_.ResetNext(LastIndex() + 1);
@@ -245,7 +261,7 @@ void Raft::BecomeLeader() {
   AppendNoop();
 
   // start heartbeat timer
-  timer_mgr_.AgainHeartBeat();
+  timer_mgr_.StartHeartBeat();
 }
 
 void Raft::AppendNoop() {
@@ -297,13 +313,138 @@ int32_t Raft::OnPingReply(struct PingReply &msg) {
   return 0;
 }
 
-int32_t Raft::OnRequestVote(struct RequestVote &msg) { return 0; }
+int32_t Raft::OnRequestVote(struct RequestVote &msg) {
+  RaftIndex last_index = LastIndex();
+  RaftTerm last_term = LastTerm();
+  bool log_ok =
+      ((msg.last_log_term > last_term) ||
+       (msg.last_log_term == last_term && msg.last_log_index >= last_index));
 
-int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) { return 0; }
+  if (msg.term > meta_.term()) {
+    StepDown(msg.term);
+  }
 
-int32_t Raft::OnAppendEntries(struct AppendEntries &msg) { return 0; }
+  if (msg.term == meta_.term()) {
+    if (log_ok && meta_.vote() == 0) {
+      StepDown(meta_.term());
 
-int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) { return 0; }
+      // reset election
+      timer_mgr_.StopRequestVote();
+      timer_mgr_.AgainElection();
+
+      // vote
+      meta_.SetVote(msg.src.ToU64());
+    }
+  }
+
+  RequestVoteReply reply;
+  reply.src = msg.dest;
+  reply.dest = msg.src;
+  reply.term = meta_.term();
+  reply.granted = (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
+  SendRequestVoteReply(reply);
+
+  return 0;
+}
+
+int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
+  if (msg.term > meta_.term()) {
+    StepDown(msg.term);
+
+  } else {
+    // close rpc timer
+    timer_mgr_.StopRequestVote(msg.src.ToU64());
+
+    if (msg.granted) {
+      // get vote
+      vote_mgr_.GetVote(msg.src.ToU64());
+
+      if (vote_mgr_.Majority(IfSelfVote()) && state_ != LEADER) {
+        BecomeLeader();
+      }
+    }
+  }
+
+  return 0;
+}
+
+int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
+  AppendEntriesReply reply;
+  reply.src = msg.dest;
+  reply.dest = msg.src;
+  reply.term = meta_.term();
+  reply.success = false;
+  reply.last_log_index = LastIndex();
+
+  if (msg.term < meta_.term()) {
+    SendAppendEntriesReply(reply);
+    return 0;
+  }
+
+  if (msg.term > meta_.term()) {
+    reply.term = msg.term;
+  }
+
+  StepDown(msg.term);
+  if (leader_.ToU64() == 0) {
+    leader_ = msg.src;
+  } else {
+    assert(leader_.ToU64() == msg.src.ToU64());
+  }
+
+  if (msg.pre_log_index > LastIndex()) {  // reject
+    SendAppendEntriesReply(reply);
+    return 0;
+  }
+
+  assert(msg.pre_log_index <= LastIndex());
+  if (GetTerm(msg.pre_log_index) != msg.pre_log_term) {  // reject
+    SendAppendEntriesReply(reply);
+    return 0;
+  }
+
+  // make log same
+
+  reply.success = true;
+  reply.last_log_index = LastIndex();
+  if (commit_ < msg.commit_index) {
+    commit_ = msg.commit_index;
+  }
+
+  // reset election timer
+  timer_mgr_.StopRequestVote();
+  timer_mgr_.AgainElection();
+
+  SendAppendEntriesReply(reply);
+  return 0;
+}
+
+int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
+  assert(state_ == LEADER);
+  if (msg.term > meta_.term()) {
+    StepDown(msg.term);
+
+  } else {
+    assert(msg.term == meta_.term());
+
+    // reset hb timer ?
+
+    if (msg.success) {
+      // do something
+
+    } else {
+      if (index_mgr_.indices[msg.src.ToU64()].next > 1) {
+        index_mgr_.indices[msg.src.ToU64()].next--;
+      }
+
+      if (index_mgr_.indices[msg.src.ToU64()].next < msg.last_log_index + 1) {
+        index_mgr_.indices[msg.src.ToU64()].next = msg.last_log_index + 1;
+      }
+    }
+  }
+
+  return 0;
+}
 
 int32_t Raft::OnInstallSnapshot(struct InstallSnapshot &msg) { return 0; }
 
@@ -311,7 +452,7 @@ int32_t Raft::OnInstallSnapshotReply(struct InstallSnapshotReply &msg) {
   return 0;
 }
 
-int32_t Raft::DoPing(uint64_t dest) {
+int32_t Raft::SendPing(uint64_t dest) {
   Ping msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
@@ -333,7 +474,7 @@ int32_t Raft::DoPing(uint64_t dest) {
   return 0;
 }
 
-int32_t Raft::DoRequestVote(uint64_t dest) {
+int32_t Raft::SendRequestVote(uint64_t dest) {
   RequestVote msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
@@ -358,14 +499,14 @@ int32_t Raft::DoRequestVote(uint64_t dest) {
   return 0;
 }
 
-int32_t Raft::DoAppendEntries(uint64_t dest) {
+int32_t Raft::SendAppendEntries(uint64_t dest) {
   AppendEntries msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
   msg.term = meta_.term();
 
-  msg.pre_log_index = PreIndex();
-  msg.pre_log_term = PreTerm();
+  msg.pre_log_index = LastIndex() - 1;
+  msg.pre_log_term = GetTerm(msg.pre_log_index);
   msg.commit_index = commit_;
 
   std::string body_str;
@@ -384,7 +525,45 @@ int32_t Raft::DoAppendEntries(uint64_t dest) {
   return 0;
 }
 
-int32_t Raft::DoInstallSnapshot(uint64_t dest) { return 0; }
+int32_t Raft::SendInstallSnapshot(uint64_t dest) { return 0; }
+
+int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg) {
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kRequestVoteReply;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+  }
+
+  return 0;
+}
+
+int32_t Raft::SendAppendEntriesReply(AppendEntriesReply &msg) {
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kAppendEntriesReply;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+  }
+
+  return 0;
+}
+
+int32_t Raft::SendInstallSnapshotReply(InstallSnapshotReply &msg) { return 0; }
 
 nlohmann::json Raft::ToJson() {
   nlohmann::json j;
@@ -444,6 +623,11 @@ std::string Raft::ToJsonString(bool tiny, bool one_line) {
   } else {
     return j.dump(JSON_TAB);
   }
+}
+
+void Raft::Print() {
+  printf("%s\n", ToJsonString(false, false).c_str());
+  fflush(nullptr);
 }
 
 }  // namespace vraft

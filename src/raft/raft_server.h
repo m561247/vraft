@@ -31,6 +31,8 @@ class RaftServer final {
   Config &config() { return config_; }
   EventLoop *LoopPtr() { return loop_; }
 
+  void Print() { raft_->Print(); }
+
  private:
   // for raft func
   TcpClientPtr GetClient(uint64_t dest_addr);

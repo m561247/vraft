@@ -137,10 +137,7 @@ inline void Logger::DoLogWarn(const char *str) { logger_->warn(str); }
 
 inline void Logger::DoLogError(const char *str) { logger_->error(str); }
 
-inline void Logger::DoLogFatal(const char *str) {
-  logger_->critical(str);
-  assert(0);
-}
+inline void Logger::DoLogFatal(const char *str) { logger_->critical(str); }
 
 }  // namespace vraft
 

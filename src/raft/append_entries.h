@@ -41,10 +41,15 @@ inline int32_t AppendEntries::MaxBytes() {
                  sizeof(commit_index) + 2 * sizeof(int32_t);
   for (auto &e : entries) {
     size += sizeof(e.index);
+    size += sizeof(e.pre_chk_all);
+    size += sizeof(e.chk_ths);
+    size += sizeof(e.chk_all);
     size += sizeof(e.append_entry.term);
+    size += sizeof(e.append_entry.type);
     size += 2 * sizeof(int32_t);
     size += e.append_entry.value.size();
   }
+  return size;
 }
 
 inline int32_t AppendEntries::ToString(std::string &s) {

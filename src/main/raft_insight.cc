@@ -16,6 +16,12 @@ void SignalHandler(int signal) {
 #define SERVER_NUM 3
 std::vector<vraft::RaftServerPtr> raft_servers;
 
+void Print() {
+  for (auto ptr : raft_servers) {
+    ptr->Print();
+  }
+}
+
 void GenerateRotateConfig(std::vector<vraft::Config> &configs) {
   std::vector<vraft::HostPort> hps;
   hps.push_back(vraft::GetConfig().my_addr());

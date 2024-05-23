@@ -59,7 +59,8 @@ int32_t Timer::Start() {
 }
 
 int32_t Timer::Stop() {
-  loop_->AssertInLoopThread();
+  // maybe loop not start
+  // loop_->AssertInLoopThread();
   int32_t r = 0;
   if (!UvIsClosing(reinterpret_cast<UvHandle *>(&uv_timer_))) {
     r = UvTimerStop(&uv_timer_);  // equal to uv_close
@@ -75,14 +76,14 @@ int32_t Timer::Stop() {
 }
 
 int32_t Timer::Again() {
-  loop_->AssertInLoopThread();
+  // loop_->AssertInLoopThread();
   int32_t r = UvTimerAgain(&uv_timer_);
   assert(r == 0);
   return r;
 }
 
 int32_t Timer::Again(uint64_t timeout_ms, uint64_t repeat_ms) {
-  loop_->AssertInLoopThread();
+  // loop_->AssertInLoopThread();
   timeout_ms_ = timeout_ms;
   repeat_ms_ = repeat_ms;
 
@@ -95,7 +96,7 @@ int32_t Timer::Again(uint64_t timeout_ms, uint64_t repeat_ms) {
 }
 
 bool Timer::IsStart() {
-  loop_->AssertInLoopThread();
+  // loop_->AssertInLoopThread();
   return UvIsActive(reinterpret_cast<UvHandle *>(&uv_timer_));
 }
 
