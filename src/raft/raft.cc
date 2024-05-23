@@ -36,40 +36,43 @@ void Tick(Timer *timer) {
 
 void Elect(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
-  if (r->state_ == FOLLOWER || r->state_ == CANDIDATE) {  // if necessary??
-    r->meta_.IncrTerm();
-    r->state_ = CANDIDATE;
-    r->leader_ = 0;
-    r->vote_mgr_.Clear();
+  assert(r->state_ == FOLLOWER || r->state_ == CANDIDATE);
 
-    // vote for myself
-    r->meta_.SetVote(r->Me().ToU64());
+  r->meta_.IncrTerm();
+  r->state_ = CANDIDATE;
+  r->leader_ = 0;
+  r->vote_mgr_.Clear();
 
-    // send request-vote
-    for (auto &dest_addr : r->Peers()) {
-      r->DoRequestVote(dest_addr.ToU64());
-    }
+  // vote for myself
+  r->meta_.SetVote(r->Me().ToU64());
 
-    // reset election timer
-    r->election_timer_->Again(r->random_election_ms_.Get(), 0);
-
-    // only myself
-    if (r->vote_mgr_.QuorumAll(r->VoteForMyself())) {
-      r->BecomeLeader();
-    }
+  // only myself, become leader
+  if (r->vote_mgr_.QuorumAll(r->VoteForMyself())) {
+    r->BecomeLeader();
+    return;
   }
+
+  // start request-vote
+  r->timer_mgr_.AgainElectionRpc();
+
+  // reset election timer
+  r->timer_mgr_.AgainElection();
 }
 
-void ElectRpc(Timer *timer) {}
+void ElectRpc(Timer *timer) {
+  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  assert(r->state_ == CANDIDATE);
+  int32_t rv = r->DoRequestVote(timer->dest_addr());
+  assert(rv == 0);
+  timer->Again();
+}
 
 void HeartBeat(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data);
-  if (r->state_ == LEADER) {  // if necessary??
-    // send append-entries
-    for (auto &dest_addr : r->Peers()) {
-      r->DoAppendEntries(dest_addr.ToU64());
-    }
-  }
+  assert(r->state_ == LEADER);
+  int32_t rv = r->DoAppendEntries(timer->dest_addr());
+  assert(rv == 0);
+  timer->Again();
 }
 
 // if path is empty, use rc to initialize,
@@ -87,9 +90,6 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       index_mgr_(rc.peers),
       timer_mgr_(rc.peers),
       sm_(path + "/sm"),
-      election_timer_ms_(1500),
-      heartbeat_timer_ms_(500),
-      random_election_ms_(election_timer_ms_, 2 * election_timer_ms_),
       state_(FOLLOWER),
       commit_(0),
       last_apply_(0),
@@ -101,13 +101,13 @@ int32_t Raft::Start() {
   timer_mgr_.set_maketimer_func(make_timer_);
   timer_mgr_.set_tick_func(Tick);
   timer_mgr_.set_election_func(Elect);
-  timer_mgr_.set_election_rpc_func(ElectRpc);
+  timer_mgr_.set_requestvote_func(ElectRpc);
   timer_mgr_.set_heartbeat_func(HeartBeat);
   timer_mgr_.set_data(this);
   timer_mgr_.MakeTimer();
 
   // start tick
-  timer_mgr_.tick->Start();
+  timer_mgr_.StartTick();
 
   // become follower
   // StepDown(meta_.term());
@@ -226,10 +226,10 @@ void Raft::StepDown(RaftTerm new_term) {
   }
 
   // close heartbeat timer
-  heartbeat_timer_->Stop();
+  timer_mgr_.StopHeartBeat();
 
   // start election timer
-  election_timer_->Start();
+  timer_mgr_.AgainElection();
 }
 
 void Raft::BecomeLeader() {
@@ -238,16 +238,27 @@ void Raft::BecomeLeader() {
   leader_ = Me().ToU64();
 
   // stop election timer
-  election_timer_->Stop();
+  timer_mgr_.StopElection();
+  timer_mgr_.StopElectionRpc();
 
   // reset index manager
   index_mgr_.ResetNext(LastIndex() + 1);
   index_mgr_.ResetMatch(0);
 
   // append noop
+  AppendNoop();
 
   // start heartbeat timer
-  heartbeat_timer_->Start();
+  timer_mgr_.AgainHeartBeat();
+}
+
+void Raft::AppendNoop() {
+  AppendEntry entry;
+  entry.term = meta_.term();
+  entry.type = kNoop;
+  entry.value.append("0");
+  int32_t rv = log_.AppendOne(entry);
+  assert(rv == 0);
 }
 
 int32_t Raft::OnPing(struct Ping &msg) {

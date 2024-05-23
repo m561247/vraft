@@ -85,7 +85,11 @@ int32_t Timer::Again(uint64_t timeout_ms, uint64_t repeat_ms) {
   loop_->AssertInLoopThread();
   timeout_ms_ = timeout_ms;
   repeat_ms_ = repeat_ms;
-  int32_t r = UvimerStart(&uv_timer_, HandleUvTimer, timeout_ms_, repeat_ms_);
+
+  int32_t r = UvTimerStop(&uv_timer_);
+  assert(r == 0);
+
+  r = UvimerStart(&uv_timer_, HandleUvTimer, timeout_ms_, repeat_ms_);
   assert(r == 0);
   return r;
 }

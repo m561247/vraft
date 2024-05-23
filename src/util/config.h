@@ -90,6 +90,12 @@ inline const std::string Config::UsageBanner(char *program_name) {
            "--path=./vraft_9002\n",
            program_name);
   str.append(buf);
+  snprintf(buf, sizeof(buf),
+           "%s --addr=127.0.0.1:9000 "
+           "--peers=127.0.0.1:9001,127.0.0.1:9002 "
+           "--path=./raft_insight_test\n",
+           program_name);
+  str.append(buf);
   snprintf(buf, sizeof(buf), "%s -h\n", program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf), "%s --help\n", program_name);

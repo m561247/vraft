@@ -51,7 +51,7 @@ class Raft final {
   Raft(const Raft &r) = delete;
   Raft &operator=(const Raft &r) = delete;
 
-  // start, stop
+  // life cycle
   int32_t Start();
   int32_t Stop();
   void Init();
@@ -93,6 +93,7 @@ class Raft final {
   bool VoteForMyself();
   void StepDown(RaftTerm new_term);
   void BecomeLeader();
+  void AppendNoop();
 
  private:
   // path
@@ -120,13 +121,6 @@ class Raft final {
 
   // state machine
   StateMachine sm_;
-
-  // timer
-  uint32_t election_timer_ms_;
-  uint32_t heartbeat_timer_ms_;
-  SimpleRandom random_election_ms_;
-  TimerPtr election_timer_;
-  TimerPtr heartbeat_timer_;
 
   // func
   SendFunc send_;
