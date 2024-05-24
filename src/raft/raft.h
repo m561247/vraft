@@ -42,7 +42,7 @@ void RequestVoteRpc(Timer *timer);
 void HeartBeat(Timer *timer);
 
 class Raft;
-using RaftUPtr = std::unique_ptr<Raft>;
+using RaftPtr = std::shared_ptr<Raft>;
 
 class Raft final {
  public:
@@ -82,9 +82,10 @@ class Raft final {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
-  void Print();
+  void Print(bool tiny, bool one_line);
 
-  // set
+  // get set
+  enum State state() { return state_; }
   void set_send(SendFunc func) { send_ = func; }
   void set_make_timer(MakeTimerFunc func) { make_timer_ = func; }
 
@@ -98,6 +99,9 @@ class Raft final {
   RaftTerm LastTerm();
   RaftTerm GetTerm(RaftIndex index);
   void StepDown(RaftTerm new_term);
+
+ private:
+  bool started_;
 
  private:
   // path

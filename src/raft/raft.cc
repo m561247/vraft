@@ -92,9 +92,12 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       state_(FOLLOWER),
       commit_(0),
       last_apply_(0),
-      leader_(0) {}
+      leader_(0),
+      started_(false) {}
 
 int32_t Raft::Start() {
+  started_ = true;
+
   // make timer
   assert(make_timer_);
   timer_mgr_.set_maketimer_func(make_timer_);
@@ -115,6 +118,7 @@ int32_t Raft::Start() {
 }
 
 int32_t Raft::Stop() {
+  started_ = false;
   timer_mgr_.Stop();
   return 0;
 }
@@ -276,191 +280,210 @@ void Raft::AppendNoop() {
 void Raft::MaybeCommit() {}
 
 int32_t Raft::OnPing(struct Ping &msg) {
-  vraft_logger.Info("%s recv ping from %s, msg:%s", msg.dest.ToString().c_str(),
-                    msg.src.ToString().c_str(), msg.msg.c_str());
+  if (started_) {
+    vraft_logger.Info("%s recv ping from %s, msg:%s",
+                      msg.dest.ToString().c_str(), msg.src.ToString().c_str(),
+                      msg.msg.c_str());
 
-  Tracer tracer(this, false);
-  tracer.PrepareState0();
-  tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    Tracer tracer(this, false);
+    tracer.PrepareState0();
+    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
 
-  PingReply reply;
-  reply.src = msg.dest;
-  reply.dest = msg.src;
-  reply.msg = "pang";
-  std::string reply_str;
-  int32_t bytes = reply.ToString(reply_str);
+    PingReply reply;
+    reply.src = msg.dest;
+    reply.dest = msg.src;
+    reply.msg = "pang";
+    std::string reply_str;
+    int32_t bytes = reply.ToString(reply_str);
 
-  MsgHeader header;
-  header.body_bytes = bytes;
-  header.type = kPingReply;
-  std::string header_str;
-  header.ToString(header_str);
+    MsgHeader header;
+    header.body_bytes = bytes;
+    header.type = kPingReply;
+    std::string header_str;
+    header.ToString(header_str);
 
-  if (send_) {
-    header_str.append(std::move(reply_str));
-    send_(reply.dest.ToU64(), header_str.data(), header_str.size());
-    tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+    if (send_) {
+      header_str.append(std::move(reply_str));
+      send_(reply.dest.ToU64(), header_str.data(), header_str.size());
+      tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+    }
+
+    tracer.PrepareState1();
+    vraft_logger.Trace("%s", tracer.Finish().c_str());
   }
-
-  tracer.PrepareState1();
-  vraft_logger.Trace("%s", tracer.Finish().c_str());
 
   return 0;
 }
 
 int32_t Raft::OnPingReply(struct PingReply &msg) {
-  vraft_logger.Info("%s recv ping-reply from %s, msg:%s",
-                    msg.dest.ToString().c_str(), msg.src.ToString().c_str(),
-                    msg.msg.c_str());
+  if (started_) {
+    vraft_logger.Info("%s recv ping-reply from %s, msg:%s",
+                      msg.dest.ToString().c_str(), msg.src.ToString().c_str(),
+                      msg.msg.c_str());
+  }
   return 0;
 }
 
 int32_t Raft::OnRequestVote(struct RequestVote &msg) {
-  RaftIndex last_index = LastIndex();
-  RaftTerm last_term = LastTerm();
-  bool log_ok =
-      ((msg.last_log_term > last_term) ||
-       (msg.last_log_term == last_term && msg.last_log_index >= last_index));
+  if (started_) {
+    RaftIndex last_index = LastIndex();
+    RaftTerm last_term = LastTerm();
+    bool log_ok =
+        ((msg.last_log_term > last_term) ||
+         (msg.last_log_term == last_term && msg.last_log_index >= last_index));
 
-  if (msg.term > meta_.term()) {
-    StepDown(msg.term);
-  }
-
-  if (msg.term == meta_.term()) {
-    if (log_ok && meta_.vote() == 0) {
-      StepDown(meta_.term());
-
-      // reset election
-      timer_mgr_.StopRequestVote();
-      timer_mgr_.AgainElection();
-
-      // vote
-      meta_.SetVote(msg.src.ToU64());
+    if (msg.term > meta_.term()) {
+      StepDown(msg.term);
     }
+
+    if (msg.term == meta_.term()) {
+      if (log_ok && meta_.vote() == 0) {
+        StepDown(meta_.term());
+
+        // reset election
+        timer_mgr_.StopRequestVote();
+        timer_mgr_.AgainElection();
+
+        // vote
+        meta_.SetVote(msg.src.ToU64());
+      }
+    }
+
+    RequestVoteReply reply;
+    reply.src = msg.dest;
+    reply.dest = msg.src;
+    reply.term = meta_.term();
+    reply.granted =
+        (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
+    SendRequestVoteReply(reply);
   }
-
-  RequestVoteReply reply;
-  reply.src = msg.dest;
-  reply.dest = msg.src;
-  reply.term = meta_.term();
-  reply.granted = (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
-  SendRequestVoteReply(reply);
-
   return 0;
 }
 
 int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
-  if (msg.term > meta_.term()) {
-    StepDown(msg.term);
+  if (started_) {
+    if (msg.term > meta_.term()) {
+      StepDown(msg.term);
 
-  } else {
-    // close rpc timer
-    timer_mgr_.StopRequestVote(msg.src.ToU64());
+    } else {
+      // close rpc timer
+      timer_mgr_.StopRequestVote(msg.src.ToU64());
 
-    if (msg.granted) {
-      // get vote
-      vote_mgr_.GetVote(msg.src.ToU64());
+      if (msg.granted) {
+        // get vote
+        vote_mgr_.GetVote(msg.src.ToU64());
 
-      if (vote_mgr_.Majority(IfSelfVote()) && state_ != LEADER) {
-        BecomeLeader();
+        if (vote_mgr_.Majority(IfSelfVote()) && state_ != LEADER) {
+          BecomeLeader();
+        }
       }
     }
   }
-
   return 0;
 }
 
 int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
-  AppendEntriesReply reply;
-  reply.src = msg.dest;
-  reply.dest = msg.src;
-  reply.term = meta_.term();
-  reply.success = false;
-  reply.last_log_index = LastIndex();
-  reply.num_entries = msg.entries.size();
+  if (started_) {
+    AppendEntriesReply reply;
+    reply.src = msg.dest;
+    reply.dest = msg.src;
+    reply.term = meta_.term();
+    reply.success = false;
+    reply.last_log_index = LastIndex();
+    reply.num_entries = msg.entries.size();
 
-  if (msg.term < meta_.term()) {
+    if (msg.term < meta_.term()) {
+      SendAppendEntriesReply(reply);
+      return 0;
+    }
+
+    if (msg.term > meta_.term()) {
+      reply.term = msg.term;
+    }
+
+    StepDown(msg.term);
+    if (leader_.ToU64() == 0) {
+      leader_ = msg.src;
+    } else {
+      assert(leader_.ToU64() == msg.src.ToU64());
+    }
+
+    if (msg.pre_log_index > LastIndex()) {  // reject
+      SendAppendEntriesReply(reply);
+      return 0;
+    }
+
+    assert(msg.pre_log_index <= LastIndex());
+    if (GetTerm(msg.pre_log_index) != msg.pre_log_term) {  // reject
+      SendAppendEntriesReply(reply);
+      return 0;
+    }
+
+    // make log same
+
+    reply.success = true;
+    reply.last_log_index = LastIndex();
+    if (commit_ < msg.commit_index) {
+      commit_ = msg.commit_index;
+    }
+
+    // reset election timer
+    timer_mgr_.StopRequestVote();
+    timer_mgr_.AgainElection();
+
     SendAppendEntriesReply(reply);
-    return 0;
   }
-
-  if (msg.term > meta_.term()) {
-    reply.term = msg.term;
-  }
-
-  StepDown(msg.term);
-  if (leader_.ToU64() == 0) {
-    leader_ = msg.src;
-  } else {
-    assert(leader_.ToU64() == msg.src.ToU64());
-  }
-
-  if (msg.pre_log_index > LastIndex()) {  // reject
-    SendAppendEntriesReply(reply);
-    return 0;
-  }
-
-  assert(msg.pre_log_index <= LastIndex());
-  if (GetTerm(msg.pre_log_index) != msg.pre_log_term) {  // reject
-    SendAppendEntriesReply(reply);
-    return 0;
-  }
-
-  // make log same
-
-  reply.success = true;
-  reply.last_log_index = LastIndex();
-  if (commit_ < msg.commit_index) {
-    commit_ = msg.commit_index;
-  }
-
-  // reset election timer
-  timer_mgr_.StopRequestVote();
-  timer_mgr_.AgainElection();
-
-  SendAppendEntriesReply(reply);
   return 0;
 }
 
 int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
-  assert(state_ == LEADER);
-  if (msg.term > meta_.term()) {
-    StepDown(msg.term);
-
-  } else {
-    assert(msg.term == meta_.term());
-
-    // reset hb timer ?
-
-    if (msg.success) {
-      RaftIndex pre_index = index_mgr_.GetNext(msg.src) - 1;
-      if (index_mgr_.GetMatch(msg.src) > pre_index + msg.num_entries) {
-        // maybe pipeline ?
-
-      } else {
-        index_mgr_.SetMatch(msg.src, pre_index + msg.num_entries);
-        MaybeCommit();
-      }
-
-      index_mgr_.SetNext(msg.src, index_mgr_.GetMatch(msg.src) + 1);
+  if (started_) {
+    assert(state_ == LEADER);
+    if (msg.term > meta_.term()) {
+      StepDown(msg.term);
 
     } else {
-      if (index_mgr_.GetNext(msg.src) > 1) {
-        index_mgr_.DecrNext(msg.src);
-      }
+      assert(msg.term == meta_.term());
 
-      if (index_mgr_.GetNext(msg.src) > msg.last_log_index + 1) {
-        index_mgr_.SetNext(msg.src, msg.last_log_index + 1);
+      // reset hb timer ?
+
+      if (msg.success) {
+        RaftIndex pre_index = index_mgr_.GetNext(msg.src) - 1;
+        if (index_mgr_.GetMatch(msg.src) > pre_index + msg.num_entries) {
+          // maybe pipeline ?
+
+        } else {
+          index_mgr_.SetMatch(msg.src, pre_index + msg.num_entries);
+          MaybeCommit();
+        }
+
+        index_mgr_.SetNext(msg.src, index_mgr_.GetMatch(msg.src) + 1);
+
+      } else {
+        if (index_mgr_.GetNext(msg.src) > 1) {
+          index_mgr_.DecrNext(msg.src);
+        }
+
+        if (index_mgr_.GetNext(msg.src) > msg.last_log_index + 1) {
+          index_mgr_.SetNext(msg.src, msg.last_log_index + 1);
+        }
       }
     }
   }
-
   return 0;
 }
 
-int32_t Raft::OnInstallSnapshot(struct InstallSnapshot &msg) { return 0; }
+int32_t Raft::OnInstallSnapshot(struct InstallSnapshot &msg) {
+  if (started_) {
+    ;
+  }
+  return 0;
+}
 
 int32_t Raft::OnInstallSnapshotReply(struct InstallSnapshotReply &msg) {
+  if (started_) {
+    ;
+  }
   return 0;
 }
 
@@ -587,6 +610,7 @@ nlohmann::json Raft::ToJson() {
   j["commit"] = commit_;
   j["last_apply"] = last_apply_;
   j["state"] = std::string(StateToStr(state_));
+  j["run"] = started_;
   if (leader_.ToU64() == 0) {
     j["leader"] = 0;
   } else {
@@ -618,6 +642,7 @@ nlohmann::json Raft::ToJsonTiny() {
   j["cmt"] = commit_;
   j["lapl"] = last_apply_;
   j["sta"] = std::string(StateToStr(state_));
+  j["run"] = started_;
   j["ts"] = PointerToHexStr(this);
   return j;
 }
@@ -637,8 +662,8 @@ std::string Raft::ToJsonString(bool tiny, bool one_line) {
   }
 }
 
-void Raft::Print() {
-  printf("%s\n", ToJsonString(false, false).c_str());
+void Raft::Print(bool tiny, bool one_line) {
+  printf("%s\n", ToJsonString(tiny, one_line).c_str());
   fflush(nullptr);
 }
 

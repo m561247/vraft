@@ -121,6 +121,8 @@ inline const std::string Config::ToString() const {
   return str;
 }
 
+void GenerateRotateConfig(std::vector<vraft::Config> &configs);
+
 }  // namespace vraft
 
 #endif

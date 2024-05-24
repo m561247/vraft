@@ -6,6 +6,8 @@
 #include "config.h"
 #include "logger.h"
 #include "raft_server.h"
+#include "test_suite.h"
+#include "timer.h"
 #include "vraft_logger.h"
 
 void SignalHandler(int signal) {
@@ -13,36 +15,44 @@ void SignalHandler(int signal) {
   exit(signal);
 }
 
-#define SERVER_NUM 3
 std::vector<vraft::RaftServerPtr> raft_servers;
+std::vector<vraft::Config> configs;
 
-void Print() {
+void Print(bool tiny, bool one_line) {
   for (auto ptr : raft_servers) {
-    ptr->Print();
+    ptr->Print(tiny, one_line);
+  }
+  printf("\n");
+  fflush(nullptr);
+}
+
+void TestTick2(vraft::Timer *timer) {
+  switch (vraft::current_state) {
+    case vraft::kTestState0: {
+      Print(true, true);
+      int32_t leader_num = 0;
+      for (auto ptr : raft_servers) {
+        if (ptr->raft()->state() == vraft::LEADER) {
+          leader_num++;
+        }
+      }
+
+      if (leader_num == 1) {
+        vraft::current_state = vraft::kTestStateEnd;
+      }
+
+      break;
+    }
+    case vraft::kTestStateEnd: {
+      std::cout << "exit ..." << std::endl;
+      exit(0);
+    }
+    default:
+      break;
   }
 }
 
-void GenerateRotateConfig(std::vector<vraft::Config> &configs) {
-  std::vector<vraft::HostPort> hps;
-  hps.push_back(vraft::GetConfig().my_addr());
-  for (auto hp : vraft::GetConfig().peers()) {
-    hps.push_back(hp);
-  }
-  for (int32_t i = 0; i < hps.size(); ++i) {
-    // use i for myself
-    vraft::Config c = vraft::GetConfig();
-    c.set_my_addr(hps[i]);
-    c.peers().clear();
-    for (int32_t j = 0; j < hps.size(); ++j) {
-      if (j != i) {
-        c.peers().push_back(hps[j]);
-      }
-    }
-    std::string path = c.path();
-    c.set_path(path + "/" + c.my_addr().ToString());
-    configs.push_back(c);
-  }
-}
+extern void InitRemuTest();
 
 int main(int argc, char **argv) {
   try {
@@ -70,8 +80,9 @@ int main(int argc, char **argv) {
     vraft::CodingInit();
 
     vraft::EventLoop loop("vraft_server");
+    loop.AddTimer(1000, 1000, TestTick2);
+
     for (int i = 0; i < vraft::GetConfig().peers().size() + 1; ++i) {
-      std::vector<vraft::Config> configs;
       GenerateRotateConfig(configs);
       vraft::RaftServerPtr ptr =
           std::make_shared<vraft::RaftServer>(configs[i], &loop);

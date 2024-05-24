@@ -30,8 +30,9 @@ class RaftServer final {
 
   Config &config() { return config_; }
   EventLoop *LoopPtr() { return loop_; }
+  RaftPtr raft() { return raft_; }
 
-  void Print() { raft_->Print(); }
+  void Print(bool tiny, bool one_line) { raft_->Print(tiny, one_line); }
 
  private:
   // for raft func
@@ -47,7 +48,7 @@ class RaftServer final {
   TcpServerPtr server_;
   std::unordered_map<uint64_t, TcpClientPtr> clients_;
 
-  RaftUPtr raft_;
+  RaftPtr raft_;
 };
 
 // FIXME: raft_(this), maybe this has not finished construct
@@ -70,7 +71,7 @@ inline RaftServer::RaftServer(Config &config, EventLoop *loop)
     RaftAddr dest(hostport.ip32, hostport.port, 0);
     rc.peers.push_back(dest);
   }
-  raft_ = std::make_unique<Raft>(config_.path(), rc);
+  raft_ = std::make_shared<Raft>(config_.path(), rc);
   raft_->Init();
   raft_->set_send(std::bind(&RaftServer::SendMsg, this, std::placeholders::_1,
                             std::placeholders::_2, std::placeholders::_3));
