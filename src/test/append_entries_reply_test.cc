@@ -20,6 +20,7 @@ TEST(AppendEntriesReply, test) {
   msg.dest = dest;
   msg.term = 77;
   msg.success = true;
+  msg.num_entries = 123;
   msg.term = 100;
 
   std::string msg_str;
@@ -47,6 +48,7 @@ TEST(AppendEntriesReply, test) {
   EXPECT_EQ(msg.term, msg2.term);
   EXPECT_EQ(msg.success, msg2.success);
   EXPECT_EQ(msg.last_log_index, msg2.last_log_index);
+  EXPECT_EQ(msg.num_entries, msg2.num_entries);
 }
 
 int main(int argc, char **argv) {

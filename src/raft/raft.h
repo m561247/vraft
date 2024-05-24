@@ -93,6 +93,7 @@ class Raft final {
   bool IfSelfVote();
   void BecomeLeader();
   void AppendNoop();
+  void MaybeCommit();
   RaftIndex LastIndex();
   RaftTerm LastTerm();
   RaftTerm GetTerm(RaftIndex index);

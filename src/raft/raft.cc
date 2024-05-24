@@ -273,6 +273,8 @@ void Raft::AppendNoop() {
   assert(rv == 0);
 }
 
+void Raft::MaybeCommit() {}
+
 int32_t Raft::OnPing(struct Ping &msg) {
   vraft_logger.Info("%s recv ping from %s, msg:%s", msg.dest.ToString().c_str(),
                     msg.src.ToString().c_str(), msg.msg.c_str());
@@ -375,6 +377,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
   reply.term = meta_.term();
   reply.success = false;
   reply.last_log_index = LastIndex();
+  reply.num_entries = msg.entries.size();
 
   if (msg.term < meta_.term()) {
     SendAppendEntriesReply(reply);
@@ -430,15 +433,24 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
     // reset hb timer ?
 
     if (msg.success) {
-      // do something
+      RaftIndex pre_index = index_mgr_.GetNext(msg.src) - 1;
+      if (index_mgr_.GetMatch(msg.src) > pre_index + msg.num_entries) {
+        // maybe pipeline ?
 
-    } else {
-      if (index_mgr_.indices[msg.src.ToU64()].next > 1) {
-        index_mgr_.indices[msg.src.ToU64()].next--;
+      } else {
+        index_mgr_.SetMatch(msg.src, pre_index + msg.num_entries);
+        MaybeCommit();
       }
 
-      if (index_mgr_.indices[msg.src.ToU64()].next < msg.last_log_index + 1) {
-        index_mgr_.indices[msg.src.ToU64()].next = msg.last_log_index + 1;
+      index_mgr_.SetNext(msg.src, index_mgr_.GetMatch(msg.src) + 1);
+
+    } else {
+      if (index_mgr_.GetNext(msg.src) > 1) {
+        index_mgr_.DecrNext(msg.src);
+      }
+
+      if (index_mgr_.GetNext(msg.src) > msg.last_log_index + 1) {
+        index_mgr_.SetNext(msg.src, msg.last_log_index + 1);
       }
     }
   }

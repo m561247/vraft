@@ -25,6 +25,18 @@ class IndexManager final {
   void ResetNext(RaftIndex index);
   void ResetMatch(RaftIndex index);
 
+  void DecrNext(RaftAddr addr);
+  void SetNext(RaftAddr addr, RaftIndex index);
+  RaftIndex GetNext(RaftAddr addr);
+  void SetMatch(RaftAddr addr, RaftIndex index);
+  RaftIndex GetMatch(RaftAddr addr);
+
+  void DecrNext(uint64_t addr);
+  void SetNext(uint64_t addr, RaftIndex index);
+  RaftIndex GetNext(uint64_t addr);
+  void SetMatch(uint64_t addr, RaftIndex index);
+  RaftIndex GetMatch(uint64_t addr);
+
  public:
   std::unordered_map<uint64_t, IndexItem> indices;
 
@@ -64,6 +76,44 @@ inline void IndexManager::ResetMatch(RaftIndex index) {
   for (auto &peer : indices) {
     peer.second.match = index;
   }
+}
+
+inline void IndexManager::DecrNext(RaftAddr addr) {
+  indices[addr.ToU64()].next--;
+}
+
+inline void IndexManager::SetNext(RaftAddr addr, RaftIndex index) {
+  indices[addr.ToU64()].next = index;
+}
+
+inline RaftIndex IndexManager::GetNext(RaftAddr addr) {
+  return indices[addr.ToU64()].next;
+}
+
+inline void IndexManager::SetMatch(RaftAddr addr, RaftIndex index) {
+  indices[addr.ToU64()].match = index;
+}
+
+inline RaftIndex IndexManager::GetMatch(RaftAddr addr) {
+  return indices[addr.ToU64()].match;
+}
+
+inline void IndexManager::DecrNext(uint64_t addr) { indices[addr].next--; }
+
+inline void IndexManager::SetNext(uint64_t addr, RaftIndex index) {
+  indices[addr].next = index;
+}
+
+inline RaftIndex IndexManager::GetNext(uint64_t addr) {
+  return indices[addr].next;
+}
+
+inline void IndexManager::SetMatch(uint64_t addr, RaftIndex index) {
+  indices[addr].match = index;
+}
+
+inline RaftIndex IndexManager::GetMatch(uint64_t addr) {
+  return indices[addr].match;
 }
 
 inline nlohmann::json IndexManager::ToJson() {

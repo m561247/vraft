@@ -18,6 +18,7 @@ struct AppendEntriesReply {
 
   bool success;              // uint8_t
   RaftIndex last_log_index;  // to speed up
+  int32_t num_entries;
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -32,7 +33,7 @@ struct AppendEntriesReply {
 
 inline int32_t AppendEntriesReply::MaxBytes() {
   return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uint8_t) +
-         sizeof(last_log_index);
+         sizeof(last_log_index) + sizeof(num_entries);
 }
 
 inline int32_t AppendEntriesReply::ToString(std::string &s) {
@@ -72,6 +73,10 @@ inline int32_t AppendEntriesReply::ToString(const char *ptr, int32_t len) {
   p += sizeof(last_log_index);
   size += sizeof(last_log_index);
 
+  EncodeFixed32(p, num_entries);
+  p += sizeof(num_entries);
+  size += sizeof(num_entries);
+
   assert(size <= len);
   return size;
 }
@@ -101,6 +106,9 @@ inline bool AppendEntriesReply::FromString(const char *ptr, int32_t len) {
   last_log_index = DecodeFixed32(p);
   p += sizeof(last_log_index);
 
+  num_entries = DecodeFixed32(p);
+  p += sizeof(num_entries);
+
   return true;
 }
 
@@ -111,6 +119,7 @@ inline nlohmann::json AppendEntriesReply::ToJson() {
   j["term"] = term;
   j["success"] = success;
   j["last_log_index"] = last_log_index;
+  j["num_entries"] = num_entries;
   j["this"] = PointerToHexStr(this);
   return j;
 }
@@ -122,6 +131,7 @@ inline nlohmann::json AppendEntriesReply::ToJsonTiny() {
   j["tm"] = term;
   j["suc"] = success;
   j["lidx"] = last_log_index;
+  j["no."] = num_entries;
   j["ts"] = PointerToHexStr(this);
   return j;
 }
