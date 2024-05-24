@@ -10,8 +10,8 @@ COMMON_SRCS := $(wildcard $(SRC_DIRS:=/*.cc))
 
 # main src
 VRAFT_SERVER_SRCS := src/main/vraft_server.cc $(COMMON_SRCS)
-RAFT_LOG_TOOL_SRCS := src/main/raft_log_tool.cc $(COMMON_SRCS)
-RAFT_INSIGHT_SRCS := src/main/raft_insight.cc $(COMMON_SRCS)
+RLOG_TOOL_SRCS := src/main/rlog_tool.cc $(COMMON_SRCS)
+REMU_SRCS := src/main/remu.cc $(COMMON_SRCS)
 
 # example src
 ECHO_SERVER_SRCS := src/example/echo_server.cc $(COMMON_SRCS)
@@ -35,8 +35,8 @@ RAFT_TEST_SRCS := src/test/raft_test.cc $(COMMON_SRCS)
 # generate .o
 # main
 VRAFT_SERVER_OBJECTS := $(VRAFT_SERVER_SRCS:.cc=.o)
-RAFT_LOG_TOOL_OBJECTS := $(RAFT_LOG_TOOL_SRCS:.cc=.o)
-RAFT_INSIGHT_OBJECTS := $(RAFT_INSIGHT_SRCS:.cc=.o)
+RLOG_TOOL_OBJECTS := $(RLOG_TOOL_SRCS:.cc=.o)
+REMU_OBJECTS := $(REMU_SRCS:.cc=.o)
 
 # example
 ECHO_SERVER_OBJECTS := $(ECHO_SERVER_SRCS:.cc=.o)
@@ -59,7 +59,7 @@ RAFT_TEST_OBJECTS := $(RAFT_TEST_SRCS:.cc=.o)
 
 
 # generate exe
-MAIN := vraft_server raft_log_tool raft_insight 
+MAIN := vraft_server rlog_tool remu 
 EXAMPLE := echo_server echo_client 
 TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test request_vote_test request_vote_reply_test append_entries_test coding_test append_entries_reply_test tracer_test raft_test
 
@@ -81,10 +81,10 @@ test: $(TEST)
 vraft_server: $(VRAFT_SERVER_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
-raft_log_tool: $(RAFT_LOG_TOOL_OBJECTS)
+rlog_tool: $(RLOG_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
-raft_insight: $(RAFT_INSIGHT_OBJECTS)
+remu: $(REMU_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 # example

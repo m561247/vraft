@@ -93,7 +93,7 @@ inline const std::string Config::UsageBanner(char *program_name) {
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9000 "
            "--peers=127.0.0.1:9001,127.0.0.1:9002 "
-           "--path=./raft_insight_test\n",
+           "--path=./remu_dir\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf), "%s -h\n", program_name);
