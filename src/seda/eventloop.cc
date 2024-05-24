@@ -29,9 +29,7 @@ void EventLoop::Init() {
 
 int32_t EventLoop::Loop() {
   tid_ = std::this_thread::get_id();
-  std::ostringstream oss;
-  oss << tid_;
-  tid_str_ = oss.str();
+  tid_str_ = TidToStr(tid_);
   vraft_logger.FInfo("loop:%s start, tid:%s, handle:%p", name_.c_str(),
                      tid_str_.c_str(), &uv_loop_);
   return UvRun(&uv_loop_, UV_RUN_DEFAULT);
@@ -46,7 +44,11 @@ void EventLoop::Stop() {
 bool EventLoop::IsAlive() const { return UvLoopAlive(&uv_loop_); }
 
 bool EventLoop::IsInLoopThread() const {
-  return (std::this_thread::get_id() == tid_);
+  if (TidValid(tid_)) {
+    return (std::this_thread::get_id() == tid_);
+  } else {
+    return true;
+  }
 }
 
 void EventLoop::AssertInLoopThread() const {

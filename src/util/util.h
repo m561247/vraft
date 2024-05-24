@@ -50,6 +50,12 @@ std::string U32ToHexStr(uint32_t x);
 
 std::string NsToString(uint64_t ns);
 
+bool IsNumber(const std::string &str);
+
+std::string TidToStr(std::thread::id);
+
+bool TidValid(std::thread::id);
+
 }  // namespace vraft
 
 #endif

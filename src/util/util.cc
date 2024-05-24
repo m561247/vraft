@@ -191,4 +191,26 @@ std::string NsToString(uint64_t ns) {
   return ss.str();
 }
 
+bool IsNumber(const std::string &str) {
+  for (char ch : str) {
+    if (!std::isdigit(ch)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::string TidToStr(std::thread::id tid) {
+  std::ostringstream oss;
+  oss << tid;
+  return oss.str();
+}
+
+bool TidValid(std::thread::id tid) {
+  std::string s = TidToStr(tid);
+  if (s.size() == 0) return false;
+  if (!IsNumber(s)) return false;
+  return true;
+}
+
 }  // namespace vraft
