@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     vraft::EventLoop loop("vraft_server");
     loop.AddTimer(1000, 1000, TestTick2);
 
-    for (int i = 0; i < vraft::GetConfig().peers().size() + 1; ++i) {
+    for (size_t i = 0; i < vraft::GetConfig().peers().size() + 1; ++i) {
       GenerateRotateConfig(configs);
       vraft::RaftServerPtr ptr =
           std::make_shared<vraft::RaftServer>(configs[i], &loop);

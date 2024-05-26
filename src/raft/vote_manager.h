@@ -63,7 +63,7 @@ inline bool VoteManager::Majority(bool my_vote) {
       ++vote_count;
     }
   }
-  return (vote_count >= (votes.size() + 1) / 2);
+  return (vote_count >= (static_cast<int32_t>(votes.size()) + 1) / 2);
 }
 
 inline bool VoteManager::QuorumAll(bool my_vote) {

@@ -9,7 +9,7 @@ TimerFunctor timer_func;
 TestState current_state = kTestState0;
 std::unordered_map<TestState, StateChange> rules;
 
-bool HasLeader() {}
+bool HasLeader() { return true; }
 
 void InitRemuTest() {
   rules[kTestState0].next = kTestStateEnd;

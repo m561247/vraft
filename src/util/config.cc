@@ -92,12 +92,12 @@ void GenerateRotateConfig(std::vector<vraft::Config> &configs) {
   for (auto hp : vraft::GetConfig().peers()) {
     hps.push_back(hp);
   }
-  for (int32_t i = 0; i < hps.size(); ++i) {
+  for (size_t i = 0; i < hps.size(); ++i) {
     // use i for myself
     vraft::Config c = vraft::GetConfig();
     c.set_my_addr(hps[i]);
     c.peers().clear();
-    for (int32_t j = 0; j < hps.size(); ++j) {
+    for (size_t j = 0; j < hps.size(); ++j) {
       if (j != i) {
         c.peers().push_back(hps[j]);
       }

@@ -6,7 +6,7 @@ namespace vraft {
 
 void Tracer::Init() {
   ts_ = Clock::NSec();
-  snprintf(ts_buf_, sizeof(ts_buf_), "0x%llX", ts_);
+  snprintf(ts_buf_, sizeof(ts_buf_), "0x%lX", ts_);
 
   state0_.clear();
   state1_.clear();

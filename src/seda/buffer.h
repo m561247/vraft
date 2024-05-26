@@ -82,7 +82,7 @@ inline void Buffer::MaybeMove() {
 
 inline void Buffer::Move() {
   if (WastefulBytes() > 0) {
-    size_t readable = ReadableBytes();
+    int32_t readable = ReadableBytes();
     std::copy(Begin() + read_index_, Begin() + write_index_, Begin());
 
     read_index_ = 0;
@@ -147,25 +147,25 @@ inline char *Buffer::BeginWrite() { return Begin() + write_index_; }
 inline const char *Buffer::Peek() const { return BeginRead(); }
 
 inline int8_t Buffer::PeekInt8() const {
-  assert(ReadableBytes() >= sizeof(int8_t));
+  assert(ReadableBytes() >= static_cast<int32_t>(sizeof(int8_t)));
   int8_t i8 = DecodeFixed8(Peek());
   return i8;
 }
 
 inline int16_t Buffer::PeekInt16() const {
-  assert(ReadableBytes() >= sizeof(int16_t));
+  assert(ReadableBytes() >= static_cast<int32_t>(sizeof(int16_t)));
   int16_t i16 = DecodeFixed16(Peek());
   return i16;
 }
 
 inline int32_t Buffer::PeekInt32() const {
-  assert(ReadableBytes() >= sizeof(int32_t));
+  assert(ReadableBytes() >= static_cast<int32_t>(sizeof(int32_t)));
   int32_t i32 = DecodeFixed32(Peek());
   return i32;
 }
 
 inline int64_t Buffer::PeekInt64() const {
-  assert(ReadableBytes() >= sizeof(int64_t));
+  assert(ReadableBytes() >= static_cast<int32_t>(sizeof(int64_t)));
   int64_t i64 = DecodeFixed64(Peek());
   return i64;
 }

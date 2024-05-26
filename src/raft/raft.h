@@ -35,7 +35,7 @@ enum State {
   LEADER,
 };
 
-char *StateToStr(enum State state);
+const char *StateToStr(enum State state);
 void Tick(Timer *timer);
 void Elect(Timer *timer);
 void RequestVoteRpc(Timer *timer);

@@ -122,7 +122,7 @@ inline int UvWrite2(UvWrite *req, UvStream *handle, const uv_buf_t bufs[],
 
   uint32_t u32 = 0;
   int bytes = 0;
-  for (int i = 0; i < nbufs; ++i) {
+  for (unsigned int i = 0; i < nbufs; ++i) {
     if (bufs[i].base != nullptr) {
       bytes += bufs[i].len;
       u32 += Crc32(bufs[i].base, bufs[i].len);
@@ -134,7 +134,7 @@ inline int UvWrite2(UvWrite *req, UvStream *handle, const uv_buf_t bufs[],
       handle, req, bytes, u32, nbufs,
       UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv);
 
-  for (int i = 0; i < nbufs; ++i) {
+  for (unsigned int i = 0; i < nbufs; ++i) {
     vraft_logger.FDebug("send data:%s",
                         StrToHexStr(bufs[i].base, bufs[i].len).c_str());
   }

@@ -19,13 +19,14 @@ void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
   vraft_logger.FDebug("recv buf data:%s",
                       StrToHexStr(buf->BeginRead(), print_bytes).c_str());
 
-  if (buf->ReadableBytes() > sizeof(sizeof(MsgHeader))) {
+  if (buf->ReadableBytes() > static_cast<int32_t>(sizeof(MsgHeader))) {
     int32_t body_bytes = buf->PeekInt32();
     vraft_logger.FTrace(
         "raft-server recv msg, readable-bytes:%d, body_bytes:%d",
         buf->ReadableBytes(), body_bytes);
 
-    if (buf->ReadableBytes() > sizeof(MsgHeader) + body_bytes) {
+    if (buf->ReadableBytes() >
+        static_cast<int32_t>(sizeof(MsgHeader)) + body_bytes) {
       // parse header
       MsgHeader header;
       header.FromString(buf->BeginRead(), sizeof(MsgHeader));

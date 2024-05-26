@@ -59,9 +59,9 @@ inline IndexManager::IndexManager(const std::vector<RaftAddr> &peers) {
 
 inline IndexManager::~IndexManager() {}
 
-inline bool IndexManager::Majority(RaftIndex index) {}
+inline bool IndexManager::Majority(RaftIndex index) { return false; }
 
-inline RaftIndex IndexManager::MajorityMin() {}
+inline RaftIndex IndexManager::MajorityMin() { return 0; }
 
 inline void IndexManager::Reset(const std::vector<RaftAddr> &peers) {
   indices.clear();

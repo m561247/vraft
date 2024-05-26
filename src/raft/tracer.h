@@ -23,11 +23,11 @@ class Tracer final {
   Tracer(const Tracer &t) = delete;
   Tracer &operator=(const Tracer &t) = delete;
 
-  bool Enable() { enable_ = true; }
-  bool Disable() { enable_ = false; }
+  void Enable() { enable_ = true; }
+  void Disable() { enable_ = false; }
 
-  bool EnableTimeStamp() { timestamp_ = true; }
-  bool DisableTimeStamp() { timestamp_ = false; }
+  void EnableTimeStamp() { timestamp_ = true; }
+  void DisableTimeStamp() { timestamp_ = false; }
 
   void PrepareState0();
   void PrepareState1();

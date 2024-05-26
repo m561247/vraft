@@ -25,13 +25,13 @@ RaftIndex DataIndexToLogIndex(RaftIndex value_index) {
 }
 
 void EncodeDataKey(char *buf, int32_t len, RaftIndex log_index) {
-  assert(len >= sizeof(RaftIndex));
+  assert(len >= static_cast<int32_t>(sizeof(RaftIndex)));
   RaftIndex value_key = LogIndexToDataIndex(log_index);
   EncodeFixed32(buf, value_key);
 }
 
 void EncodeMetaKey(char *buf, int32_t len, RaftIndex log_index) {
-  assert(len >= sizeof(RaftIndex));
+  assert(len >= static_cast<int32_t>(sizeof(RaftIndex)));
   RaftIndex term_index = LogIndexToMetaIndex(log_index);
   EncodeFixed32(buf, term_index);
 }
@@ -242,7 +242,7 @@ int32_t RaftLog::GetMeta(RaftIndex index, MetaValue &meta) {
   std::string meta_value;
   s = db_->Get(ro, leveldb::Slice(meta_key, sizeof(meta_key)), &meta_value);
   if (s.ok()) {
-    assert(meta_value.size() == MetaValueBytes());
+    assert(static_cast<int32_t>(meta_value.size()) == MetaValueBytes());
     DecodeMetaValue(meta_value.c_str(), meta_value.size(), meta);
     return 0;
 

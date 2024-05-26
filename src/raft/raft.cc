@@ -11,7 +11,7 @@
 
 namespace vraft {
 
-char *StateToStr(enum State state) {
+const char *StateToStr(enum State state) {
   switch (state) {
     case FOLLOWER:
       return "FOLLOWER";
