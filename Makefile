@@ -32,6 +32,7 @@ APPEND_ENTRIES_REPLY_TEST_SRCS := src/test/append_entries_reply_test.cc $(COMMON
 TRACER_TEST_SRCS := src/test/tracer_test.cc $(COMMON_SRCS)
 RAFT_TEST_SRCS := src/test/raft_test.cc $(COMMON_SRCS)
 TPL_TEST_SRCS := src/test/tpl_test.cc $(COMMON_SRCS)
+REMU_ELECT_TEST_SRCS := src/test/remu_elect_test.cc $(COMMON_SRCS)
 
 # remu test src
 
@@ -60,12 +61,13 @@ APPEND_ENTRIES_REPLY_TEST_OBJECTS := $(APPEND_ENTRIES_REPLY_TEST_SRCS:.cc=.o)
 TRACER_TEST_OBJECTS := $(TRACER_TEST_SRCS:.cc=.o)
 RAFT_TEST_OBJECTS := $(RAFT_TEST_SRCS:.cc=.o)
 TPL_TEST_OBJECTS := $(TPL_TEST_SRCS:.cc=.o)
+REMU_ELECT_TEST_OBJECTS := $(REMU_ELECT_TEST_SRCS:.cc=.o)
 
 
 # generate exe
 MAIN := vraft_server rlog_tool remu 
 EXAMPLE := echo_server echo_client 
-TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test request_vote_test request_vote_reply_test append_entries_test coding_test append_entries_reply_test tracer_test raft_test tpl_test
+TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test request_vote_test request_vote_reply_test append_entries_test coding_test append_entries_reply_test tracer_test raft_test tpl_test remu_elect_test
 
 
 # compile
@@ -139,6 +141,9 @@ raft_test: $(RAFT_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 tpl_test: $(TPL_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+remu_elect_test: $(REMU_ELECT_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 # clean

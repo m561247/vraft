@@ -6,6 +6,41 @@
 
 namespace vraft {
 
+void Remu::Print(bool tiny, bool one_line) {
+  printf("---remu--- :\n");
+  for (auto ptr : raft_servers) {
+    ptr->Print(tiny, one_line);
+    if (!one_line) {
+      printf("\n");
+    }
+  }
+  printf("\n");
+  fflush(nullptr);
+}
+
+void Remu::Create() {
+  for (auto conf : configs) {
+    vraft::RaftServerPtr ptr = std::make_shared<vraft::RaftServer>(conf, loop);
+    raft_servers.push_back(ptr);
+  }
+}
+
+void Remu::Start() {
+  for (auto &ptr : raft_servers) {
+    if (ptr) {
+      ptr->Start();
+    }
+  }
+}
+
+void Remu::Stop() {
+  for (auto &ptr : raft_servers) {
+    if (ptr) {
+      ptr->Stop();
+    }
+  }
+}
+
 void RaftServer::OnConnection(const vraft::TcpConnectionPtr &conn) {
   vraft::vraft_logger.FInfo("raft-server OnConnection:%s",
                             conn->name().c_str());

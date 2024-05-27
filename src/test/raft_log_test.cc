@@ -591,9 +591,9 @@ TEST(RaftLog, DeleteFrom2) {
     }
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
-    EXPECT_EQ(raft_log.First(),  static_cast<uint32_t>(1));
-    EXPECT_EQ(raft_log.Last(),  static_cast<uint32_t>(5));
-    EXPECT_EQ(raft_log.Append(),  static_cast<uint32_t>(6));
+    EXPECT_EQ(raft_log.First(), static_cast<uint32_t>(1));
+    EXPECT_EQ(raft_log.Last(), static_cast<uint32_t>(5));
+    EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(6));
   }
 
   {
@@ -601,9 +601,9 @@ TEST(RaftLog, DeleteFrom2) {
     raft_log.Init();
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
-    EXPECT_EQ(raft_log.First(),  static_cast<uint32_t>(1));
-    EXPECT_EQ(raft_log.Last(),  static_cast<uint32_t>(5));
-    EXPECT_EQ(raft_log.Append(),  static_cast<uint32_t>(6));
+    EXPECT_EQ(raft_log.First(), static_cast<uint32_t>(1));
+    EXPECT_EQ(raft_log.Last(), static_cast<uint32_t>(5));
+    EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(6));
   }
 
   {
@@ -611,15 +611,15 @@ TEST(RaftLog, DeleteFrom2) {
     raft_log.Init();
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
-    EXPECT_EQ(raft_log.First(),  static_cast<uint32_t>(1));
-    EXPECT_EQ(raft_log.Last(),  static_cast<uint32_t>(5));
-    EXPECT_EQ(raft_log.Append(),  static_cast<uint32_t>(6));
+    EXPECT_EQ(raft_log.First(), static_cast<uint32_t>(1));
+    EXPECT_EQ(raft_log.Last(), static_cast<uint32_t>(5));
+    EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(6));
 
     raft_log.DeleteFrom(3);
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
-    EXPECT_EQ(raft_log.First(),  static_cast<uint32_t>(1));
-    EXPECT_EQ(raft_log.Last(),  static_cast<uint32_t>(2));
-    EXPECT_EQ(raft_log.Append(),  static_cast<uint32_t>(3));
+    EXPECT_EQ(raft_log.First(), static_cast<uint32_t>(1));
+    EXPECT_EQ(raft_log.Last(), static_cast<uint32_t>(2));
+    EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(3));
   }
 
   {
@@ -627,9 +627,9 @@ TEST(RaftLog, DeleteFrom2) {
     raft_log.Init();
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
-    EXPECT_EQ(raft_log.First(),  static_cast<uint32_t>(1));
-    EXPECT_EQ(raft_log.Last(),  static_cast<uint32_t>(2));
-    EXPECT_EQ(raft_log.Append(),  static_cast<uint32_t>(3));
+    EXPECT_EQ(raft_log.First(), static_cast<uint32_t>(1));
+    EXPECT_EQ(raft_log.Last(), static_cast<uint32_t>(2));
+    EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(3));
 
     raft_log.DeleteFrom(0);
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -720,7 +720,7 @@ TEST(RaftLog, DeleteUtil) {
     std::cout << "append: " << raft_log.Append() << std::endl;
     EXPECT_EQ(raft_log.First(), static_cast<uint32_t>(0));
     EXPECT_EQ(raft_log.Last(), static_cast<uint32_t>(0));
-        EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(11));
+    EXPECT_EQ(raft_log.Append(), static_cast<uint32_t>(11));
 
     for (int i = 0; i < 5; ++i) {
       vraft::AppendEntry entry;

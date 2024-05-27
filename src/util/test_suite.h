@@ -9,7 +9,6 @@
 namespace vraft {
 
 class Timer;
-void TestTick(Timer *timer);
 using CondFunc = std::function<bool()>;
 
 enum TestState {
@@ -31,7 +30,6 @@ struct StateChange {
   CondFunc func;
 };
 
-extern TimerFunctor timer_func;
 extern TestState current_state;
 extern std::unordered_map<TestState, StateChange> rules;
 

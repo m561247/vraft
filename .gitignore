@@ -5,6 +5,7 @@ vraft_9001
 vraft_9002
 raft_insight_test
 err
+remu_dir
 
 # Prerequisites
 *.d

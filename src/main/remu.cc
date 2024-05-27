@@ -15,23 +15,14 @@ void SignalHandler(int signal) {
   exit(signal);
 }
 
-std::vector<vraft::RaftServerPtr> raft_servers;
-std::vector<vraft::Config> configs;
+vraft::Remu *r = nullptr;
 
-void Print(bool tiny, bool one_line) {
-  for (auto ptr : raft_servers) {
-    ptr->Print(tiny, one_line);
-  }
-  printf("\n");
-  fflush(nullptr);
-}
-
-void TestTick2(vraft::Timer *timer) {
+void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
     case vraft::kTestState0: {
-      Print(true, true);
+      r->Print();
       int32_t leader_num = 0;
-      for (auto ptr : raft_servers) {
+      for (auto ptr : r->raft_servers) {
         if (ptr->raft()->state() == vraft::LEADER) {
           leader_num++;
         }
@@ -52,8 +43,6 @@ void TestTick2(vraft::Timer *timer) {
   }
 }
 
-extern void InitRemuTest();
-
 int main(int argc, char **argv) {
   try {
     if (argc == 1) {
@@ -72,26 +61,21 @@ int main(int argc, char **argv) {
     logger_options.level = vraft::U8ToLevel(vraft::GetConfig().log_level());
     logger_options.enable_debug = vraft::GetConfig().enable_debug();
 
-    std::string log_file = vraft::GetConfig().path() + "/log/vraft.log";
+    std::string log_file = vraft::GetConfig().path() + "/log/remu.log";
     vraft::vraft_logger.Init(log_file, logger_options);
 
     std::signal(SIGINT, SignalHandler);
     std::signal(SIGSEGV, SignalHandler);
     vraft::CodingInit();
 
-    vraft::EventLoop loop("vraft_server");
-    loop.AddTimer(1000, 1000, TestTick2);
+    vraft::EventLoop loop("remu");
+    vraft::Remu remu(&loop);
+    r = &remu;
 
-    for (size_t i = 0; i < vraft::GetConfig().peers().size() + 1; ++i) {
-      GenerateRotateConfig(configs);
-      vraft::RaftServerPtr ptr =
-          std::make_shared<vraft::RaftServer>(configs[i], &loop);
-      raft_servers.push_back(ptr);
-    }
-
-    for (auto &ptr : raft_servers) {
-      ptr->Start();
-    }
+    loop.AddTimer(1000, 1000, RemuTick);
+    GenerateRotateConfig(remu.configs);
+    remu.Create();
+    remu.Start();
     loop.Loop();
 
   } catch (const char *msg) {
