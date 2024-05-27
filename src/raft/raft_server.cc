@@ -41,6 +41,8 @@ void Remu::Stop() {
   }
 }
 
+void Remu::Clear() { raft_servers.clear(); }
+
 void RaftServer::OnConnection(const vraft::TcpConnectionPtr &conn) {
   vraft::vraft_logger.FInfo("raft-server OnConnection:%s",
                             conn->name().c_str());

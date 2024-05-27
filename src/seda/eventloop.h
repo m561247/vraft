@@ -12,6 +12,9 @@
 
 namespace vraft {
 
+class EventLoop;
+using EventLoopPtr = std::shared_ptr<EventLoop>;
+
 class EventLoop final {
  public:
   EventLoop(const std::string &name);

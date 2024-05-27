@@ -2,6 +2,7 @@
 
 #include <csignal>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include "coding.h"
@@ -17,14 +18,15 @@ void SignalHandler(int signal) {
   exit(signal);
 }
 
-vraft::Remu *r = nullptr;
+vraft::Remu *raft = nullptr;
+vraft::EventLoop *loop = nullptr;
 
 void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
     case vraft::kTestState0: {
-      r->Print();
+      raft->Print();
       int32_t leader_num = 0;
-      for (auto ptr : r->raft_servers) {
+      for (auto ptr : raft->raft_servers) {
         if (ptr->raft()->state() == vraft::LEADER) {
           leader_num++;
         }
@@ -38,7 +40,9 @@ void RemuTick(vraft::Timer *timer) {
     }
     case vraft::kTestStateEnd: {
       std::cout << "exit ..." << std::endl;
-      exit(0);
+      raft->Stop();
+      raft->Clear();
+      loop->Stop();
     }
     default:
       break;
@@ -59,30 +63,45 @@ void GenerateConfig(std::vector<vraft::Config> &configs, int32_t peers_num) {
   vraft::GenerateRotateConfig(configs);
 }
 
-TEST(REMU, elect) {
-  system("rm -rf /tmp/remu_test_dir");
+class RemuTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    std::cout << "Setting up test... \n";
+    std::fflush(nullptr);
+    system("rm -rf /tmp/remu_test_dir");
 
-  vraft::LoggerOptions logger_options{
-      "vraft", false, 1, 8192, vraft::kLoggerTrace, true};
-  std::string log_file = "/tmp/remu_test_dir/log/remu.log";
-  vraft::vraft_logger.Init(log_file, logger_options);
+    vraft::LoggerOptions logger_options{
+        "vraft", false, 1, 8192, vraft::kLoggerTrace, true};
+    std::string log_file = "/tmp/remu_test_dir/log/remu.log";
+    vraft::vraft_logger.Init(log_file, logger_options);
 
-  std::signal(SIGINT, SignalHandler);
-  std::signal(SIGSEGV, SignalHandler);
-  vraft::CodingInit();
+    std::signal(SIGINT, SignalHandler);
+    std::signal(SIGSEGV, SignalHandler);
+    vraft::CodingInit();
 
-  vraft::EventLoop loop("remu");
-  loop.AddTimer(1000, 1000, RemuTick);
+    loop = new vraft::EventLoop("remu");
+    loop->AddTimer(1000, 1000, RemuTick);
+    raft = new vraft::Remu(loop);
+  }
 
-  vraft::Remu remu(&loop);
-  r = &remu;
+  void TearDown() override {
+    std::cout << "Tearing down test... \n";
+    std::fflush(nullptr);
+    delete raft;
+    delete loop;
+    system("rm -rf /tmp/remu_test_dir");
+  }
+};
 
-  GenerateConfig(remu.configs, 2);
-  remu.Create();
-  remu.Start();
-  loop.Loop();
+TEST_F(RemuTest, Elect3) {
+  GenerateConfig(raft->configs, 2);
+  raft->Create();
+  raft->Start();
+  // loop->Loop();
 
-  // system("rm -rf /tmp/remu_test_dir");
+  vraft::EventLoop *l = loop;
+  std::thread t([l]() { l->Loop(); });
+  t.join();
 }
 
 int main(int argc, char **argv) {

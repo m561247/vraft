@@ -26,6 +26,7 @@ struct Remu {
   void Create();
   void Start();
   void Stop();
+  void Clear();
   void Print(bool tiny = true, bool one_line = true);
 };
 

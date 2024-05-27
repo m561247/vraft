@@ -628,9 +628,9 @@ nlohmann::json Raft::ToJsonTiny() {
     j[0][0][key]["match"] = index_mgr_.indices[dest.ToU64()].match;
     j[0][0][key]["next"] = index_mgr_.indices[dest.ToU64()].next;
     j[0][0][key]["grant"] = vote_mgr_.votes[dest.ToU64()].grant;
-    //j[key]["dn"] = vote_mgr_.votes[dest.ToU64()].done;
+    // j[key]["dn"] = vote_mgr_.votes[dest.ToU64()].done;
   }
-  
+
   j[0][1]["term"] = meta_.term();
   if (meta_.vote() == 0) {
     j[0][1]["vote"] = "0";
