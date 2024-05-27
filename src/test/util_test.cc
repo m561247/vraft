@@ -11,8 +11,8 @@ TEST(SimpleRandom, test) {
   for (int i = 0; i < 10; ++i) {
     uint32_t n = r.Get();
     std::cout << n << " ";
-    EXPECT_LE(150, n);
-    EXPECT_GE(300, n);
+    EXPECT_LE(static_cast<uint32_t>(150), n);
+    EXPECT_GE(static_cast<uint32_t>(300), n);
   }
   std::cout << std::endl;
 }

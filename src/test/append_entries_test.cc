@@ -112,8 +112,8 @@ TEST(AppendEntries, test2) {
   EXPECT_EQ(msg.pre_log_index, msg2.pre_log_index);
   EXPECT_EQ(msg.pre_log_term, msg2.pre_log_term);
   EXPECT_EQ(msg.commit_index, msg2.commit_index);
-  EXPECT_EQ(msg.entries.size(), 0);
-  EXPECT_EQ(msg2.entries.size(), 0);
+  EXPECT_EQ(msg.entries.size(), static_cast<size_t>(0));
+  EXPECT_EQ(msg2.entries.size(), static_cast<size_t>(0));
 }
 
 int main(int argc, char **argv) {
