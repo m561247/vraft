@@ -101,9 +101,6 @@ class Raft final {
   void StepDown(RaftTerm new_term);
 
  private:
-  bool started_;
-
- private:
   // path
   std::string home_path_;
   std::string conf_path_;
@@ -116,10 +113,11 @@ class Raft final {
   RaftIndex commit_;
   RaftIndex last_apply_;
   RaftAddr leader_;
+  bool started_;
 
   // persistent data
-  RaftLog log_;
   SolidData meta_;
+  RaftLog log_;
 
   // manager
   ConfigManager config_mgr_;

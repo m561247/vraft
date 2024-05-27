@@ -53,7 +53,7 @@ class RaftServer final {
 
 // FIXME: raft_(this), maybe this has not finished construct
 inline RaftServer::RaftServer(Config &config, EventLoop *loop)
-    : loop_(loop), config_(config) {
+    : config_(config), loop_(loop) {
   struct TcpOptions options;
   server_ = std::make_shared<TcpServer>(config_.my_addr(), "raft_server",
                                         options, loop_);

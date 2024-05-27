@@ -28,7 +28,7 @@ const char *StateToStr(enum State state) {
 }
 
 void Tick(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  Raft *r = reinterpret_cast<Raft *>(timer->data());
   vraft_logger.FInfo("%s", r->ToJsonString(true, true).c_str());
   for (auto &dest_addr : r->Peers()) {
     r->SendPing(dest_addr.ToU64());
@@ -36,7 +36,7 @@ void Tick(Timer *timer) {
 }
 
 void Elect(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == FOLLOWER || r->state_ == CANDIDATE);
 
   r->meta_.IncrTerm();
@@ -61,14 +61,14 @@ void Elect(Timer *timer) {
 }
 
 void RequestVoteRpc(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == CANDIDATE);
   int32_t rv = r->SendRequestVote(timer->dest_addr());
   assert(rv == 0);
 }
 
 void HeartBeat(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data);
+  Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == LEADER);
   int32_t rv = r->SendAppendEntries(timer->dest_addr());
   assert(rv == 0);
@@ -82,18 +82,18 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       meta_path_(path + "/meta"),
       log_path_(path + "/rlog"),
       sm_path_(path + "/sm"),
-      meta_(path + "/meta"),
-      log_(path + "/rlog"),
-      config_mgr_(rc),
-      vote_mgr_(rc.peers),
-      index_mgr_(rc.peers),
-      timer_mgr_(rc.peers),
-      sm_(path + "/sm"),
       state_(FOLLOWER),
       commit_(0),
       last_apply_(0),
       leader_(0),
-      started_(false) {}
+      started_(false),
+      meta_(path + "/meta"),
+      log_(path + "/rlog"),
+      config_mgr_(rc),
+      index_mgr_(rc.peers),
+      vote_mgr_(rc.peers),
+      timer_mgr_(rc.peers),
+      sm_(path + "/sm") {}
 
 int32_t Raft::Start() {
   started_ = true;

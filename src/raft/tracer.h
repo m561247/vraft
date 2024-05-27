@@ -51,7 +51,7 @@ class Tracer final {
 };
 
 inline Tracer::Tracer(Raft *r, bool enable)
-    : raft_(r), enable_(enable), timestamp_(false) {
+    : enable_(enable), timestamp_(false), raft_(r) {
   Init();
 }
 

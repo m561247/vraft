@@ -70,7 +70,7 @@ void EventLoop::RunFunctor(const Functor func) {
 TimerPtr EventLoop::MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
                               const TimerFunctor &func, void *data) {
   TimerPtr ptr = CreateTimer(timeout_ms, repeat_ms, this, func);
-  ptr->data = data;
+  ptr->set_data(data);
   return ptr;
 }
 

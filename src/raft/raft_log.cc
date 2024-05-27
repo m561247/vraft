@@ -230,7 +230,13 @@ void RaftLog::Check() {
   }
 }
 
-RaftLog::RaftLog(const std::string &path) : path_(path), checksum_(true) {}
+RaftLog::RaftLog(const std::string &path)
+    : first_(0),
+      last_(0),
+      append_(0),
+      checksum_(true),
+      last_checksum_(0),
+      path_(path) {}
 
 int32_t RaftLog::GetMeta(RaftIndex index, MetaValue &meta) {
   Check();

@@ -53,9 +53,8 @@ class Timer final {
 
   uint64_t dest_addr() { return dest_addr_; }
   void set_dest_addr(uint64_t dest_addr) { dest_addr_ = dest_addr; }
-
- public:
-  void *data;
+  void *data() { return data_; }
+  void set_data(void *data) { data_ = data; }
 
  private:
   void Init();
@@ -68,6 +67,7 @@ class Timer final {
   int64_t repeat_counter_;
   uint64_t dest_addr_;
   const TimerFunctor cb_;
+  void *data_;
 
   EventLoop *loop_;
   UvTimer uv_timer_;

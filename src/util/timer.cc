@@ -10,7 +10,7 @@ namespace vraft {
 TimerPtr CreateTimer(uint64_t timeout, uint64_t repeat, EventLoop *loop,
                      const TimerFunctor &cb) {
   TimerPtr ptr = std::make_shared<Timer>(timeout, repeat, loop, cb);
-  return std::move(ptr);
+  return ptr;
 }
 
 void HandleUvTimer(UvTimer *uv_timer) {
@@ -25,12 +25,13 @@ void HandleUvTimer(UvTimer *uv_timer) {
 
 Timer::Timer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
              const TimerFunctor &cb)
-    : data(nullptr),
-      id_(seq_.fetch_add(1)),
+    : id_(seq_.fetch_add(1)),
       timeout_ms_(timeout_ms),
       repeat_ms_(repeat_ms),
-      cb_(cb),
       repeat_times_(0),
+      repeat_counter_(0),
+      cb_(cb),
+      data_(nullptr),
       loop_(loop) {
   vraft_logger.FInfo(
       "timer:%ld construct, timeout_ms:%lu, repeat_ms:%lu, loop:%s, handle:%p",
