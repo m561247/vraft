@@ -78,7 +78,7 @@ class RemuTest : public ::testing::Test {
     vraft::vraft_logger.Init(log_file, logger_options);
 
     std::signal(SIGINT, SignalHandler);
-    // std::signal(SIGSEGV, SignalHandler);
+    std::signal(SIGSEGV, SignalHandler);
     vraft::CodingInit();
 
     loop = new vraft::EventLoop("remu");
@@ -100,12 +100,17 @@ TEST_F(RemuTest, Elect3) {
   GenerateConfig(remu->configs, 2);
   remu->Create();
   remu->Start();
-  // loop->Loop();
+  loop->AddTimer(0, 1000, RemuTick);
+  
 
   vraft::EventLoop *l = loop;
+  loop->Loop();
+
+#if 0
   std::thread t([l]() { l->Loop(); });
   loop->AddTimer(0, 1000, RemuTick);
   t.join();
+#endif
 
   std::cout << "join thread... \n";
   std::fflush(nullptr);

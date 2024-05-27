@@ -1,5 +1,16 @@
+ASAN ?= no
+
+ifeq ($(ASAN),yes)
+	SANITIZE_FLAGS = -fsanitize=address
+else
+	SANITIZE_FLAGS =
+endif
+
 CXX := g++
-CXXFLAGS := -g -Wall -std=c++14
+
+CXXFLAGS := -g -Wall -std=c++14 
+CXXFLAGS += $(SANITIZE_FLAGS)
+
 INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Ithird_party/spdlog.v1.13.0/include -Ithird_party/cxxopts.v3.2.0/include -Ithird_party/googletest.v1.14.0/googletest/include -Ithird_party/leveldb.1.22/include -Ithird_party/libuv.v1.40.0/include -Ithird_party/nlohmann_json.v3.10.0/single_include
 LDFLAGS := third_party/libuv.v1.40.0/.libs/libuv.a third_party/googletest.v1.14.0/build/lib/libgtest.a third_party/googletest.v1.14.0/build/lib/libgtest_main.a third_party/leveldb.1.22/build/libleveldb.a -pthread -ldl
 
