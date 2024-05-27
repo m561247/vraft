@@ -13,8 +13,8 @@ TEST(SolidData, construct) {
   solid_data.Init();
   std::cout << "term: " << solid_data.term() << std::endl;
   std::cout << "vote: " << solid_data.vote() << std::endl;
-  EXPECT_EQ(solid_data.term(), 0);
-  EXPECT_EQ(solid_data.vote(), 0);
+  EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(0));
+  EXPECT_EQ(solid_data.vote(), static_cast<uint64_t>(0));
 }
 
 TEST(SolidData, persist) {
@@ -25,27 +25,27 @@ TEST(SolidData, persist) {
     solid_data.Init();
     std::cout << "term: " << solid_data.term() << std::endl;
     std::cout << "vote: " << solid_data.vote() << std::endl;
-    EXPECT_EQ(solid_data.term(), 0);
-    EXPECT_EQ(solid_data.vote(), 0);
+    EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(0));
+    EXPECT_EQ(solid_data.vote(), static_cast<uint64_t>(0));
 
     solid_data.SetTerm(3);
-    EXPECT_EQ(solid_data.term(), 3);
+    EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(3));
     std::cout << "term: " << solid_data.term() << std::endl;
 
     solid_data.IncrTerm();
-    EXPECT_EQ(solid_data.term(), 4);
+    EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(4));
     std::cout << "term: " << solid_data.term() << std::endl;
 
     solid_data.SetVote(7);
-    EXPECT_EQ(solid_data.vote(), 7);
+    EXPECT_EQ(solid_data.vote(), static_cast<uint64_t>(7));
     std::cout << "vote: " << solid_data.vote() << std::endl;
   }
 
   {
     vraft::SolidData solid_data("/tmp/soliddata_test_dir");
     solid_data.Init();
-    EXPECT_EQ(solid_data.term(), 4);
-    EXPECT_EQ(solid_data.vote(), 7);
+    EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(4));
+    EXPECT_EQ(solid_data.vote(), static_cast<uint64_t>(7));
 
     std::cout << "term: " << solid_data.term() << std::endl;
     std::cout << "vote: " << solid_data.vote() << std::endl;

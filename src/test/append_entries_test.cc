@@ -61,7 +61,7 @@ TEST(AppendEntries, test) {
   EXPECT_EQ(msg.pre_log_index, msg2.pre_log_index);
   EXPECT_EQ(msg.pre_log_term, msg2.pre_log_term);
   EXPECT_EQ(msg.commit_index, msg2.commit_index);
-  for (int32_t i = 0; i < msg.entries.size(); ++i) {
+  for (size_t i = 0; i < msg.entries.size(); ++i) {
     EXPECT_EQ(msg.entries[i].index, msg2.entries[i].index);
     EXPECT_EQ(msg.entries[i].append_entry.term,
               msg2.entries[i].append_entry.term);
