@@ -22,7 +22,7 @@ TEST(Raft, test) {
   vraft::Raft r("/tmp/raft_load_test", rc);
   r.Init();
   EXPECT_EQ(r.Id(), 100);
-  EXPECT_EQ(r.Peers().size(), 2);
+  EXPECT_EQ(r.Peers().size(), static_cast<size_t>(2));
   std::cout << r.ToJsonString(false, false) << std::endl;
   system("rm -rf /tmp/raft_load_test");
 }
@@ -39,7 +39,7 @@ TEST(Raft, test2) {
     vraft::Raft r("/tmp/raft_load_test", rc);
     r.Init();
     EXPECT_EQ(r.Id(), 100);
-    EXPECT_EQ(r.Peers().size(), 2);
+    EXPECT_EQ(r.Peers().size(), static_cast<size_t>(2));
     std::cout << r.ToJsonString(false, false) << std::endl;
   }
 
@@ -49,7 +49,7 @@ TEST(Raft, test2) {
     vraft::Raft r("/tmp/raft_load_test", rc);
     r.Init();
     EXPECT_EQ(r.Id(), 100);
-    EXPECT_EQ(r.Peers().size(), 2);
+    EXPECT_EQ(r.Peers().size(), static_cast<size_t>(2));
     std::cout << r.ToJsonString(false, false) << std::endl;
   }
 
@@ -60,7 +60,7 @@ TEST(Raft, test2) {
     vraft::Raft r("/tmp/raft_load_test", rc);
     r.Init();
     EXPECT_EQ(r.Id(), 88);
-    EXPECT_EQ(r.Peers().size(), 0);
+    EXPECT_EQ(r.Peers().size(), static_cast<size_t>(0));
     std::cout << r.ToJsonString(false, false) << std::endl;
   }
 
