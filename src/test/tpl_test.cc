@@ -31,6 +31,23 @@ TEST(TPL, tpl) {
   EXPECT_GE(3, 3);
 }
 
+class MyTestClass : public ::testing::Test {
+ protected:
+  void SetUp() override { std::cout << "Setting up test...\n"; }
+
+  void TearDown() override { std::cout << "Tearing down test...\n"; }
+};
+
+TEST_F(MyTestClass, Test1) {
+  ASSERT_EQ(2 + 2, 4);
+  std::cout << "exec MyTestClass.Test1 ..." << std::endl;
+}
+
+TEST_F(MyTestClass, Test2) {
+  ASSERT_TRUE(true);
+  std::cout << "exec MyTestClass.Test2 ..." << std::endl;
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

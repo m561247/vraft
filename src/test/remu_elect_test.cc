@@ -101,7 +101,6 @@ TEST_F(RemuTest, Elect3) {
   remu->Create();
   remu->Start();
   loop->AddTimer(0, 1000, RemuTick);
-  
 
   vraft::EventLoop *l = loop;
   loop->Loop();
