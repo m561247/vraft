@@ -32,15 +32,18 @@ class Config final {
   const cxxopts::ParseResult &result() const { return result_; }
   const std::string ToString() const;
 
-  void set_my_addr(HostPort my_addr) { my_addr_ = my_addr; }
-  void set_path(std::string path) { path_ = path; }
-
   const HostPort &my_addr() { return my_addr_; }
   std::vector<HostPort> &peers() { return peers_; }
   uint8_t log_level() const { return log_level_; }
   bool enable_debug() const { return enable_debug_; }
   const std::string &path() { return path_; }
   const RaftMode mode() { return mode_; }
+
+  void set_my_addr(const HostPort &my_addr) { my_addr_ = my_addr; }
+  void set_log_level(uint8_t log_level) { log_level_ = log_level; }
+  void set_enable_debug(bool enable_debug) { enable_debug_ = enable_debug; }
+  void set_path(const std::string &path) { path_ = path; }
+  void set_mode(RaftMode mode) { mode_ = mode; }
 
  private:
   std::shared_ptr<cxxopts::Options> options_;

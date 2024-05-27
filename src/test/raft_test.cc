@@ -9,7 +9,39 @@
 #include "ping.h"
 #include "ping_reply.h"
 #include "raft.h"
+#include "raft_server.h"
 #include "tracer.h"
+
+void GenerateConfig(std::vector<vraft::Config> &configs, int32_t peers_num) {
+  vraft::GetConfig().set_my_addr(vraft::HostPort("127.0.0.1", 9000));
+  for (int i = 1; i <= peers_num; ++i) {
+    vraft::GetConfig().peers().push_back(
+        vraft::HostPort("127.0.0.1", 9000 + i));
+  }
+  vraft::GetConfig().set_log_level(vraft::kLoggerTrace);
+  vraft::GetConfig().set_enable_debug(true);
+  vraft::GetConfig().set_path("/tmp/remu_test_dir");
+  vraft::GetConfig().set_mode(vraft::kSingleMode);
+
+  vraft::GenerateRotateConfig(configs);
+}
+
+TEST(Remu, Print) {
+  system("rm -rf /tmp/remu_print_test");
+
+  vraft::LoggerOptions logger_options{
+      "vraft", false, 1, 8192, vraft::kLoggerTrace, true};
+  std::string log_file = "/tmp/remu_test_dir/log/remu.log";
+  vraft::vraft_logger.Init(log_file, logger_options);
+
+  vraft::EventLoop loop("remu");
+  vraft::Remu remu(&loop);
+  GenerateConfig(remu.configs, 4);
+  remu.Create();
+  remu.Print();
+
+  system("rm -rf /tmp/remu_print_test");
+}
 
 TEST(Raft, test) {
   system("rm -rf /tmp/raft_load_test");

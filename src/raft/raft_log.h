@@ -426,15 +426,15 @@ inline nlohmann::json RaftLog::ToJson() {
 
 inline nlohmann::json RaftLog::ToJsonTiny() {
   nlohmann::json j;
-  j["fst"] = first_;
-  j["lst"] = last_;
-  j["apd"] = append_;
-  j["chk"] = U32ToHexStr(last_checksum_);
+  j[0] = first_;
+  j[1] = last_;
+  j[2] = append_;
+  j[3]["chk"] = U32ToHexStr(last_checksum_);
   MetaValuePtr ptr = LastMeta();
   if (ptr) {
-    j["ltm"] = ptr->term;
+    j[3]["ltm"] = ptr->term;
   } else {
-    j["ltm"] = 0;
+    j[3]["ltm"] = 0;
   }
   return j;
 }
