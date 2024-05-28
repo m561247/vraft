@@ -12,17 +12,17 @@ CXXFLAGS := -g -Wall -std=c++14
 CXXFLAGS += $(SANITIZE_FLAGS)
 
 INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test 
-INCLUDES += -Ithird_party/spdlog.v1.13.0/include 
-INCLUDES += -Ithird_party/cxxopts.v3.2.0/include 
-INCLUDES += -Ithird_party/googletest.v1.14.0/googletest/include 
-INCLUDES += -Ithird_party/leveldb.1.22/include 
-INCLUDES += -Ithird_party/libuv.v1.40.0/include 
-INCLUDES += -Ithird_party/nlohmann_json.v3.10.0/single_include
+INCLUDES += -Ithird_party/spdlog/include 
+INCLUDES += -Ithird_party/cxxopts/include 
+INCLUDES += -Ithird_party/googletest/googletest/include 
+INCLUDES += -Ithird_party/leveldb/include 
+INCLUDES += -Ithird_party/libuv/include 
+INCLUDES += -Ithird_party/nlohmann_json/single_include
 
-LDFLAGS := third_party/libuv.v1.40.0/.libs/libuv.a 
-LDFLAGS += third_party/googletest.v1.14.0/build/lib/libgtest.a 
-LDFLAGS += third_party/googletest.v1.14.0/build/lib/libgtest_main.a 
-LDFLAGS += third_party/leveldb.1.22/build/libleveldb.a 
+LDFLAGS := third_party/libuv/.libs/libuv.a 
+LDFLAGS += third_party/leveldb/build/libleveldb.a 
+LDFLAGS += third_party/googletest/build/lib/libgtest.a 
+LDFLAGS += third_party/googletest/build/lib/libgtest_main.a 
 LDFLAGS += -pthread -ldl
 
 
