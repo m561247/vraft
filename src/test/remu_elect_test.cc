@@ -103,7 +103,7 @@ TEST_F(RemuTest, Elect3) {
   loop->AddTimer(0, 1000, RemuTick);
 
   vraft::EventLoop *l = loop;
-  loop->Loop();
+  l->Loop();
 
 #if 0
   std::thread t([l]() { l->Loop(); });

@@ -11,8 +11,19 @@ CXX := g++
 CXXFLAGS := -g -Wall -std=c++14 
 CXXFLAGS += $(SANITIZE_FLAGS)
 
-INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Ithird_party/spdlog.v1.13.0/include -Ithird_party/cxxopts.v3.2.0/include -Ithird_party/googletest.v1.14.0/googletest/include -Ithird_party/leveldb.1.22/include -Ithird_party/libuv.v1.40.0/include -Ithird_party/nlohmann_json.v3.10.0/single_include
-LDFLAGS := third_party/libuv.v1.40.0/.libs/libuv.a third_party/googletest.v1.14.0/build/lib/libgtest.a third_party/googletest.v1.14.0/build/lib/libgtest_main.a third_party/leveldb.1.22/build/libleveldb.a -pthread -ldl
+INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test 
+INCLUDES += -Ithird_party/spdlog.v1.13.0/include 
+INCLUDES += -Ithird_party/cxxopts.v3.2.0/include 
+INCLUDES += -Ithird_party/googletest.v1.14.0/googletest/include 
+INCLUDES += -Ithird_party/leveldb.1.22/include 
+INCLUDES += -Ithird_party/libuv.v1.40.0/include 
+INCLUDES += -Ithird_party/nlohmann_json.v3.10.0/single_include
+
+LDFLAGS := third_party/libuv.v1.40.0/.libs/libuv.a 
+LDFLAGS += third_party/googletest.v1.14.0/build/lib/libgtest.a 
+LDFLAGS += third_party/googletest.v1.14.0/build/lib/libgtest_main.a 
+LDFLAGS += third_party/leveldb.1.22/build/libleveldb.a 
+LDFLAGS += -pthread -ldl
 
 
 # common src
@@ -44,6 +55,7 @@ TRACER_TEST_SRCS := src/test/tracer_test.cc $(COMMON_SRCS)
 RAFT_TEST_SRCS := src/test/raft_test.cc $(COMMON_SRCS)
 TPL_TEST_SRCS := src/test/tpl_test.cc $(COMMON_SRCS)
 REMU_ELECT_TEST_SRCS := src/test/remu_elect_test.cc $(COMMON_SRCS)
+HOSTPORT_TEST_SRCS := src/test/hostport_test.cc $(COMMON_SRCS)
 
 # remu test src
 
@@ -73,12 +85,29 @@ TRACER_TEST_OBJECTS := $(TRACER_TEST_SRCS:.cc=.o)
 RAFT_TEST_OBJECTS := $(RAFT_TEST_SRCS:.cc=.o)
 TPL_TEST_OBJECTS := $(TPL_TEST_SRCS:.cc=.o)
 REMU_ELECT_TEST_OBJECTS := $(REMU_ELECT_TEST_SRCS:.cc=.o)
+HOSTPORT_TEST_OBJECTS := $(HOSTPORT_TEST_SRCS:.cc=.o)
 
 
 # generate exe
 MAIN := vraft_server rlog_tool remu 
 EXAMPLE := echo_server echo_client 
-TEST := logger_test ping_test raft_log_test solid_data_test util_test json_test request_vote_test request_vote_reply_test append_entries_test coding_test append_entries_reply_test tracer_test raft_test tpl_test remu_elect_test
+
+TEST := tpl_test
+TEST += logger_test 
+TEST += ping_test 
+TEST += raft_log_test 
+TEST += solid_data_test 
+TEST += util_test 
+TEST += json_test 
+TEST += request_vote_test 
+TEST += request_vote_reply_test 
+TEST += append_entries_test 
+TEST += coding_test 
+TEST += append_entries_reply_test 
+TEST += tracer_test 
+TEST += raft_test  
+TEST += remu_elect_test 
+TEST += hostport_test
 
 
 # compile
@@ -155,6 +184,9 @@ tpl_test: $(TPL_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 remu_elect_test: $(REMU_ELECT_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+hostport_test: $(HOSTPORT_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 # clean

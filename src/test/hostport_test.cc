@@ -1,41 +1,51 @@
-#include "hostport.h"
-
 #include <gtest/gtest.h>
 
 #include <csignal>
 #include <iostream>
 
-#include "coding.h"
+#include "raft.h"
+#include "test_suite.h"
+#include "timer.h"
 #include "util.h"
 
-TEST(HostPortTests, construct) {
-  vraft::HostPort hp("127.0.0.1", 8899);
-  std::cout << hp.ToString() << std::endl;
-  EXPECT_EQ(hp.ToString(), std::string("127.0.0.1:8899"));
+//--------------------------------
+// EXPECT_TRUE  true
+// EXPECT_FALSE false
+//
+// EXPECT_EQ  ==
+// EXPECT_NE  !=
+// EXPECT_NE  <
+// EXPECT_LE  <=
+// EXPECT_GT  >
+// EXPECT_GE  >=
+//--------------------------------
+
+TEST(TPL, tpl) {
+  EXPECT_TRUE(true);
+  EXPECT_FALSE(false);
+  EXPECT_EQ(1, 1);
+  EXPECT_NE(1, 2);
+  EXPECT_NE(1, 2);
+  EXPECT_LE(2, 2);
+  EXPECT_GT(3, 1);
+  EXPECT_GE(3, 3);
 }
 
-TEST(HostPortTests, HostPortToSockaddrIn) {
-  vraft::HostPort hp("127.0.0.1", 8899);
-  std::cout << hp.ToString() << std::endl;
+class MyTestClass : public ::testing::Test {
+ protected:
+  void SetUp() override { std::cout << "Setting up test...\n"; }
 
-  sockaddr_in out_sockaddr_in;
-  bool b = vraft::HostPortToSockaddrIn(hp.host, hp.port, out_sockaddr_in);
-  EXPECT_EQ(b, true);
+  void TearDown() override { std::cout << "Tearing down test...\n"; }
+};
 
-  std::cout << "ip:" << out_sockaddr_in.sin_addr.s_addr << std::endl;
-  std::cout << "port:" << out_sockaddr_in.sin_port << std::endl;
+TEST_F(MyTestClass, Test1) {
+  ASSERT_EQ(2 + 2, 4);
+  std::cout << "exec MyTestClass.Test1 ..." << std::endl;
+}
 
-  std::cout << "-----"
-            << vraft::IpU32ToIpString(out_sockaddr_in.sin_addr.s_addr)
-            << std::endl;
-
-  vraft::HostPort hp2 = vraft::SockaddrInToHostPort(&out_sockaddr_in);
-  std::cout << hp2.ToString() << std::endl;
-
-  EXPECT_EQ(hp.host, hp2.host);
-  EXPECT_EQ(hp.port, hp2.port);
-  EXPECT_EQ(hp.convert_ok, hp2.convert_ok);
-  // EXPECT_EQ(hp.addr, hp2.addr);
+TEST_F(MyTestClass, Test2) {
+  ASSERT_TRUE(true);
+  std::cout << "exec MyTestClass.Test2 ..." << std::endl;
 }
 
 int main(int argc, char **argv) {
