@@ -16,9 +16,7 @@ void StopLoop(UvAsync *uv_async) {
 }
 
 void AsyncStop::Init(EventLoop *loop) {
-  // loop->AssertInLoopThread();
-  // loop not start
-
+  loop->AssertInLoopThread();
   loop_ = loop;
   UvAsyncInit(loop_->UvLoopPtr(), &uv_async_, StopLoop);
   uv_async_.data = this;

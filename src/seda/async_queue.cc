@@ -10,9 +10,7 @@ void AsyncQueueCb(UvAsync *uv_async) {
 }
 
 void AsyncQueue::Init(EventLoop *loop) {
-  // loop->AssertInLoopThread();
-  // loop not start
-
+  loop->AssertInLoopThread();
   loop_ = loop;
   UvAsyncInit(loop_->UvLoopPtr(), &uv_async_, AsyncQueueCb);
   uv_async_.data = this;
