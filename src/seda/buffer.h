@@ -3,15 +3,22 @@
 
 #include <cassert>
 #include <cstdint>
+#include <iostream>
 #include <vector>
 
 #include "coding.h"
 
 namespace vraft {
 
+#define BUF_INIT_BYTES (1024 * 64)
+#define BUF_MAX_WASTE_BYTES (BUF_INIT_BYTES / 2)
+
+// buf.size() make no sense!!!
+// just use BeginRead(), BeginWrite()
 class Buffer final {
  public:
-  Buffer(int32_t init_bytes = 1024 * 64, int32_t max_waste_bytes = 1024 * 32);
+  Buffer(int32_t init_bytes, int32_t max_waste_bytes);
+  Buffer();
   ~Buffer();
   Buffer(const Buffer &t) = delete;
   Buffer &operator=(const Buffer &t) = delete;
@@ -20,10 +27,10 @@ class Buffer final {
   void Reset();
   void MaybeMove();
   void MaybeReset();
-  void Retrieve8();
-  void Retrieve16();
-  void Retrieve32();
-  void Retrieve64();
+  void RetrieveInt8();
+  void RetrieveInt16();
+  void RetrieveInt32();
+  void RetrieveInt64();
   void RetrieveAll();
   void Retrieve(int32_t len);
   void MakeSpace(int32_t len);
@@ -36,13 +43,20 @@ class Buffer final {
 
   const char *BeginRead() const;
   const char *BeginWrite() const;
-  char *BeginWrite();
   const char *Peek() const;
+  char *BeginWrite();
 
   int8_t PeekInt8() const;
   int16_t PeekInt16() const;
   int32_t PeekInt32() const;
   int64_t PeekInt64() const;
+
+ public:  // for test
+  int32_t init_bytes() const { return init_bytes_; }
+  int32_t max_waste_bytes() const { return max_waste_bytes_; }
+  const std::vector<char> &buf() const { return buf_; }
+  int32_t read_index() const { return read_index_; }
+  int32_t write_index() const { return write_index_; }
 
  private:
   char *Begin();
@@ -66,6 +80,8 @@ inline Buffer::Buffer(int32_t init_bytes, int32_t max_waste_bytes)
   assert(init_bytes > max_waste_bytes);
   buf_.reserve(init_bytes);
 }
+
+inline Buffer::Buffer() : Buffer(BUF_INIT_BYTES, BUF_MAX_WASTE_BYTES) {}
 
 inline Buffer::~Buffer() {}
 
@@ -97,13 +113,13 @@ inline void Buffer::MaybeReset() {
   }
 }
 
-inline void Buffer::Retrieve8() { Retrieve(8); }
+inline void Buffer::RetrieveInt8() { Retrieve(sizeof(int8_t)); }
 
-inline void Buffer::Retrieve16() { Retrieve(16); }
+inline void Buffer::RetrieveInt16() { Retrieve(sizeof(int16_t)); }
 
-inline void Buffer::Retrieve32() { Retrieve(32); }
+inline void Buffer::RetrieveInt32() { Retrieve(sizeof(int32_t)); }
 
-inline void Buffer::Retrieve64() { Retrieve(64); }
+inline void Buffer::RetrieveInt64() { Retrieve(sizeof(int64_t)); }
 
 inline void Buffer::RetrieveAll() { Reset(); }
 

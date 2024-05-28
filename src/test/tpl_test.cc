@@ -12,12 +12,22 @@
 // EXPECT_TRUE  true
 // EXPECT_FALSE false
 //
+// ASSERT_TRUE  true
+// ASSERT_FALSE false
+//
 // EXPECT_EQ  ==
 // EXPECT_NE  !=
 // EXPECT_NE  <
 // EXPECT_LE  <=
 // EXPECT_GT  >
 // EXPECT_GE  >=
+//
+// ASSERT_EQ  ==
+// ASSERT_NE  !=
+// ASSERT_LT  <
+// ASSERT_LE  <=
+// ASSERT_GT  >
+// ASSERT_GE  >=
 //--------------------------------
 
 TEST(TPL, tpl) {
@@ -29,6 +39,15 @@ TEST(TPL, tpl) {
   EXPECT_LE(2, 2);
   EXPECT_GT(3, 1);
   EXPECT_GE(3, 3);
+
+  ASSERT_TRUE(true);
+  ASSERT_FALSE(false);
+  ASSERT_EQ(1, 1);
+  ASSERT_NE(1, 2);
+  ASSERT_NE(1, 2);
+  ASSERT_LE(2, 2);
+  ASSERT_GT(3, 1);
+  ASSERT_GE(3, 3);
 }
 
 class MyTestClass : public ::testing::Test {
