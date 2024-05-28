@@ -7,6 +7,7 @@ raft_insight_test
 err
 remu_dir
 log
+.vscode
 
 # Prerequisites
 *.d
