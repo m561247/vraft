@@ -19,6 +19,7 @@ class AsyncStop final {
   // call in loop thread
   void Init(EventLoop *loop);
   void AssertInLoopThread();
+  void Close();
 
   // call in any thread
   void Notify();
@@ -33,6 +34,10 @@ class AsyncStop final {
 inline AsyncStop::AsyncStop() {}
 
 inline AsyncStop::~AsyncStop() {}
+
+inline void AsyncStop::Close() {
+  UvClose(reinterpret_cast<uv_handle_t *>(&uv_async_), nullptr);
+}
 
 }  // namespace vraft
 

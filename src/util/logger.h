@@ -118,26 +118,54 @@ inline Logger::~Logger() {
 }
 
 inline void Logger::SetLevel(LoggerLevel level) {
-  logger_->set_level(static_cast<spdlog::level::level_enum>(level));
-}
-
-inline void Logger::Flush() { logger_->flush(); }
-
-inline void Logger::DoLogTrace(const char *str) { logger_->trace(str); }
-
-inline void Logger::DoLogDebug(const char *str) {
-  if (options_.enable_debug) {
-    logger_->debug(str);
+  if (logger_) {
+    logger_->set_level(static_cast<spdlog::level::level_enum>(level));
   }
 }
 
-inline void Logger::DoLogInfo(const char *str) { logger_->info(str); }
+inline void Logger::Flush() {
+  if (logger_) {
+    logger_->flush();
+  }
+}
 
-inline void Logger::DoLogWarn(const char *str) { logger_->warn(str); }
+inline void Logger::DoLogTrace(const char *str) {
+  if (logger_) {
+    logger_->trace(str);
+  }
+}
 
-inline void Logger::DoLogError(const char *str) { logger_->error(str); }
+inline void Logger::DoLogDebug(const char *str) {
+  if (options_.enable_debug) {
+    if (logger_) {
+      logger_->debug(str);
+    }
+  }
+}
 
-inline void Logger::DoLogFatal(const char *str) { logger_->critical(str); }
+inline void Logger::DoLogInfo(const char *str) {
+  if (logger_) {
+    logger_->info(str);
+  }
+}
+
+inline void Logger::DoLogWarn(const char *str) {
+  if (logger_) {
+    logger_->warn(str);
+  }
+}
+
+inline void Logger::DoLogError(const char *str) {
+  if (logger_) {
+    logger_->error(str);
+  }
+}
+
+inline void Logger::DoLogFatal(const char *str) {
+  if (logger_) {
+    logger_->critical(str);
+  }
+}
 
 }  // namespace vraft
 

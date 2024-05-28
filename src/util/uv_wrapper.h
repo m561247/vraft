@@ -27,6 +27,14 @@ using UvWriteCb = uv_write_cb;
 using UvAsyncCb = uv_async_cb;
 using UvTimerCb = uv_timer_cb;
 
+inline const char *UvStrError(int err) {
+  if (err == 0) {
+    return "ok";
+  } else {
+    return ::uv_strerror(err);
+  }
+}
+
 inline int UvIsActive(const UvHandle *handle) { return ::uv_is_active(handle); }
 
 inline int UvIsClosing(const UvHandle *handle) {
@@ -40,8 +48,8 @@ inline int UvLoopInit(UvLoop *loop) {
 }
 
 inline int UvRun(UvLoop *loop, UvRunMode mode) {
+  vraft_logger.FTrace("uv_run:%p", loop);
   int rv = ::uv_run(loop, mode);
-  vraft_logger.FTrace("uv_run:%p, rv:%d", loop, rv);
   return rv;
 }
 
@@ -50,9 +58,10 @@ inline void UvStop(UvLoop *loop) {
   vraft_logger.FTrace("uv_stop:%p", loop);
 }
 
-inline void UvLoopClose(UvLoop *loop) {
-  ::uv_loop_close(loop);
-  vraft_logger.FTrace("uv_loop_close:%p", loop);
+inline int UvLoopClose(UvLoop *loop) {
+  int rv = ::uv_loop_close(loop);
+  vraft_logger.FTrace("uv_loop_close:%p, rv:%d,%s", loop, rv, UvStrError(rv));
+  return rv;
 }
 
 inline int UvLoopAlive(const UvLoop *loop) { return ::uv_loop_alive(loop); }
@@ -170,8 +179,9 @@ inline int UvimerStart(UvTimer *handle, UvTimerCb cb, uint64_t timeout,
 
 inline int UvTimerStop(UvTimer *handle) {
   int rv = ::uv_timer_stop(handle);
-  vraft_logger.FTrace("uv_timer_stop:%p, active:%d, rv:%d", handle,
-                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv);
+  vraft_logger.FTrace("uv_timer_stop:%p, active:%d, rv:%d,%s", handle,
+                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv,
+                      UvStrError(rv));
   return rv;
 }
 
@@ -189,8 +199,6 @@ inline int UvIsReadable(const UvStream *stream) {
 inline int UvIsWritable(const UvStream *stream) {
   return ::uv_is_writable(stream);
 }
-
-inline const char *UvStrError(int err) { return ::uv_strerror(err); }
 
 inline int UvTcpGetSockName(const UvTcp *handle, struct sockaddr *name,
                             int *namelen) {

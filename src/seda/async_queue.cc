@@ -43,4 +43,8 @@ void AsyncQueue::DoFunctor() {
 
 void AsyncQueue::AssertInLoopThread() { loop_->AssertInLoopThread(); }
 
+void AsyncQueue::Close() {
+  UvClose(reinterpret_cast<uv_handle_t *>(&uv_async_), nullptr);
+}
+
 }  // namespace vraft

@@ -27,6 +27,7 @@ class EventLoop final {
 
   // call in loop thread
   int32_t Loop();
+  void Close();
   bool IsAlive() const;
   bool IsInLoopThread() const;
   void AssertInLoopThread() const;

@@ -76,7 +76,7 @@ void Logger::FTrace(const char *format, ...) {
         std::bind(&Logger::DoLogTrace, this, std::placeholders::_1));
   va_end(arguments);
 
-  logger_->flush();
+  Flush();
 }
 
 void Logger::FDebug(const char *format, ...) {
@@ -86,7 +86,7 @@ void Logger::FDebug(const char *format, ...) {
         std::bind(&Logger::DoLogDebug, this, std::placeholders::_1));
   va_end(arguments);
 
-  logger_->flush();
+  Flush();
 }
 
 void Logger::FInfo(const char *format, ...) {
@@ -96,7 +96,7 @@ void Logger::FInfo(const char *format, ...) {
         std::bind(&Logger::DoLogInfo, this, std::placeholders::_1));
   va_end(arguments);
 
-  logger_->flush();
+  Flush();
 }
 
 void Logger::FWarn(const char *format, ...) {
@@ -106,7 +106,7 @@ void Logger::FWarn(const char *format, ...) {
         std::bind(&Logger::DoLogWarn, this, std::placeholders::_1));
   va_end(arguments);
 
-  logger_->flush();
+  Flush();
 }
 
 void Logger::FError(const char *format, ...) {
@@ -116,7 +116,7 @@ void Logger::FError(const char *format, ...) {
         std::bind(&Logger::DoLogError, this, std::placeholders::_1));
   va_end(arguments);
 
-  logger_->flush();
+  Flush();
 }
 
 void Logger::FFatal(const char *format, ...) {
@@ -126,7 +126,7 @@ void Logger::FFatal(const char *format, ...) {
         std::bind(&Logger::DoLogFatal, this, std::placeholders::_1));
   va_end(arguments);
 
-  logger_->flush();
+  Flush();
   assert(0);
 }
 

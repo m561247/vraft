@@ -125,4 +125,9 @@ void EventLoop::RemoveTimerLoop(TimerId id) {
   timers_.erase(id);
 }
 
+void EventLoop::Close() {
+  async_stop_.Close();
+  functors_.Close();
+}
+
 }  // namespace vraft

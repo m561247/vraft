@@ -25,6 +25,7 @@ class AsyncQueue {
   void Init(EventLoop *loop);
   void DoFunctor();
   void AssertInLoopThread();
+  void Close();
 
   // call in any thread
   void Push(const Functor func);

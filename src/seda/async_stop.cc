@@ -10,7 +10,9 @@ void StopLoop(UvAsync *uv_async) {
   async_stop->AssertInLoopThread();
   vraft_logger.FInfo("loop:%s stop, tid:%s", async_stop->loop_->name().c_str(),
                      async_stop->loop_->tid_str().c_str());
-  UvStop(async_stop->loop_->UvLoopPtr());
+  vraft::UvLoop *loop = async_stop->loop_->UvLoopPtr();
+  async_stop->loop_->Close();
+  UvStop(loop);
 }
 
 void AsyncStop::Init(EventLoop *loop) {
