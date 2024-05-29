@@ -70,9 +70,14 @@ int32_t Timer::Stop() {
   return rv;
 }
 
+void TimerCloseCb(UvHandle *handle) {
+  Timer *ptr = reinterpret_cast<Timer *>(handle->data);
+  ptr->loop()->RemoveTimer(ptr->id());
+}
+
 int32_t Timer::Close() {
   loop_->AssertInLoopThread();
-  UvClose(reinterpret_cast<uv_handle_t *>(&uv_timer_), nullptr);
+  UvClose(reinterpret_cast<uv_handle_t *>(&uv_timer_), TimerCloseCb);
   return 0;
 }
 

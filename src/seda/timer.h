@@ -60,6 +60,7 @@ class Timer final {
   void set_dest_addr(uint64_t dest_addr) { dest_addr_ = dest_addr; }
   void *data() { return data_; }
   void set_data(void *data) { data_ = data; }
+  EventLoop *loop() { return loop_; }
 
  private:
   void Init();

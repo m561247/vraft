@@ -101,10 +101,11 @@ void EventLoop::RemoveTimer(TimerId id) {
 
 void EventLoop::CloseResource() {
   AssertInLoopThread();
-  for (auto &t : timers_) {
+  TimerMap timers2 = timers_;
+  for (auto &t : timers2) {
+    t.second->Stop();
     t.second->Close();
   }
-  timers_.clear();
   async_stop_.Close();
   functors_.Close();
 }
