@@ -82,6 +82,37 @@ TEST(EventLoop, AddTimer) {
   std::cout << "loop stop" << std::endl;
 }
 
+void TimerCb2(vraft::Timer *timer) {
+  std::cout << "TimerCb2 repeat_counter:" << timer->repeat_counter()
+            << std::endl;
+  timer->RepeatDecr();
+  if (timer->repeat_counter() == 0) {
+    timer->loop()->StopInLoop();
+  }
+}
+
+TEST(EventLoop, AddTimer2) {
+  system("rm -f /tmp/eventloop_test.log");
+  vraft::LoggerOptions o;
+  o.logger_name = "EventLoop.AddTimer2";
+  vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
+
+  vraft::EventLoop loop("test_loop");
+  vraft::EventLoop *l = &loop;
+  vraft::TimerParam param;
+  param.timeout_ms = 1000;
+  param.repeat_ms = 1000;
+  param.cb = TimerCb2;
+  param.data = nullptr;
+  param.repeat_times = 5;
+  l->AddTimer(param);
+
+  std::thread t([l]() { l->Loop(); });
+  t.join();
+
+  std::cout << "loop stop" << std::endl;
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

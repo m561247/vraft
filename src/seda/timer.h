@@ -18,10 +18,11 @@ using TimerId = int64_t;
 using TimerMap = std::map<TimerId, TimerPtr>;
 
 struct TimerParam {
-  uint64_t timeout_ms;
-  uint64_t repeat_ms;
+  uint64_t timeout_ms = 0;
+  uint64_t repeat_ms = 0;
   TimerFunctor cb;
-  void *data;
+  void *data = nullptr;
+  int64_t repeat_times = 0;
 };
 using MakeTimerFunc = std::function<TimerPtr(TimerParam &param)>;
 
@@ -47,7 +48,7 @@ class Timer final {
   EventLoop *loop() const { return loop_; }
   TimerId id() const { return id_; }
 
-  int64_t RepeatSubOne() { return --repeat_counter_; }
+  int64_t RepeatDecr() { return --repeat_counter_; }
   int64_t repeat_counter() const { return repeat_counter_; }
   int64_t repeat_times() const { return repeat_times_; }
 

@@ -27,7 +27,7 @@ void ConnectFinish(UvConnect *req, int32_t status) {
 void TimerConnectCb(Timer *timer) {
   Connector *c = reinterpret_cast<Connector *>(timer->data());
   if (timer->repeat_counter() > 0) {
-    timer->RepeatSubOne();
+    timer->RepeatDecr();
     int32_t r = c->Connect();
     if (r == 0) {
       // get result in ConnectFinish

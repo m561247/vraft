@@ -26,8 +26,8 @@ Timer::Timer(TimerParam &param, EventLoop *loop)
     : id_(seq_.fetch_add(1)),
       timeout_ms_(param.timeout_ms),
       repeat_ms_(param.repeat_ms),
-      repeat_times_(0),
-      repeat_counter_(0),
+      repeat_times_(param.repeat_times),
+      repeat_counter_(param.repeat_times),
       cb_(param.cb),
       data_(param.data),
       loop_(loop) {
