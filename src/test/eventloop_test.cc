@@ -33,7 +33,8 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-// if loop don't run, resource will not be freed, so cannot pass the valgrind check
+// if loop don't run, resource will not be freed, so cannot pass the valgrind
+// check
 #if 0
 TEST(EventLoop, EventLoop) {
   system("rm -f /tmp/eventloop_test.log");

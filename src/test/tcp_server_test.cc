@@ -1,3 +1,5 @@
+#include "tcp_server.h"
+
 #include <gtest/gtest.h>
 
 #include <csignal>
@@ -9,7 +11,6 @@
 #include "test_suite.h"
 #include "timer.h"
 #include "util.h"
-#include "tcp_server.h"
 
 //--------------------------------
 // EXPECT_TRUE  true
@@ -58,6 +59,8 @@ TEST(TcpServer, TcpServer) {
   t2.join();
   std::cout << "loop stop" << std::endl;
 }
+
+TEST(TcpServer, EchoServer) {}
 
 int main(int argc, char **argv) {
   vraft::CodingInit();

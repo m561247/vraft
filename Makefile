@@ -11,7 +11,7 @@ CXX := g++
 CXXFLAGS := -g -Wall -std=c++14 
 CXXFLAGS += $(SANITIZE_FLAGS)
 
-INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test 
+INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Isrc/example
 INCLUDES += -Ithird_party/spdlog/include 
 INCLUDES += -Ithird_party/cxxopts/include 
 INCLUDES += -Ithird_party/googletest/googletest/include 
