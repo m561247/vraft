@@ -41,6 +41,15 @@ std::atomic<bool> b(false);
 
 void ConnCb(vraft::UvConnect *req, int status) { b.store(true); }
 
+void ConnectLoop() {
+  vraft::UvConnect req;
+  vraft::HostPort hp("baidu.com:80");
+  int32_t rv = vraft::UvTcpConnect(&req, uptr->get(),
+                                   (const struct sockaddr *)&hp.addr, ConnCb);
+  assert(rv == 0);
+  lptr->Loop();
+}
+
 TEST(TcpConnection, TcpConnection) {
   system("rm -f /tmp/tcp_connection_test.log");
   vraft::LoggerOptions o;
@@ -57,21 +66,20 @@ TEST(TcpConnection, TcpConnection) {
   assert(rv == 0);
 
   vraft::EventLoop *l = lptr;
-  std::thread t([l]() {
-    vraft::UvConnect req;
-    vraft::HostPort hp("baidu.com:80");
-    int32_t rv = vraft::UvTcpConnect(&req, uptr->get(),
-                                     (const struct sockaddr *)&hp.addr, ConnCb);
-    assert(rv == 0);
-    l->Loop();
-  });
+  std::thread t(ConnectLoop);
 
+  std::cout << "wait 3s for connect to baidu ..." << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+
+// lambda cannot pass valgrind, sad!!
+#if 0
   std::thread t2([] {
     while (!b.load()) {
       ;
     }
   });
   t2.join();
+#endif
 
   vraft::TcpConnection conn(l, "test_conn", std::move(ptr));
   vraft::TcpConnection *pc = &conn;
