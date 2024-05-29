@@ -77,7 +77,9 @@ void TimerCloseCb(UvHandle *handle) {
 
 int32_t Timer::Close() {
   loop_->AssertInLoopThread();
-  UvClose(reinterpret_cast<uv_handle_t *>(&uv_timer_), TimerCloseCb);
+  if (!UvIsClosing(reinterpret_cast<uv_handle_t *>(&uv_timer_))) {
+    UvClose(reinterpret_cast<uv_handle_t *>(&uv_timer_), TimerCloseCb);
+  }
   return 0;
 }
 

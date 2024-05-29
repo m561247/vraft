@@ -47,6 +47,7 @@ class EchoServer {
     std::string s(buf->BeginRead(), buf->ReadableBytes());
     buf->RetrieveAll();
     vraft::vraft_logger.FInfo("echo-server OnMessage:[%s]", s.c_str());
+    std::cout << "echo-server recv " << s << std::endl;
     conn->CopySend(s.c_str(), s.size());
   }
 
