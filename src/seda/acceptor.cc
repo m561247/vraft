@@ -20,25 +20,26 @@ Acceptor::Acceptor(const HostPort &addr, EventLoop *loop,
 Acceptor::~Acceptor() {
   vraft_logger.FInfo("acceptor:%s destruct, handle:%p",
                      addr_.ToString().c_str(), &server_);
-  Stop();
 }
 
 void Acceptor::AssertInLoopThread() const { loop_->AssertInLoopThread(); }
 
 int32_t Acceptor::Start() {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   vraft_logger.FInfo("acceptor:%s start, handle:%p", addr_.ToString().c_str(),
                      &server_);
 
-  int32_t r = Bind();
-  assert(r == 0);
-  r = Listen();
-  assert(r == 0);
-  return 0;
+  int32_t rv = Bind();
+  assert(rv == 0);
+
+  rv = Listen();
+  assert(rv == 0);
+
+  return rv;
 }
 
-int32_t Acceptor::Stop() {
-  loop_->AssertInLoopThread();
+int32_t Acceptor::Close() {
+  AssertInLoopThread();
   vraft_logger.FInfo("acceptor:%s stop, handle:%p", addr_.ToString().c_str(),
                      &server_);
 
@@ -56,7 +57,7 @@ int32_t Acceptor::Stop() {
 // called by AcceptorHandleRead
 // to call TcpServer::NewConnection
 void Acceptor::NewConnection(UvTcpUPtr conn) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   assert(new_conn_func_);
   new_conn_func_(std::move(conn));
@@ -67,19 +68,15 @@ bool Acceptor::IsStart() {
 }
 
 int32_t Acceptor::Bind() {
-  // loop not start
-  // loop_unit_->AssertInLoopThread();
-
-  int32_t r = UvTcpBind(&server_, &(addr_.addr), 0);
-  return r;
+  AssertInLoopThread();
+  int32_t rv = UvTcpBind(&server_, &(addr_.addr), 0);
+  return rv;
 }
 
 int32_t Acceptor::Listen() {
-  // loop not start
-  // loop_unit_->AssertInLoopThread();
-
-  int32_t r = UvListen((UvStream *)&server_, 128, AcceptorHandleRead);
-  return r;
+  AssertInLoopThread();
+  int32_t rv = UvListen((UvStream *)&server_, 128, AcceptorHandleRead);
+  return rv;
 }
 
 void Acceptor::Init() {
@@ -96,8 +93,8 @@ void AcceptorHandleRead(UvStream *server, int status) {
   assert(status == 0);
 
   UvTcpUPtr client = std::make_unique<UvTcp>();
-  int32_t r = UvTcpInit(acceptor->loop()->UvLoopPtr(), client.get());
-  assert(r == 0);
+  int32_t rv = UvTcpInit(acceptor->loop()->UvLoopPtr(), client.get());
+  assert(rv == 0);
 
   if (acceptor->options().tcp_nodelay) {
     UvTcpNodelay(client.get(), 1);

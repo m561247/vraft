@@ -24,7 +24,7 @@ class Acceptor final {
 
   // call in loop thread
   int32_t Start();
-  int32_t Stop();
+  int32_t Close();
   bool IsStart();
   void NewConnection(UvTcpUPtr conn);
   void AssertInLoopThread() const;

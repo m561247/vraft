@@ -74,7 +74,7 @@ int32_t TcpServer::StopInLoop() {
     assert(r == 0);
   }
 
-  r = acceptor_.Stop();
+  r = acceptor_.Close();
   assert(r == 0);
 
   return 0;
