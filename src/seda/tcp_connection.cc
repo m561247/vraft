@@ -34,15 +34,15 @@ TcpConnection::TcpConnection(EventLoop *loop, const std::string &name,
 TcpConnection::~TcpConnection() {
   vraft_logger.FInfo("connection:%s destruct, handle:%p", name_.c_str(),
                      conn_.get());
-  Stop();
 }
 
 void HandleClientClose(UvHandle *client) {
   TcpConnection *conn = static_cast<TcpConnection *>(client->data);
   conn->loop()->AssertInLoopThread();
-  assert(conn->connection_close_cb_);
-  TcpConnectionPtr cptr = conn->shared_from_this();
-  conn->connection_close_cb_(cptr);
+  if (conn->connection_close_cb_) {
+    TcpConnectionPtr cptr = conn->shared_from_this();
+    conn->connection_close_cb_(cptr);
+  }
 }
 
 void TcpConnectionHandleRead(UvStream *client, ssize_t nread,
@@ -112,21 +112,13 @@ void BufWriteComplete(UvWrite *req, int status) {
   }
 }
 
-#if 0
-int32_t TcpConnection::Start() {
-  loop_->AssertInLoopThread();
-  return UvReadStart(reinterpret_cast<UvStream *>(conn_.get()),
-                     TcpConnectionAllocBuffer, TcpConnectionHandleRead);
-}
-#endif
-
 int32_t TcpConnection::Start() {
   loop_->AssertInLoopThread();
   return UvReadStart(reinterpret_cast<UvStream *>(conn_.get()),
                      TcpConnectionAllocBuffer2, TcpConnectionHandleRead);
 }
 
-int32_t TcpConnection::Stop() {
+int32_t TcpConnection::Close() {
   loop_->AssertInLoopThread();
   if (!UvIsClosing(reinterpret_cast<UvHandle *>(conn_.get()))) {
     UvClose(reinterpret_cast<UvHandle *>(conn_.get()), HandleClientClose);

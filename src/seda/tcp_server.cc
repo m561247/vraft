@@ -67,12 +67,12 @@ int32_t TcpServer::StopInLoop() {
   loop_->AssertInLoopThread();
   int32_t r = 0;
 
-  ConnectionMap tmp_conns;
-  tmp_conns.swap(connections_);
+  ConnectionMap tmp_conns = connections_;
   for (auto conn_pair : tmp_conns) {
-    r = conn_pair.second->Stop();
+    r = conn_pair.second->Close();
     assert(r == 0);
   }
+  tmp_conns.clear();
 
   r = acceptor_.Close();
   assert(r == 0);

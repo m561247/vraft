@@ -49,7 +49,7 @@ class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
 
   // call in loop thread
   int32_t Start();
-  int32_t Stop();
+  int32_t Close();
   bool Connected() const;
 
   // user need to free buf in write_complete_cb
@@ -72,6 +72,8 @@ class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
   EventLoop *loop();
   Allocator &allocator();
   const std::string &name() const;
+  HostPort local_addr() const;
+  HostPort peer_addr() const;
 
  private:
   const std::string name_;
@@ -115,6 +117,10 @@ inline void TcpConnection::set_connection_close_cb(
 }
 
 inline const std::string &TcpConnection::name() const { return name_; }
+
+inline HostPort TcpConnection::local_addr() const { return local_addr_; }
+
+inline HostPort TcpConnection::peer_addr() const { return peer_addr_; }
 
 inline EventLoop *TcpConnection::loop() { return loop_; }
 

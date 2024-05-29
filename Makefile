@@ -60,6 +60,7 @@ BUFFER_TEST_SRCS := src/test/buffer_test.cc $(COMMON_SRCS)
 EVENTLOOP_TEST_SRCS := src/test/eventloop_test.cc $(COMMON_SRCS)
 TIMER_TEST_SRCS := src/test/timer_test.cc $(COMMON_SRCS)
 ACCEPTOR_TEST_SRCS := src/test/acceptor_test.cc $(COMMON_SRCS)
+TCP_CONNECTION_TEST_SRCS := src/test/tcp_connection_test.cc $(COMMON_SRCS)
 
 # remu test src
 
@@ -94,6 +95,7 @@ BUFFER_TEST_OBJECTS := $(BUFFER_TEST_SRCS:.cc=.o)
 EVENTLOOP_TEST_OBJECTS := $(EVENTLOOP_TEST_SRCS:.cc=.o)
 TIMER_TEST_OBJECTS := $(TIMER_TEST_SRCS:.cc=.o)
 ACCEPTOR_TEST_OBJECTS := $(ACCEPTOR_TEST_SRCS:.cc=.o)
+TCP_CONNECTION_TEST_OBJECTS := $(TCP_CONNECTION_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -120,6 +122,7 @@ TEST += buffer_test
 TEST += eventloop_test
 TEST += timer_test
 TEST += acceptor_test
+TEST += tcp_connection_test
 
 
 # compile
@@ -211,6 +214,9 @@ timer_test: $(TIMER_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 acceptor_test: $(ACCEPTOR_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+tcp_connection_test: $(TCP_CONNECTION_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 
