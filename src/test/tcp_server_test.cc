@@ -9,6 +9,7 @@
 #include "test_suite.h"
 #include "timer.h"
 #include "util.h"
+#include "tcp_server.h"
 
 //--------------------------------
 // EXPECT_TRUE  true
@@ -32,14 +33,21 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-TEST(EventLoop, EventLoop) {
-  system("rm -f /tmp/eventloop_test.log");
+TEST(TcpServer, TcpServer) {
+  system("rm -f /tmp/tcpserver_test.log");
   vraft::LoggerOptions o;
-  o.logger_name = "EventLoop.EventLoop";
-  vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
+  o.logger_name = "TcpServer.TcpServer";
+  vraft::vraft_logger.Init("/tmp/tcpserver_test.log", o);
 
   vraft::EventLoop loop("test_loop");
   vraft::EventLoop *l = &loop;
+
+  vraft::HostPort hp("127.0.0.1:9988");
+  vraft::TcpOptions to;
+  vraft::TcpServer tcp_server(hp, "tcp_server", to, l);
+  vraft::TcpServer *pt = &tcp_server;
+  l->RunFunctor([pt]() { pt->Stop(); });
+
   std::thread t([l]() { l->Loop(); });
   std::thread t2([l]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
@@ -48,67 +56,6 @@ TEST(EventLoop, EventLoop) {
   });
   t.join();
   t2.join();
-  std::cout << "loop stop" << std::endl;
-}
-
-void TimerCb(vraft::Timer *timer) { std::cout << "TimerCb" << std::endl; }
-
-TEST(EventLoop, AddTimer) {
-  system("rm -f /tmp/eventloop_test.log");
-  vraft::LoggerOptions o;
-  o.logger_name = "EventLoop.AddTimer";
-  vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
-
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
-  vraft::TimerParam param;
-  param.timeout_ms = 1000;
-  param.repeat_ms = 1000;
-  param.cb = TimerCb;
-  param.data = nullptr;
-  l->AddTimer(param);
-
-  std::thread t([l]() { l->Loop(); });
-  std::thread t2([l]() {
-    std::cout << "after 5s, call loop stop() ..." << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-    l->Stop();
-  });
-
-  t.join();
-  t2.join();
-
-  std::cout << "loop stop" << std::endl;
-}
-
-void TimerCb2(vraft::Timer *timer) {
-  std::cout << "TimerCb2 repeat_counter:" << timer->repeat_counter()
-            << std::endl;
-  timer->RepeatDecr();
-  if (timer->repeat_counter() == 0) {
-    timer->loop()->StopInLoop();
-  }
-}
-
-TEST(EventLoop, AddTimer2) {
-  system("rm -f /tmp/eventloop_test.log");
-  vraft::LoggerOptions o;
-  o.logger_name = "EventLoop.AddTimer2";
-  vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
-
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
-  vraft::TimerParam param;
-  param.timeout_ms = 1000;
-  param.repeat_ms = 1000;
-  param.cb = TimerCb2;
-  param.data = nullptr;
-  param.repeat_times = 5;
-  l->AddTimer(param);
-
-  std::thread t([l]() { l->Loop(); });
-  t.join();
-
   std::cout << "loop stop" << std::endl;
 }
 
