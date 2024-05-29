@@ -11,5 +11,5 @@ else
   do
     args="$args $arg"
   done
-  valgrind --tool=memcheck --leak-check=yes $args
+  valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-leak-kinds=all $args
 fi

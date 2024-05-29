@@ -20,7 +20,6 @@ class EchoServer {
   EchoServer(const vraft::HostPort &listen_addr, vraft::TcpOptions &options)
       : loop_("echo_server_loop"),
         tcp_server_(listen_addr, "echo_server", options, &loop_) {
-
     tcp_server_.set_on_connection_cb(
         std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
     tcp_server_.set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
