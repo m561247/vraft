@@ -9,8 +9,10 @@ void ConnectFinish(UvConnect *req, int32_t status) {
   c->loop_->AssertInLoopThread();
 
   if (status == 0) {
-    assert(c->new_conn_func_);
-    c->new_conn_func_(std::move(c->conn_));
+    if (c->new_conn_func_) {
+      c->new_conn_func_(std::move(c->conn_));
+    }
+
     vraft_logger.FInfo("connector:%s connect ok, retry_left:%ld, timer stop",
                        c->dest_addr().ToString().c_str(),
                        c->retry_timer_->repeat_counter());
@@ -84,7 +86,13 @@ int32_t Connector::Connect() {
                       ConnectFinish);
 }
 
-int32_t Connector::Stop() { return 0; }
+int32_t Connector::Close() {
+  if (conn_) {
+    UvClose(reinterpret_cast<UvHandle *>(conn_.get()), nullptr);
+  }
+  retry_timer_->Close();
+  return 0;
+}
 
 void Connector::Init() {
   conn_ = std::make_unique<UvTcp>();

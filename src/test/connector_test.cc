@@ -1,13 +1,13 @@
-#include "tcp_server.h"
+#include "connector.h"
 
 #include <gtest/gtest.h>
 
 #include <csignal>
 #include <iostream>
-#include <thread>
 
-#include "echo_server.h"
+#include "acceptor.h"
 #include "eventloop.h"
+#include "hostport.h"
 #include "raft.h"
 #include "test_suite.h"
 #include "timer.h"
@@ -35,22 +35,23 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-TEST(TcpServer, TcpServer) {
-  system("rm -f /tmp/tcpserver_test.log");
+TEST(Connector, Connector) {
+  system("rm -f /tmp/connector_test.log");
   vraft::LoggerOptions o;
-  o.logger_name = "TcpServer.TcpServer";
-  vraft::vraft_logger.Init("/tmp/tcpserver_test.log", o);
+  o.logger_name = "Connector.Connector";
+  vraft::vraft_logger.Init("/tmp/connector_test.log", o);
 
   vraft::EventLoop loop("test_loop");
   vraft::EventLoop *l = &loop;
 
-  vraft::HostPort hp("127.0.0.1:9988");
+  vraft::HostPort dest_addr("127.0.0.1:9988");
   vraft::TcpOptions to;
-  vraft::TcpServer tcp_server(hp, "tcp_server", to, l);
-  vraft::TcpServer *pt = &tcp_server;
-  l->RunFunctor([pt]() { pt->Stop(); });
+  vraft::Connector connector(dest_addr, to, l);
+  vraft::Connector *c = &connector;
 
   std::thread t([l]() { l->Loop(); });
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  l->RunFunctor([c]() { c->Close(); });
   std::thread t2([l]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -60,8 +61,6 @@ TEST(TcpServer, TcpServer) {
   t2.join();
   std::cout << "loop stop" << std::endl;
 }
-
-TEST(TcpServer, EchoServer) {}
 
 int main(int argc, char **argv) {
   vraft::CodingInit();

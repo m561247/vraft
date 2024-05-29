@@ -26,7 +26,7 @@ class Connector final {
   int32_t TimerConnect(int64_t retry_times);
   int32_t Connect(int64_t retry_times);
   int32_t Connect();
-  int32_t Stop();
+  int32_t Close();
 
   void set_new_conn_func(const ConnectorNewConnFunc &new_conn_func);
   const HostPort &dest_addr() { return dest_addr_; }

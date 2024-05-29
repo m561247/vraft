@@ -27,7 +27,7 @@ int32_t TcpClient::Stop() {
 int32_t TcpClient::StopInLoop() {
   loop_->AssertInLoopThread();
   vraft_logger.FInfo("tcp-client:%s stop", name_.c_str());
-  return connector_.Stop();
+  return connector_.Close();
 }
 
 int32_t TcpClient::Send(const char *buf, unsigned int size) {
