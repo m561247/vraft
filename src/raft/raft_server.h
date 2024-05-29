@@ -53,9 +53,8 @@ class RaftServer final {
   // for raft func
   TcpClientPtr GetClient(uint64_t dest_addr);
   TcpClientPtr GetClientOrCreate(uint64_t dest_addr);
-  int32_t SendMsg(uint64_t dest_addr, const char *buf, unsigned int size);
-  TimerPtr MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
-                     const TimerFunctor &func, void *data);
+  int32_t Send(uint64_t dest_addr, const char *buf, unsigned int size);
+  TimerPtr MakeTimer(TimerParam &param);
 
  private:
   Config config_;
@@ -88,11 +87,10 @@ inline RaftServer::RaftServer(Config &config, EventLoop *loop)
   }
   raft_ = std::make_shared<Raft>(config_.path(), rc);
   raft_->Init();
-  raft_->set_send(std::bind(&RaftServer::SendMsg, this, std::placeholders::_1,
+  raft_->set_send(std::bind(&RaftServer::Send, this, std::placeholders::_1,
                             std::placeholders::_2, std::placeholders::_3));
-  raft_->set_make_timer(std::bind(
-      &RaftServer::MakeTimer, this, std::placeholders::_1,
-      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+  raft_->set_make_timer(
+      std::bind(&RaftServer::MakeTimer, this, std::placeholders::_1));
 }
 
 inline RaftServer::~RaftServer() {}

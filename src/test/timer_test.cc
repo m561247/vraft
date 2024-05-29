@@ -1,4 +1,4 @@
-#include "eventloop.h"
+#include "timer.h"
 
 #include <gtest/gtest.h>
 
@@ -6,9 +6,9 @@
 #include <iostream>
 #include <thread>
 
+#include "eventloop.h"
 #include "raft.h"
 #include "test_suite.h"
-#include "timer.h"
 #include "util.h"
 
 //--------------------------------
@@ -33,20 +33,33 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-TEST(EventLoop, EventLoop) {
-  system("rm -f /tmp/eventloop_test.log");
+void TimerCb(vraft::Timer *timer) { std::cout << "TimerCb" << std::endl; }
+
+TEST(Timer, Timer) {
+  system("rm -f /tmp/timer_test.log");
   vraft::LoggerOptions o;
-  o.logger_name = "EventLoop.EventLoop";
-  vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
+  o.logger_name = "Timer.Timer";
+  vraft::vraft_logger.Init("/tmp/timer_test.log", o);
 
   vraft::EventLoop loop("test_loop");
   vraft::EventLoop *l = &loop;
+
+  vraft::TimerParam param;
+  param.timeout_ms = 10;
+  param.repeat_ms = 10;
+  param.cb = TimerCb;
+  param.data = nullptr;
+  vraft::Timer timer(param, &loop);
+  vraft::Timer *pt = &timer;
+
   std::thread t([l]() { l->Loop(); });
+  l->RunFunctor([pt]() { pt->Close(); });
   std::thread t2([l]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
     l->Stop();
   });
+
   t.join();
   t2.join();
   std::cout << "loop stop" << std::endl;

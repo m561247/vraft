@@ -41,6 +41,12 @@ void EventLoop::Stop() {
   async_stop_.Notify();
 }
 
+void EventLoop::StopInLoop() {
+  vraft_logger.FInfo("loop:%s stop, tid:%s", name_.c_str(), tid_str_.c_str());
+  CloseResource();
+  UvStop(&uv_loop_);
+}
+
 bool EventLoop::IsAlive() const { return UvLoopAlive(&uv_loop_); }
 
 bool EventLoop::IsInLoopThread() const {
@@ -67,65 +73,38 @@ void EventLoop::RunFunctor(const Functor func) {
   }
 }
 
-TimerPtr EventLoop::MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
-                              const TimerFunctor &func, void *data) {
-  TimerPtr ptr = CreateTimer(timeout_ms, repeat_ms, this, func);
-  ptr->set_data(data);
+TimerPtr EventLoop::MakeTimer(TimerParam &param) {
+  TimerPtr ptr = CreateTimer(param, this);
   return ptr;
 }
 
-void EventLoop::AddTimer(uint64_t timeout_ms, uint64_t repeat_ms,
-                         const TimerFunctor &func) {
-  if (IsInLoopThread()) {
-    AddTimerInLoop(timeout_ms, repeat_ms, func);
-  } else {
-    Functor run_in_loop = std::bind(&EventLoop::AddTimerInLoop, this,
-                                    timeout_ms, repeat_ms, func);
-    RunFunctor(run_in_loop);
-  }
-}
-
-void EventLoop::AddTimer(TimerPtr timer) {
-  if (IsInLoopThread()) {
-    AddTimerPtr(timer);
-  } else {
-    Functor run_in_loop = std::bind(&EventLoop::AddTimerPtr, this, timer);
-    RunFunctor(run_in_loop);
-  }
-}
-
-void EventLoop::RemoveTimer(TimerId id) {
-  if (IsInLoopThread()) {
-    RemoveTimerLoop(id);
-  } else {
-    Functor run_in_loop = std::bind(&EventLoop::RemoveTimerLoop, this, id);
-    RunFunctor(run_in_loop);
-  }
-}
-
-void EventLoop::AddTimerInLoop(uint64_t timeout_ms, uint64_t repeat_ms,
-                               const TimerFunctor &func) {
+void EventLoop::AddTimer(TimerParam &param) {
   AssertInLoopThread();
-  TimerPtr ptr = MakeTimer(timeout_ms, repeat_ms, func, nullptr);
+  TimerPtr ptr = MakeTimer(param);
   ptr->Start();
   vraft_logger.FInfo("loop:%s add timer:%ld", name_.c_str(), ptr->id());
   timers_[ptr->id()] = std::move(ptr);
 }
 
-void EventLoop::AddTimerPtr(TimerPtr timer) {
+void EventLoop::AddTimer(TimerPtr timer) {
   AssertInLoopThread();
   timer->Start();
   vraft_logger.FInfo("loop:%s add timer:%ld", name_.c_str(), timer->id());
   timers_[timer->id()] = std::move(timer);
 }
 
-void EventLoop::RemoveTimerLoop(TimerId id) {
+void EventLoop::RemoveTimer(TimerId id) {
   AssertInLoopThread();
   vraft_logger.FInfo("loop:%s remove timer:%ld", name_.c_str(), id);
   timers_.erase(id);
 }
 
-void EventLoop::Close() {
+void EventLoop::CloseResource() {
+  AssertInLoopThread();
+  for (auto &t : timers_) {
+    t.second->Close();
+  }
+  timers_.clear();
   async_stop_.Close();
   functors_.Close();
 }

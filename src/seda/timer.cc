@@ -7,9 +7,8 @@
 
 namespace vraft {
 
-TimerPtr CreateTimer(uint64_t timeout, uint64_t repeat, EventLoop *loop,
-                     const TimerFunctor &cb) {
-  TimerPtr ptr = std::make_shared<Timer>(timeout, repeat, loop, cb);
+TimerPtr CreateTimer(TimerParam &param, EventLoop *loop) {
+  TimerPtr ptr = std::make_shared<Timer>(param, loop);
   return ptr;
 }
 
@@ -23,15 +22,14 @@ void HandleUvTimer(UvTimer *uv_timer) {
   }
 }
 
-Timer::Timer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
-             const TimerFunctor &cb)
+Timer::Timer(TimerParam &param, EventLoop *loop)
     : id_(seq_.fetch_add(1)),
-      timeout_ms_(timeout_ms),
-      repeat_ms_(repeat_ms),
+      timeout_ms_(param.timeout_ms),
+      repeat_ms_(param.repeat_ms),
       repeat_times_(0),
       repeat_counter_(0),
-      cb_(cb),
-      data_(nullptr),
+      cb_(param.cb),
+      data_(param.data),
       loop_(loop) {
   vraft_logger.FInfo(
       "timer:%ld construct, timeout_ms:%lu, repeat_ms:%lu, loop:%s, handle:%p",
@@ -43,7 +41,6 @@ Timer::~Timer() {
   vraft_logger.FInfo(
       "timer:%ld destruct, timeout_ms:%lu, repeat_ms:%lu, loop:%s, handle:%p",
       id_, timeout_ms_, repeat_ms_, loop_->name().c_str(), &uv_timer_);
-  Stop();
 }
 
 void Timer::Init() {
@@ -52,35 +49,38 @@ void Timer::Init() {
 }
 
 int32_t Timer::Start() {
-  // maybe loop not start
   loop_->AssertInLoopThread();
-  int32_t r = UvimerStart(&uv_timer_, HandleUvTimer, timeout_ms_, repeat_ms_);
-  assert(r == 0);
-  return r;
+  int32_t rv = UvimerStart(&uv_timer_, HandleUvTimer, timeout_ms_, repeat_ms_);
+  assert(rv == 0);
+  return rv;
 }
 
 int32_t Timer::Stop() {
-  // maybe loop not start
   loop_->AssertInLoopThread();
-  int32_t r = 0;
+  int32_t rv = 0;
   if (!UvIsClosing(reinterpret_cast<UvHandle *>(&uv_timer_))) {
-    r = UvTimerStop(&uv_timer_);  // equal to uv_close
-    assert(r == 0);
+    rv = UvTimerStop(&uv_timer_);  // equal to uv_close
+    assert(rv == 0);
   } else {
     vraft_logger.FInfo(
         "timer:%ld stop, already stopping, timeout_ms:%lu, "
         "repeat_ms:%lu, loop:%s, handle:%p",
         id_, timeout_ms_, repeat_ms_, loop_->name().c_str(), &uv_timer_);
   }
-  loop_->RemoveTimer(id_);
-  return r;
+  return rv;
+}
+
+int32_t Timer::Close() {
+  loop_->AssertInLoopThread();
+  UvClose(reinterpret_cast<uv_handle_t *>(&uv_timer_), nullptr);
+  return 0;
 }
 
 int32_t Timer::Again() {
   loop_->AssertInLoopThread();
-  int32_t r = UvTimerAgain(&uv_timer_);
-  assert(r == 0);
-  return r;
+  int32_t rv = UvTimerAgain(&uv_timer_);
+  assert(rv == 0);
+  return rv;
 }
 
 int32_t Timer::Again(uint64_t timeout_ms, uint64_t repeat_ms) {
@@ -88,12 +88,12 @@ int32_t Timer::Again(uint64_t timeout_ms, uint64_t repeat_ms) {
   timeout_ms_ = timeout_ms;
   repeat_ms_ = repeat_ms;
 
-  int32_t r = UvTimerStop(&uv_timer_);
-  assert(r == 0);
+  int32_t rv = UvTimerStop(&uv_timer_);
+  assert(rv == 0);
 
-  r = UvimerStart(&uv_timer_, HandleUvTimer, timeout_ms_, repeat_ms_);
-  assert(r == 0);
-  return r;
+  rv = UvimerStart(&uv_timer_, HandleUvTimer, timeout_ms_, repeat_ms_);
+  assert(rv == 0);
+  return rv;
 }
 
 bool Timer::IsStart() {

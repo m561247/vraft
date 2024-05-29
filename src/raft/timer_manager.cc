@@ -11,20 +11,33 @@ void TimerManager::MakeTimer() {
 
 void TimerManager::MakeTick() {
   assert(maketimer_func_);
-  tick_ = maketimer_func_(0, tick_ms_, tick_func_, data_);
+  TimerParam param;
+  param.timeout_ms = 0;
+  param.repeat_ms = tick_ms_;
+  param.cb = tick_func_;
+  param.data = data_;
+  tick_ = maketimer_func_(param);
 }
 
 void TimerManager::MakeElection() {
   assert(maketimer_func_);
-  election_ =
-      maketimer_func_(random_election_ms_.Get(), 0, election_func_, data_);
+  TimerParam param;
+  param.timeout_ms = random_election_ms_.Get();
+  param.repeat_ms = 0;
+  param.cb = election_func_;
+  param.data = data_;
+  election_ = maketimer_func_(param);
 }
 
 void TimerManager::MakeElectionPpc() {
   assert(maketimer_func_);
   for (auto &item : request_votes_) {
-    item.second =
-        maketimer_func_(0, request_vote_ms_, requestvote_func_, data_);
+    TimerParam param;
+    param.timeout_ms = request_vote_ms_;
+    param.repeat_ms = 0;
+    param.cb = requestvote_func_;
+    param.data = data_;
+    item.second = maketimer_func_(param);
     item.second->set_dest_addr(item.first);
   }
 }
@@ -32,7 +45,12 @@ void TimerManager::MakeElectionPpc() {
 void TimerManager::MakeHeartbeat() {
   assert(maketimer_func_);
   for (auto &item : heartbeats_) {
-    item.second = maketimer_func_(0, heartbeat_ms_, heartbeat_func_, data_);
+    TimerParam param;
+    param.timeout_ms = 0;
+    param.repeat_ms = heartbeat_ms_;
+    param.cb = heartbeat_func_;
+    param.data = data_;
+    item.second = maketimer_func_(param);
     item.second->set_dest_addr(item.first);
   }
 }

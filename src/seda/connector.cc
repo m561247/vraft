@@ -91,8 +91,12 @@ void Connector::Init() {
   UvTcpInit(loop_->UvLoopPtr(), conn_.get());
   connect_req_.data = this;
 
-  retry_timer_ =
-      loop_->MakeTimer(0, options_.retry_interval_ms, TimerConnectCb, this);
+  TimerParam param;
+  param.timeout_ms = 0;
+  param.repeat_ms = options_.retry_interval_ms;
+  param.cb = TimerConnectCb;
+  param.data = this;
+  retry_timer_ = loop_->MakeTimer(param);
   assert(retry_timer_);
 }
 

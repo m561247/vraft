@@ -100,7 +100,12 @@ TEST_F(RemuTest, Elect3) {
   GenerateConfig(remu->configs, 2);
   remu->Create();
   remu->Start();
-  loop->AddTimer(0, 1000, RemuTick);
+  vraft::TimerParam param;
+  param.timeout_ms = 0;
+  param.repeat_ms = 1000;
+  param.cb = RemuTick;
+  param.data = nullptr;
+  loop->AddTimer(param);
 
   vraft::EventLoop *l = loop;
   l->Loop();

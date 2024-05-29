@@ -13,21 +13,25 @@ namespace vraft {
 class Timer;
 using TimerPtr = std::shared_ptr<Timer>;
 using TimerFunctor = std::function<void(Timer *)>;
-using MakeTimerFunc = std::function<TimerPtr(
-    uint64_t to_ms, uint64_t rp_ms, const TimerFunctor &func, void *data)>;
 
 using TimerId = int64_t;
 using TimerMap = std::map<TimerId, TimerPtr>;
 
+struct TimerParam {
+  uint64_t timeout_ms;
+  uint64_t repeat_ms;
+  TimerFunctor cb;
+  void *data;
+};
+using MakeTimerFunc = std::function<TimerPtr(TimerParam &param)>;
+
 class EventLoop;
-TimerPtr CreateTimer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
-                     const TimerFunctor &cb);
+TimerPtr CreateTimer(TimerParam &param, EventLoop *loop);
 void HandleUvTimer(UvTimer *uv_timer);
 
 class Timer final {
  public:
-  Timer(uint64_t timeout_ms, uint64_t repeat_ms, EventLoop *loop,
-        const TimerFunctor &cb);
+  Timer(TimerParam &param, EventLoop *loop);
   ~Timer();
   Timer(const Timer &t) = delete;
   Timer &operator=(const Timer &t) = delete;
@@ -35,6 +39,7 @@ class Timer final {
   // call in loop thread
   int32_t Start();
   int32_t Stop();
+  int32_t Close();
   int32_t Again();
   int32_t Again(uint64_t timeout_ms, uint64_t repeat_ms);
   bool IsStart();

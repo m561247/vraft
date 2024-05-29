@@ -206,6 +206,8 @@ std::string TidToStr(std::thread::id tid) {
   return oss.str();
 }
 
+std::string CurrentTid() { return TidToStr(std::this_thread::get_id()); }
+
 bool TidValid(std::thread::id tid) {
   std::string s = TidToStr(tid);
   if (s.size() == 0) return false;

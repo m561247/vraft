@@ -55,6 +55,8 @@ bool IsNumber(const std::string &str);
 
 std::string TidToStr(std::thread::id);
 
+std::string CurrentTid();
+
 bool TidValid(std::thread::id);
 
 }  // namespace vraft

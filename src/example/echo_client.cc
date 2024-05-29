@@ -19,7 +19,12 @@ void Ping(vraft::TcpConnectionPtr &conn, vraft::Timer *t) {
 void OnConnection(const vraft::TcpConnectionPtr &conn) {
   vraft::vraft_logger.FInfo("echo-client OnConnection:%s",
                             conn->name().c_str());
-  conn->loop()->AddTimer(0, 1000, std::bind(Ping, conn, std::placeholders::_1));
+  vraft::TimerParam param;
+  param.timeout_ms = 0;
+  param.repeat_ms = 1000;
+  param.cb = std::bind(Ping, conn, std::placeholders::_1);
+  param.data = nullptr;
+  conn->loop()->AddTimer(param);
 }
 
 void SignalHandler(int signal) {

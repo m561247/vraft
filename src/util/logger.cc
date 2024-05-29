@@ -1,5 +1,7 @@
 #include "logger.h"
 
+#include "util.h"
+
 namespace vraft {
 
 void Logger::Init(const std::string &file_name, const LoggerOptions &options) {
@@ -17,6 +19,7 @@ void Logger::Init() {
     logger_ = spdlog::basic_logger_mt(options_.logger_name, file_name_, true);
   }
   SetLevel(options_.level);
+  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%t] [%l] %v");
 }
 
 void Logger::Trace(const char *format, ...) {

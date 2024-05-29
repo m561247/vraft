@@ -72,7 +72,12 @@ int main(int argc, char **argv) {
     vraft::Remu remu(&loop);
     r = &remu;
 
-    loop.AddTimer(1000, 1000, RemuTick);
+    vraft::TimerParam param;
+    param.timeout_ms = 1000;
+    param.repeat_ms = 1000;
+    param.cb = RemuTick;
+    param.data = nullptr;
+    loop.AddTimer(param);
     GenerateRotateConfig(remu.configs);
     remu.Create();
     remu.Start();

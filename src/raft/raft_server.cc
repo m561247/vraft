@@ -166,8 +166,8 @@ int32_t RaftServer::Stop() {
   return rv;
 }
 
-int32_t RaftServer::SendMsg(uint64_t dest_addr, const char *buf,
-                            unsigned int size) {
+int32_t RaftServer::Send(uint64_t dest_addr, const char *buf,
+                         unsigned int size) {
   int32_t rv = 0;
   TcpClientPtr client = GetClientOrCreate(dest_addr);
   if (client) {
@@ -179,9 +179,8 @@ int32_t RaftServer::SendMsg(uint64_t dest_addr, const char *buf,
   return rv;
 }
 
-TimerPtr RaftServer::MakeTimer(uint64_t timeout_ms, uint64_t repeat_ms,
-                               const TimerFunctor &func, void *data) {
-  return loop_->MakeTimer(timeout_ms, repeat_ms, func, data);
+TimerPtr RaftServer::MakeTimer(TimerParam &param) {
+  return loop_->MakeTimer(param);
 }
 
 }  // namespace vraft

@@ -58,6 +58,7 @@ REMU_ELECT_TEST_SRCS := src/test/remu_elect_test.cc $(COMMON_SRCS)
 HOSTPORT_TEST_SRCS := src/test/hostport_test.cc $(COMMON_SRCS)
 BUFFER_TEST_SRCS := src/test/buffer_test.cc $(COMMON_SRCS)
 EVENTLOOP_TEST_SRCS := src/test/eventloop_test.cc $(COMMON_SRCS)
+TIMER_TEST_SRCS := src/test/timer_test.cc $(COMMON_SRCS)
 
 # remu test src
 
@@ -90,6 +91,7 @@ REMU_ELECT_TEST_OBJECTS := $(REMU_ELECT_TEST_SRCS:.cc=.o)
 HOSTPORT_TEST_OBJECTS := $(HOSTPORT_TEST_SRCS:.cc=.o)
 BUFFER_TEST_OBJECTS := $(BUFFER_TEST_SRCS:.cc=.o)
 EVENTLOOP_TEST_OBJECTS := $(EVENTLOOP_TEST_SRCS:.cc=.o)
+TIMER_TEST_OBJECTS := $(TIMER_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -114,6 +116,7 @@ TEST += remu_elect_test
 TEST += hostport_test
 TEST += buffer_test
 TEST += eventloop_test
+TEST += timer_test
 
 
 # compile
@@ -199,6 +202,9 @@ buffer_test: $(BUFFER_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 eventloop_test: $(EVENTLOOP_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+timer_test: $(TIMER_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 # clean

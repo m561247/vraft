@@ -26,8 +26,7 @@ Acceptor::~Acceptor() {
 void Acceptor::AssertInLoopThread() const { loop_->AssertInLoopThread(); }
 
 int32_t Acceptor::Start() {
-  // loop not start
-  // loop_->AssertInLoopThread();
+  loop_->AssertInLoopThread();
   vraft_logger.FInfo("acceptor:%s start, handle:%p", addr_.ToString().c_str(),
                      &server_);
 
