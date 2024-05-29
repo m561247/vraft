@@ -41,6 +41,7 @@ class TcpClient final {
   void set_write_complete_cb(const WriteCompleteCallback &cb);
   void set_connection_close_cb(const ConnectionCloseCallback &cb);
   const std::string &name() const;
+  std::string ToString() const;
 
  private:
   void Init();
@@ -97,6 +98,14 @@ inline void TcpClient::set_connection_close_cb(
 }
 
 inline const std::string &TcpClient::name() const { return name_; }
+
+inline std::string TcpClient::ToString() const {
+  if (connection_) {
+    return connection_->ToString();
+  } else {
+    return "local:-peer:";
+  }
+}
 
 }  // namespace vraft
 

@@ -27,7 +27,17 @@ int32_t TcpClient::Stop() {
 int32_t TcpClient::StopInLoop() {
   loop_->AssertInLoopThread();
   vraft_logger.FInfo("tcp-client:%s stop", name_.c_str());
-  return connector_.Close();
+
+  int32_t rv = 0;
+  if (connection_) {
+    rv = connection_->Close();
+    assert(rv == 0);
+  }
+
+  rv = connector_.Close();
+  assert(rv == 0);
+
+  return rv;
 }
 
 int32_t TcpClient::Send(const char *buf, unsigned int size) {
@@ -114,6 +124,9 @@ void TcpClient::NewConnection(UvTcpUPtr client) {
   connection_->set_write_complete_cb(write_complete_cb_);
   connection_->set_connection_close_cb(
       std::bind(&TcpClient::RemoveConnection, this, std::placeholders::_1));
+  vraft_logger.FInfo("tcp-client:%s new connection:%s", name_.c_str(),
+                     connection_->ToString().c_str());
+
   int32_t r = connection_->Start();
   assert(r == 0);
 

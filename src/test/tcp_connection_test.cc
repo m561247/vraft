@@ -84,8 +84,7 @@ TEST(TcpConnection, TcpConnection) {
   vraft::TcpConnection conn(l, "test_conn", std::move(ptr));
   vraft::TcpConnection *pc = &conn;
   std::cout << "name: " << conn.name() << std::endl;
-  std::cout << "local_addr: " << conn.local_addr().ToString() << std::endl;
-  std::cout << "peer_addr: " << conn.peer_addr().ToString() << std::endl;
+  std::cout << conn.ToString() << std::endl;
 
   l->RunFunctor([pc]() { pc->Close(); });
   std::thread t3([l]() {

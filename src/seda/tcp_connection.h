@@ -74,6 +74,7 @@ class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
   const std::string &name() const;
   HostPort local_addr() const;
   HostPort peer_addr() const;
+  std::string ToString() const;
 
  private:
   const std::string name_;
@@ -121,6 +122,10 @@ inline const std::string &TcpConnection::name() const { return name_; }
 inline HostPort TcpConnection::local_addr() const { return local_addr_; }
 
 inline HostPort TcpConnection::peer_addr() const { return peer_addr_; }
+
+inline std::string TcpConnection::ToString() const {
+  return "local:" + local_addr_.ToString() + "-peer:" + peer_addr_.ToString();
+}
 
 inline EventLoop *TcpConnection::loop() { return loop_; }
 

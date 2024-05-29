@@ -104,10 +104,10 @@ void TcpServer::NewConnection(UvTcpUPtr client) {
   conn->set_on_connection_cb(on_connection_cb_);
   conn->set_on_message_cb(on_message_cb_);
   conn->set_write_complete_cb(write_complete_cb_);
-
-  // FIXME: should first close, then delete in callback
   conn->set_connection_close_cb(
       std::bind(&TcpServer::RemoveConnection, this, std::placeholders::_1));
+  vraft_logger.FInfo("tcp-server:%s new connection:%s", name_.c_str(),
+                     conn->ToString().c_str());
 
   AddConnection(conn);
   if (on_connection_cb_) {
