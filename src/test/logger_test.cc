@@ -15,6 +15,8 @@ TEST(Logger, test) {
   vraft::vraft_logger.Init("/tmp/logger_test.log", logger_options);
   int a = 99;
   vraft::vraft_logger.FInfo("%s, %d", "info log test", a);
+
+  vraft::Logger::ShutDown();
 }
 
 int main(int argc, char **argv) {
