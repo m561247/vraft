@@ -15,6 +15,9 @@ namespace vraft {
 class RaftServer;
 using RaftServerPtr = std::shared_ptr<RaftServer>;
 
+class Remu;
+using RemuPtr = std::shared_ptr<Remu>;
+
 // raft emulator, good!!
 struct Remu {
   Remu(EventLoop *l) : loop(l) {}

@@ -23,7 +23,8 @@ void HandleUvTimer(UvTimer *uv_timer) {
 }
 
 Timer::Timer(TimerParam &param, EventLoop *loop)
-    : id_(seq_.fetch_add(1)),
+    : name_(param.name),
+      id_(seq_.fetch_add(1)),
       timeout_ms_(param.timeout_ms),
       repeat_ms_(param.repeat_ms),
       repeat_times_(param.repeat_times),

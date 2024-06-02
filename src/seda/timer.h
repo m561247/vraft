@@ -23,6 +23,7 @@ struct TimerParam {
   TimerFunctor cb;
   void *data = nullptr;
   int64_t repeat_times = 0;
+  std::string name;
 };
 using MakeTimerFunc = std::function<TimerPtr(TimerParam &param)>;
 
@@ -62,11 +63,13 @@ class Timer final {
   void *data() { return data_; }
   void set_data(void *data) { data_ = data; }
   EventLoop *loop() { return loop_; }
+  const std::string &name() const { return name_; }
 
  private:
   void Init();
 
  private:
+  std::string name_;
   TimerId id_;
   uint64_t timeout_ms_;
   uint64_t repeat_ms_;

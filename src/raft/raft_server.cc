@@ -163,6 +163,15 @@ int32_t RaftServer::Start() {
 int32_t RaftServer::Stop() {
   int32_t rv = raft_->Stop();
   assert(rv == 0);
+
+  for (auto &c : clients_) {
+    rv = c.second->Stop();
+    assert(rv == 0);
+  }
+
+  rv = server_->Stop();
+  assert(rv == 0);
+
   return rv;
 }
 
