@@ -7,12 +7,14 @@
 #include "vraft_logger.h"
 
 TEST(Logger, test) {
+  system("rm -f /tmp/logger_test.log");
   vraft::LoggerOptions logger_options{"vraft", false, 1, 8192,
                                       vraft::kLoggerTrace};
   logger_options.level = vraft::U8ToLevel(0);
   logger_options.enable_debug = true;
-  vraft::vraft_logger.Init("./logger_test.log", logger_options);
-  vraft::vraft_logger.FInfo("%s", "info log");
+  vraft::vraft_logger.Init("/tmp/logger_test.log", logger_options);
+  int a = 99;
+  vraft::vraft_logger.FInfo("%s, %d", "info log test", a);
 }
 
 int main(int argc, char **argv) {
