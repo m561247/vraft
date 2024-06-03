@@ -14,13 +14,10 @@
 
 namespace vraft {
 
-class TcpServer;
-using TcpServerPtr = std::shared_ptr<TcpServer>;
-
 class TcpServer final {
  public:
   TcpServer(const HostPort &addr, const std::string &name,
-            const TcpOptions &options, EventLoop *loop);
+            const TcpOptions &options, EventLoopSPtr loop);
   ~TcpServer();
   TcpServer(const TcpServer &t) = delete;
   TcpServer &operator=(const TcpServer &t) = delete;
@@ -30,9 +27,11 @@ class TcpServer final {
 
   // call in any thread
   int32_t Stop();
-  int32_t AddConnection(TcpConnectionPtr &conn);
-  int32_t RemoveConnection(const TcpConnectionPtr &conn);
+  void AddConnection(TcpConnectionSPtr &conn);
+  void RemoveConnection(const TcpConnectionSPtr &conn);
   void RunFunctor(const Functor func);
+
+  void AssertInLoopThread();
 
   // call in loop thread
   bool IsStart();
@@ -49,13 +48,13 @@ class TcpServer final {
   int32_t StopInLoop();
 
   void NewConnection(UvTcpUPtr client);
-  int32_t AddConnectionInLoop(TcpConnectionPtr &conn);
-  int32_t RemoveConnectionInLoop(const TcpConnectionPtr &conn);
+  int32_t AddConnectionInLoop(TcpConnectionSPtr &conn);
+  int32_t RemoveConnectionInLoop(const TcpConnectionSPtr &conn);
 
  private:
   const std::string name_;
 
-  EventLoop *loop_;
+  EventLoopWPtr loop_;
   ConnectionMap connections_;
   Acceptor acceptor_;
 

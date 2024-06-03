@@ -68,8 +68,8 @@ int main(int argc, char **argv) {
     std::signal(SIGSEGV, SignalHandler);
     vraft::CodingInit();
 
-    vraft::EventLoop loop("remu");
-    vraft::Remu remu(&loop);
+    vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("remu");
+    vraft::Remu remu(loop);
     r = &remu;
 
     vraft::TimerParam param;
@@ -77,11 +77,11 @@ int main(int argc, char **argv) {
     param.repeat_ms = 1000;
     param.cb = RemuTick;
     param.data = nullptr;
-    loop.AddTimer(param);
+    loop->AddTimer(param);
     GenerateRotateConfig(remu.configs);
     remu.Create();
     remu.Start();
-    loop.Loop();
+    loop->Loop();
 
   } catch (const char *msg) {
     std::cerr << "execption caught: " << msg << std::endl;

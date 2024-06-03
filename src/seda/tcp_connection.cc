@@ -10,7 +10,21 @@
 
 namespace vraft {
 
-TcpConnection::TcpConnection(EventLoop *loop, const std::string &name,
+UvLoop *TcpConnection::UvLoopPtr() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    return sptr->UvLoopPtr();
+  } else {
+    return nullptr;
+  }
+}
+
+EventLoopSPtr TcpConnection::LoopSPtr() {
+  auto sptr = loop_.lock();
+  return sptr;
+}
+
+TcpConnection::TcpConnection(EventLoopSPtr &loop, const std::string &name,
                              UvTcpUPtr conn)
     : name_(name), loop_(loop), allocator_(), conn_(std::move(conn)) {
   vraft_logger.FInfo("connection:%s construct, handle:%p", name_.c_str(),
@@ -38,9 +52,9 @@ TcpConnection::~TcpConnection() {
 
 void HandleClientClose(UvHandle *client) {
   TcpConnection *conn = static_cast<TcpConnection *>(client->data);
-  conn->loop()->AssertInLoopThread();
+  conn->AssertInLoopThread();
   if (conn->connection_close_cb_) {
-    TcpConnectionPtr cptr = conn->shared_from_this();
+    TcpConnectionSPtr cptr = conn->shared_from_this();
     conn->connection_close_cb_(cptr);
   }
 }
@@ -48,7 +62,7 @@ void HandleClientClose(UvHandle *client) {
 void TcpConnectionHandleRead(UvStream *client, ssize_t nread,
                              const UvBuf *buf) {
   TcpConnection *conn = static_cast<TcpConnection *>(client->data);
-  conn->loop()->AssertInLoopThread();
+  conn->AssertInLoopThread();
 
   if (nread > 0) {
     uint32_t u32 = Crc32(buf->base, nread);
@@ -67,7 +81,7 @@ void TcpConnectionHandleRead(UvStream *client, ssize_t nread,
 void TcpConnectionAllocBuffer(UvHandle *client, size_t suggested_size,
                               UvBuf *buf) {
   TcpConnection *conn = static_cast<TcpConnection *>(client->data);
-  conn->loop()->AssertInLoopThread();
+  conn->AssertInLoopThread();
 
   buf->base = (char *)conn->allocator().Malloc(suggested_size);
   buf->len = suggested_size;
@@ -76,7 +90,7 @@ void TcpConnectionAllocBuffer(UvHandle *client, size_t suggested_size,
 void TcpConnectionAllocBuffer2(UvHandle *client, size_t suggested_size,
                                UvBuf *buf) {
   TcpConnection *conn = static_cast<TcpConnection *>(client->data);
-  conn->loop()->AssertInLoopThread();
+  conn->AssertInLoopThread();
 
   buf->base = const_cast<char *>(conn->input_buf_.BeginWrite());
   buf->len = conn->input_buf_.WritableBytes();
@@ -84,7 +98,7 @@ void TcpConnectionAllocBuffer2(UvHandle *client, size_t suggested_size,
 
 void WriteComplete(UvWrite *req, int status) {
   TcpConnection *conn = static_cast<TcpConnection *>(req->handle->data);
-  conn->loop()->AssertInLoopThread();
+  conn->AssertInLoopThread();
 
   assert(status == 0);
   WriteReq *wr = reinterpret_cast<WriteReq *>(req);
@@ -100,7 +114,7 @@ void WriteComplete(UvWrite *req, int status) {
 
 void BufWriteComplete(UvWrite *req, int status) {
   TcpConnection *conn = static_cast<TcpConnection *>(req->handle->data);
-  conn->loop()->AssertInLoopThread();
+  conn->AssertInLoopThread();
 
   assert(status == 0);
   WriteReq *wr = reinterpret_cast<WriteReq *>(req);
@@ -113,13 +127,13 @@ void BufWriteComplete(UvWrite *req, int status) {
 }
 
 int32_t TcpConnection::Start() {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   return UvReadStart(reinterpret_cast<UvStream *>(conn_.get()),
                      TcpConnectionAllocBuffer2, TcpConnectionHandleRead);
 }
 
 int32_t TcpConnection::Close() {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   if (!UvIsClosing(reinterpret_cast<UvHandle *>(conn_.get()))) {
     UvClose(reinterpret_cast<UvHandle *>(conn_.get()), HandleClientClose);
   } else {
@@ -135,8 +149,24 @@ bool TcpConnection::Connected() const {
          UvIsWritable(reinterpret_cast<UvStream *>(conn_.get()));
 }
 
+void TcpConnection::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+  }
+}
+
+bool TcpConnection::IsInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    return sptr->IsInLoopThread();
+  } else {
+    return false;
+  }
+}
+
 void TcpConnection::OnMessage(const char *buf, ssize_t size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   input_buf_.Append(buf, size);
   if (on_message_cb_) {
@@ -145,7 +175,7 @@ void TcpConnection::OnMessage(const char *buf, ssize_t size) {
 }
 
 void TcpConnection::OnMessage(Buffer &buf) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   if (on_message_cb_) {
     on_message_cb_(shared_from_this(), &input_buf_);
@@ -153,7 +183,7 @@ void TcpConnection::OnMessage(Buffer &buf) {
 }
 
 int32_t TcpConnection::Send(const char *buf, ssize_t size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   if (!Connected()) {
     vraft_logger.FError("send error, connection:%s not connected",
@@ -170,7 +200,7 @@ int32_t TcpConnection::Send(const char *buf, ssize_t size) {
 }
 
 int32_t TcpConnection::CopySend(const char *buf, ssize_t size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   if (!Connected()) {
     vraft_logger.FError("send error, connection:%s not connected",
@@ -190,7 +220,7 @@ int32_t TcpConnection::CopySend(const char *buf, ssize_t size) {
 }
 
 int32_t TcpConnection::BufSend(const char *buf, ssize_t size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   if (!Connected()) {
     vraft_logger.FError("send error, connection:%s not connected",

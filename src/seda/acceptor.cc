@@ -9,7 +9,7 @@
 
 namespace vraft {
 
-Acceptor::Acceptor(const HostPort &addr, EventLoop *loop,
+Acceptor::Acceptor(const HostPort &addr, EventLoopSPtr loop,
                    const TcpOptions &options)
     : addr_(addr), options_(options), loop_(loop) {
   vraft_logger.FInfo("acceptor:%s construct, handle:%p",
@@ -22,7 +22,12 @@ Acceptor::~Acceptor() {
                      addr_.ToString().c_str(), &server_);
 }
 
-void Acceptor::AssertInLoopThread() const { loop_->AssertInLoopThread(); }
+void Acceptor::AssertInLoopThread() const {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+  }
+}
 
 int32_t Acceptor::Start() {
   AssertInLoopThread();
@@ -80,32 +85,51 @@ int32_t Acceptor::Listen() {
 }
 
 void Acceptor::Init() {
-  UvTcpInit(loop_->UvLoopPtr(), &server_);
-  if (options_.tcp_nodelay) {
-    UvTcpNodelay(&server_, 1);
+  auto sptr = loop_.lock();
+  if (sptr) {
+    UvTcpInit(sptr->UvLoopPtr(), &server_);
+    if (options_.tcp_nodelay) {
+      UvTcpNodelay(&server_, 1);
+    }
+    server_.data = this;
   }
-  server_.data = this;
+}
+
+UvLoop *Acceptor::UvLoopPtr() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    return sptr->UvLoopPtr();
+  } else {
+    return nullptr;
+  }
 }
 
 void AcceptorHandleRead(UvStream *server, int status) {
   Acceptor *acceptor = static_cast<Acceptor *>(server->data);
-  acceptor->loop()->AssertInLoopThread();
-  assert(status == 0);
+  acceptor->AssertInLoopThread();
 
-  UvTcpUPtr client = std::make_unique<UvTcp>();
-  int32_t rv = UvTcpInit(acceptor->loop()->UvLoopPtr(), client.get());
-  assert(rv == 0);
+  if (status == 0) {
+    UvLoop *lptr = acceptor->UvLoopPtr();
+    if (lptr != nullptr) {
+      UvTcpUPtr client = std::make_unique<UvTcp>();
+      int32_t rv = UvTcpInit(lptr, client.get());
+      assert(rv == 0);
 
-  if (acceptor->options().tcp_nodelay) {
-    UvTcpNodelay(client.get(), 1);
-  }
+      if (acceptor->options().tcp_nodelay) {
+        UvTcpNodelay(client.get(), 1);
+      }
 
-  if (UvAccept(server, (UvStream *)client.get()) == 0) {
-    acceptor->NewConnection(std::move(client));
+      if (UvAccept(server, (UvStream *)client.get()) == 0) {
+        acceptor->NewConnection(std::move(client));
+
+      } else {
+        // UvTcpUPtr will free UvTcp, so need not OnClose
+        UvClose(reinterpret_cast<UvHandle *>(client.get()), nullptr);
+      }
+    }
 
   } else {
-    // UvTcpUPtr will free UvTcp, so need not OnClose
-    UvClose(reinterpret_cast<UvHandle *>(client.get()), nullptr);
+    assert(0);
   }
 }
 

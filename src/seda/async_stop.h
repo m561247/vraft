@@ -6,18 +6,16 @@
 
 namespace vraft {
 
-class EventLoop;
 void StopLoop(UvAsync *uv_async);
 
 class AsyncStop final {
  public:
-  AsyncStop();
+  AsyncStop(EventLoopSPtr &loop);
   ~AsyncStop();
   AsyncStop(const AsyncStop &a) = delete;
   AsyncStop &operator=(const AsyncStop &a) = delete;
 
   // call in loop thread
-  void Init(EventLoop *loop);
   void AssertInLoopThread();
   void Close();
 
@@ -25,20 +23,15 @@ class AsyncStop final {
   void Notify();
 
  private:
-  EventLoop *loop_;
+  void Init();
+
+ private:
+  EventLoopWPtr loop_;
   UvAsync uv_async_;
 
   friend void StopLoop(UvAsync *uv_async);
+  friend void AsyncStopCloseCb(UvHandle *handle);
 };
-
-inline AsyncStop::AsyncStop() {}
-
-inline AsyncStop::~AsyncStop() {}
-
-inline void AsyncStop::Close() {
-  AssertInLoopThread();
-  UvClose(reinterpret_cast<uv_handle_t *>(&uv_async_), nullptr);
-}
 
 }  // namespace vraft
 

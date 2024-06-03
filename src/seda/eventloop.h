@@ -7,15 +7,13 @@
 
 #include "async_queue.h"
 #include "async_stop.h"
+#include "common.h"
 #include "timer.h"
 #include "uv_wrapper.h"
 
 namespace vraft {
 
-class EventLoop;
-using EventLoopPtr = std::shared_ptr<EventLoop>;
-
-class EventLoop final {
+class EventLoop : public std::enable_shared_from_this<EventLoop> {
  public:
   EventLoop(const std::string &name);
   ~EventLoop();
@@ -25,52 +23,57 @@ class EventLoop final {
   // call in any thread
   void Stop();
 
-  // call in any thread
   // 1. do not care the return value
   // 2. if you care, func will send the return value back
   void RunFunctor(const Functor func);
 
   // call in loop thread
+  // loop
+  int32_t Init();
   int32_t Loop();
-  bool IsAlive() const;
+  bool Alive() const;
   bool IsInLoopThread() const;
   void AssertInLoopThread() const;
-  void StopInLoop();
 
-  // call in loop thread
-  TimerPtr MakeTimer(TimerParam &param);
+  // timer
+  TimerSPtr MakeTimer(TimerParam &param);
   void AddTimer(TimerParam &param);
-  void AddTimer(TimerPtr timer);
+  void AddTimer(TimerSPtr timer);
   void RemoveTimer(TimerId id);
 
-  // call in loop thread
+  // get/set
   UvLoop *UvLoopPtr();
-  std::thread::id tid() const;
-  const std::string &tid_str() const;
+  int32_t tid() const;
   const std::string &name() const;
 
+  // uv_close callback
+  void ResetAsyncQueue();
+  void ResetAsyncStop();
+
  private:
-  void Init();
-  void CloseResource();
+  void Close();
 
  private:
   const std::string name_;
-  std::thread::id tid_;
-  std::string tid_str_;
-
+  int32_t tid_;
   UvLoop uv_loop_;
+
   TimerMap timers_;
-  AsyncQueue functors_;
-  AsyncStop async_stop_;
+  AsyncQueueSPtr functors_;
+  AsyncStopSPtr stop_;
+
+  friend void StopLoop(UvAsync *uv_async);
 };
 
 inline UvLoop *EventLoop::UvLoopPtr() { return &uv_loop_; }
 
-inline std::thread::id EventLoop::tid() const { return tid_; }
-
-inline const std::string &EventLoop::tid_str() const { return tid_str_; }
+inline int32_t EventLoop::tid() const { return tid_; }
 
 inline const std::string &EventLoop::name() const { return name_; }
+
+inline void EventLoop::ResetAsyncQueue() { functors_.reset(); }
+
+inline void EventLoop::ResetAsyncStop() { stop_.reset(); }
 
 }  // namespace vraft
 

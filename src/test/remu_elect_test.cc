@@ -18,7 +18,7 @@ void SignalHandler(int signal) {
 }
 
 vraft::RemuPtr remu;
-vraft::EventLoopPtr loop;
+vraft::EventLoopSPtr loop;
 
 void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {

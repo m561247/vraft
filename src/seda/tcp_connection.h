@@ -7,6 +7,7 @@
 
 #include "allocator.h"
 #include "buffer.h"
+#include "common.h"
 #include "hostport.h"
 #include "uv_wrapper.h"
 
@@ -14,17 +15,12 @@ namespace vraft {
 
 class EventLoop;
 using UvTcpUPtr = std::unique_ptr<UvTcp>;
+using ConnectionMap = std::map<std::string, TcpConnectionSPtr>;
 
-class TcpConnection;
-using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
-using TcpConnectionUPtr = std::unique_ptr<TcpConnection>;
-using ConnectionMap = std::map<std::string, TcpConnectionPtr>;
-
-using OnConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
-using OnMessageCallback = std::function<void(TcpConnectionPtr, Buffer *)>;
-using WriteCompleteCallback = std::function<void(const TcpConnectionPtr &)>;
-using ConnectionCloseCallback =
-    std::function<int32_t(const TcpConnectionPtr &)>;
+using OnConnectionCallback = std::function<void(const TcpConnectionSPtr &)>;
+using OnMessageCallback = std::function<void(TcpConnectionSPtr, Buffer *)>;
+using WriteCompleteCallback = std::function<void(const TcpConnectionSPtr &)>;
+using ConnectionCloseCallback = std::function<void(const TcpConnectionSPtr &)>;
 
 void TcpConnectionHandleRead(UvStream *client, ssize_t nread, const UvBuf *buf);
 void TcpConnectionAllocBuffer(UvHandle *handle, size_t suggested_size,
@@ -42,7 +38,7 @@ struct WriteReq {
 
 class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
  public:
-  TcpConnection(EventLoop *loop, const std::string &name, UvTcpUPtr conn);
+  TcpConnection(EventLoopSPtr &loop, const std::string &name, UvTcpUPtr conn);
   ~TcpConnection();
   TcpConnection(const TcpConnection &t) = delete;
   TcpConnection &operator=(const TcpConnection &t) = delete;
@@ -69,7 +65,12 @@ class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
   void set_write_complete_cb(const WriteCompleteCallback &cb);
   void set_connection_close_cb(const ConnectionCloseCallback &cb);
 
-  EventLoop *loop();
+  void AssertInLoopThread();
+  bool IsInLoopThread();
+
+  UvLoop *UvLoopPtr();
+  EventLoopSPtr LoopSPtr();
+
   Allocator &allocator();
   const std::string &name() const;
   HostPort local_addr() const;
@@ -81,7 +82,7 @@ class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
   HostPort local_addr_;
   HostPort peer_addr_;
 
-  EventLoop *loop_;
+  EventLoopWPtr loop_;
   Allocator allocator_;
   UvTcpUPtr conn_;
   Buffer input_buf_;
@@ -126,8 +127,6 @@ inline HostPort TcpConnection::peer_addr() const { return peer_addr_; }
 inline std::string TcpConnection::ToString() const {
   return "local:" + local_addr_.ToString() + "-peer:" + peer_addr_.ToString();
 }
-
-inline EventLoop *TcpConnection::loop() { return loop_; }
 
 inline Allocator &TcpConnection::allocator() { return allocator_; }
 

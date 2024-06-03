@@ -17,8 +17,8 @@ using TcpClientPtr = std::shared_ptr<TcpClient>;
 
 class TcpClient final {
  public:
-  TcpClient(const std::string name, EventLoop *loop, const HostPort &dest_addr,
-            const TcpOptions &options);
+  TcpClient(const std::string name, EventLoopSPtr loop,
+            const HostPort &dest_addr, const TcpOptions &options);
   ~TcpClient();
   TcpClient(const TcpClient &t) = delete;
   TcpClient &operator=(const TcpClient &t) = delete;
@@ -34,7 +34,7 @@ class TcpClient final {
   int32_t Send(const char *buf, unsigned int size);
   int32_t CopySend(const char *buf, unsigned int size);
   int32_t BufSend(const char *buf, unsigned int size);
-  int32_t RemoveConnection(const TcpConnectionPtr &conn);
+  void RemoveConnection(const TcpConnectionSPtr &conn);
 
   // call in loop thread
   void set_on_connection_cb(const OnConnectionCallback &cb);
@@ -42,6 +42,8 @@ class TcpClient final {
   void set_connection_close_cb(const ConnectionCloseCallback &cb);
   const std::string &name() const;
   std::string ToString() const;
+
+  void AssertInLoopThread();
 
  private:
   void Init();
@@ -51,20 +53,20 @@ class TcpClient final {
   int32_t SendInLoop(const char *buf, unsigned int size);
   int32_t CopySendInLoop(const char *buf, unsigned int size);
   int32_t BufSendInLoop(const char *buf, unsigned int size);
-  int32_t RemoveConnectionInLoop(const TcpConnectionPtr &conn);
+  int32_t RemoveConnectionInLoop(const TcpConnectionSPtr &conn);
 
  private:
   const std::string name_;
-  EventLoop *loop_;
+  EventLoopWPtr loop_;
   Connector connector_;
-  TcpConnectionPtr connection_;
+  TcpConnectionSPtr connection_;
 
   OnConnectionCallback on_connection_cb_;
   WriteCompleteCallback write_complete_cb_;
   ConnectionCloseCallback connection_close_cb_;
 };
 
-inline TcpClient::TcpClient(const std::string name, EventLoop *loop,
+inline TcpClient::TcpClient(const std::string name, EventLoopSPtr loop,
                             const HostPort &dest_addr,
                             const TcpOptions &options)
     : name_(name), loop_(loop), connector_(dest_addr, options, loop) {

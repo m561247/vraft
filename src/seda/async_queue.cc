@@ -6,14 +6,35 @@ namespace vraft {
 
 void AsyncQueueCb(UvAsync *uv_async) {
   AsyncQueue *async_queue = static_cast<AsyncQueue *>(uv_async->data);
+  assert(async_queue != nullptr);
   async_queue->DoFunctor();
 }
 
-void AsyncQueue::Init(EventLoop *loop) {
-  loop->AssertInLoopThread();
-  loop_ = loop;
-  UvAsyncInit(loop_->UvLoopPtr(), &uv_async_, AsyncQueueCb);
-  uv_async_.data = this;
+void AsyncQueueCloseCb(UvHandle *handle) {
+  vraft_logger.FInfo("async_queue:%p close finish", handle);
+  AsyncQueue *async_queue = static_cast<AsyncQueue *>(handle->data);
+  assert(async_queue != nullptr);
+
+  auto sptr = async_queue->loop_.lock();
+  if (sptr) {
+    sptr->ResetAsyncQueue();
+  }
+}
+
+AsyncQueue::AsyncQueue(EventLoopSPtr &loop) : loop_(loop) { Init(); }
+
+AsyncQueue::~AsyncQueue() {}
+
+void AsyncQueue::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+  }
+}
+
+void AsyncQueue::Close() {
+  AssertInLoopThread();
+  UvClose(reinterpret_cast<uv_handle_t *>(&uv_async_), AsyncQueueCloseCb);
 }
 
 void AsyncQueue::Push(const Functor func) {
@@ -24,8 +45,17 @@ void AsyncQueue::Push(const Functor func) {
   UvAsyncSend(&uv_async_);
 }
 
+void AsyncQueue::Init() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+    UvAsyncInit(sptr->UvLoopPtr(), &uv_async_, AsyncQueueCb);
+    uv_async_.data = this;
+  }
+}
+
 void AsyncQueue::DoFunctor() {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   std::queue<Functor> todo_queue;
   {
@@ -37,13 +67,6 @@ void AsyncQueue::DoFunctor() {
     func();
     todo_queue.pop();
   }
-}
-
-void AsyncQueue::AssertInLoopThread() { loop_->AssertInLoopThread(); }
-
-void AsyncQueue::Close() {
-  AssertInLoopThread();
-  UvClose(reinterpret_cast<uv_handle_t *>(&uv_async_), nullptr);
 }
 
 }  // namespace vraft

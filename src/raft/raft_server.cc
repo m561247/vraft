@@ -20,7 +20,9 @@ void Remu::Print(bool tiny, bool one_line) {
 
 void Remu::Create() {
   for (auto conf : configs) {
-    vraft::RaftServerPtr ptr = std::make_shared<vraft::RaftServer>(conf, loop);
+    auto sptr = loop.lock();
+    assert(sptr);
+    vraft::RaftServerPtr ptr = std::make_shared<vraft::RaftServer>(conf, sptr);
     raft_servers.push_back(ptr);
   }
 }
@@ -43,12 +45,12 @@ void Remu::Stop() {
 
 void Remu::Clear() { raft_servers.clear(); }
 
-void RaftServer::OnConnection(const vraft::TcpConnectionPtr &conn) {
+void RaftServer::OnConnection(const vraft::TcpConnectionSPtr &conn) {
   vraft::vraft_logger.FInfo("raft-server OnConnection:%s",
                             conn->name().c_str());
 }
 
-void RaftServer::OnMessage(const vraft::TcpConnectionPtr &conn,
+void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
                            vraft::Buffer *buf) {
   vraft_logger.FTrace("raft-server recv msg, readable-bytes:%d",
                       buf->ReadableBytes());
@@ -188,8 +190,13 @@ int32_t RaftServer::Send(uint64_t dest_addr, const char *buf,
   return rv;
 }
 
-TimerPtr RaftServer::MakeTimer(TimerParam &param) {
-  return loop_->MakeTimer(param);
+TimerSPtr RaftServer::MakeTimer(TimerParam &param) {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    return sptr->MakeTimer(param);
+  } else {
+    return nullptr;
+  }
 }
 
 }  // namespace vraft

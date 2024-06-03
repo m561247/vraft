@@ -4,9 +4,16 @@
 
 namespace vraft {
 
+void Connector::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    return sptr->AssertInLoopThread();
+  }
+}
+
 void ConnectFinish(UvConnect *req, int32_t status) {
   Connector *c = reinterpret_cast<Connector *>(req->data);
-  c->loop_->AssertInLoopThread();
+  c->AssertInLoopThread();
 
   if (status == 0) {
     if (c->new_conn_func_) {
@@ -16,7 +23,7 @@ void ConnectFinish(UvConnect *req, int32_t status) {
     vraft_logger.FInfo("connector:%s connect ok, retry_left:%ld, timer stop",
                        c->dest_addr().ToString().c_str(),
                        c->retry_timer_->repeat_counter());
-    if (c->retry_timer_->IsStart()) {
+    if (c->retry_timer_->Active()) {
       c->retry_timer_->Stop();
     }
 
@@ -49,7 +56,7 @@ void TimerConnectCb(Timer *timer) {
 }
 
 Connector::Connector(const HostPort &dest_addr, const TcpOptions &options,
-                     EventLoop *loop)
+                     EventLoopSPtr loop)
     : dest_addr_(dest_addr), options_(options), loop_(loop) {
   Init();
   vraft_logger.FInfo("connector:%s construct, handle:%p, conn_req:%p",
@@ -62,11 +69,17 @@ Connector::~Connector() {
 }
 
 int32_t Connector::TimerConnect(int64_t retry_times) {
-  if (retry_times > 0) {
-    retry_timer_->set_repeat_times(retry_times);
-    loop_->AddTimer(retry_timer_);
+  auto sptr = loop_.lock();
+  if (sptr) {
+    if (retry_times > 0) {
+      retry_timer_->set_repeat_times(retry_times);
+      sptr->AddTimer(retry_timer_);
+    }
+    return 0;
+
+  } else {
+    return -1;
   }
-  return 0;
 }
 
 int32_t Connector::Connect(int64_t retry_times) {
@@ -81,7 +94,7 @@ int32_t Connector::Connect(int64_t retry_times) {
 }
 
 int32_t Connector::Connect() {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   return UvTcpConnect(&connect_req_, conn_.get(), &(dest_addr_.addr),
                       ConnectFinish);
 }
@@ -95,17 +108,20 @@ int32_t Connector::Close() {
 }
 
 void Connector::Init() {
-  conn_ = std::make_unique<UvTcp>();
-  UvTcpInit(loop_->UvLoopPtr(), conn_.get());
-  connect_req_.data = this;
+  auto sptr = loop_.lock();
+  if (sptr) {
+    conn_ = std::make_unique<UvTcp>();
+    UvTcpInit(sptr->UvLoopPtr(), conn_.get());
+    connect_req_.data = this;
 
-  TimerParam param;
-  param.timeout_ms = 0;
-  param.repeat_ms = options_.retry_interval_ms;
-  param.cb = TimerConnectCb;
-  param.data = this;
-  retry_timer_ = loop_->MakeTimer(param);
-  assert(retry_timer_);
+    TimerParam param;
+    param.timeout_ms = 0;
+    param.repeat_ms = options_.retry_interval_ms;
+    param.cb = TimerConnectCb;
+    param.data = this;
+    retry_timer_ = sptr->MakeTimer(param);
+    assert(retry_timer_);
+  }
 }
 
 }  // namespace vraft

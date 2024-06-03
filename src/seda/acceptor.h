@@ -17,7 +17,7 @@ void AcceptorHandleRead(UvStream *server, int status);
 
 class Acceptor final {
  public:
-  Acceptor(const HostPort &addr, EventLoop *loop, const TcpOptions &options);
+  Acceptor(const HostPort &addr, EventLoopSPtr loop, const TcpOptions &options);
   ~Acceptor();
   Acceptor(const Acceptor &t) = delete;
   Acceptor &operator=(const Acceptor &t) = delete;
@@ -29,10 +29,11 @@ class Acceptor final {
   void NewConnection(UvTcpUPtr conn);
   void AssertInLoopThread() const;
 
+  UvLoop *UvLoopPtr();
+
   // call in loop thread
   const HostPort &addr() const;
   const TcpOptions &options() const;
-  EventLoop *loop() const;
   void set_new_conn_func(const AcceptorNewConnFunc &new_conn_func);
 
  private:
@@ -44,17 +45,17 @@ class Acceptor final {
  private:
   const HostPort addr_;
   const TcpOptions options_;
-  EventLoop *loop_;
+  EventLoopWPtr loop_;
   UvTcp server_;
 
   AcceptorNewConnFunc new_conn_func_;
+
+  friend void AcceptorHandleRead(UvStream *server, int status);
 };
 
 inline const HostPort &Acceptor::addr() const { return addr_; }
 
 inline const TcpOptions &Acceptor::options() const { return options_; }
-
-inline EventLoop *Acceptor::loop() const { return loop_; }
 
 inline void Acceptor::set_new_conn_func(
     const AcceptorNewConnFunc &new_conn_func) {

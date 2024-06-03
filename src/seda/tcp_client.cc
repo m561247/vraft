@@ -20,12 +20,23 @@ int32_t TcpClient::Connect() {
 }
 
 int32_t TcpClient::Stop() {
-  loop_->RunFunctor(std::bind(&TcpClient::StopInLoop, this));
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(std::bind(&TcpClient::StopInLoop, this));
+  }
+
   return 0;
 }
 
+void TcpClient::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+  }
+}
+
 int32_t TcpClient::StopInLoop() {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   vraft_logger.FInfo("tcp-client:%s stop", name_.c_str());
 
   int32_t rv = 0;
@@ -41,33 +52,45 @@ int32_t TcpClient::StopInLoop() {
 }
 
 int32_t TcpClient::Send(const char *buf, unsigned int size) {
-  loop_->RunFunctor(std::bind(&TcpClient::SendInLoop, this, buf, size));
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(std::bind(&TcpClient::SendInLoop, this, buf, size));
+  }
+
   return 0;
 }
 
 int32_t TcpClient::CopySend(const char *buf, unsigned int size) {
-  loop_->RunFunctor(std::bind(&TcpClient::CopySendInLoop, this, buf, size));
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(std::bind(&TcpClient::CopySendInLoop, this, buf, size));
+  }
+
   return 0;
 }
 
 int32_t TcpClient::BufSend(const char *buf, unsigned int size) {
-  loop_->RunFunctor(std::bind(&TcpClient::BufSendInLoop, this, buf, size));
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(std::bind(&TcpClient::BufSendInLoop, this, buf, size));
+  }
   return 0;
 }
 
-int32_t TcpClient::RemoveConnection(const TcpConnectionPtr &conn) {
-  int32_t r = 0;
-  if (conn->loop()->IsInLoopThread()) {
-    r = RemoveConnectionInLoop(conn);
-  } else {
-    conn->loop()->RunFunctor(
-        std::bind(&TcpClient::RemoveConnectionInLoop, this, conn));
+void TcpClient::RemoveConnection(const TcpConnectionSPtr &conn) {
+  auto lptr = conn->LoopSPtr();
+  if (lptr) {
+    if (lptr->IsInLoopThread()) {
+      RemoveConnectionInLoop(conn);
+    } else {
+      lptr->RunFunctor(
+          std::bind(&TcpClient::RemoveConnectionInLoop, this, conn));
+    }
   }
-  return r;
 }
 
 int32_t TcpClient::SendInLoop(const char *buf, unsigned int size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   if (connection_) {
     return connection_->Send(buf, size);
   } else {
@@ -76,7 +99,7 @@ int32_t TcpClient::SendInLoop(const char *buf, unsigned int size) {
 }
 
 int32_t TcpClient::CopySendInLoop(const char *buf, unsigned int size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   if (connection_) {
     return connection_->CopySend(buf, size);
   } else {
@@ -85,7 +108,7 @@ int32_t TcpClient::CopySendInLoop(const char *buf, unsigned int size) {
 }
 
 int32_t TcpClient::BufSendInLoop(const char *buf, unsigned int size) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   if (connection_) {
     return connection_->BufSend(buf, size);
   } else {
@@ -93,13 +116,13 @@ int32_t TcpClient::BufSendInLoop(const char *buf, unsigned int size) {
   }
 }
 
-int32_t TcpClient::RemoveConnectionInLoop(const TcpConnectionPtr &conn) {
+int32_t TcpClient::RemoveConnectionInLoop(const TcpConnectionSPtr &conn) {
   connection_.reset();
   return 0;
 }
 
 void TcpClient::NewConnection(UvTcpUPtr client) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   sockaddr_in local_addr, peer_addr;
   int namelen = sizeof(sockaddr_in);
@@ -118,8 +141,10 @@ void TcpClient::NewConnection(UvTcpUPtr client) {
   std::string conn_name =
       name_ + "#" + local_hp.ToString() + "#" + peer_hp.ToString();
 
+  auto sptr = loop_.lock();
+  assert(sptr);
   connection_ =
-      std::make_shared<TcpConnection>(loop_, conn_name, std::move(client));
+      std::make_shared<TcpConnection>(sptr, conn_name, std::move(client));
   connection_->set_on_connection_cb(on_connection_cb_);
   connection_->set_write_complete_cb(write_complete_cb_);
   connection_->set_connection_close_cb(

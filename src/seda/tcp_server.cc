@@ -12,7 +12,7 @@
 namespace vraft {
 
 TcpServer::TcpServer(const HostPort &addr, const std::string &name,
-                     const TcpOptions &options, EventLoop *loop)
+                     const TcpOptions &options, EventLoopSPtr loop)
     : name_(name), loop_(loop), connections_(), acceptor_(addr, loop, options) {
   vraft_logger.FInfo("tcp-server:%s construct", name_.c_str());
   // make sure the all the objects finish construct
@@ -33,38 +33,55 @@ int32_t TcpServer::Start() {
 }
 
 int32_t TcpServer::Stop() {
-  loop_->RunFunctor(std::bind(&TcpServer::StopInLoop, this));
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(std::bind(&TcpServer::StopInLoop, this));
+  }
+
   return 0;
 }
 
-int32_t TcpServer::AddConnection(TcpConnectionPtr &conn) {
-  int32_t r = 0;
-  if (conn->loop()->IsInLoopThread()) {
-    r = AddConnectionInLoop(conn);
-  } else {
-    conn->loop()->RunFunctor(
-        std::bind(&TcpServer::AddConnectionInLoop, this, conn));
+void TcpServer::AddConnection(TcpConnectionSPtr &conn) {
+  auto lptr = conn->LoopSPtr();
+  if (lptr) {
+    if (lptr->IsInLoopThread()) {
+      AddConnectionInLoop(conn);
+    } else {
+      lptr->RunFunctor(std::bind(&TcpServer::AddConnectionInLoop, this, conn));
+    }
   }
-  return r;
 }
 
-int32_t TcpServer::RemoveConnection(const TcpConnectionPtr &conn) {
-  int32_t r = 0;
-  if (conn->loop()->IsInLoopThread()) {
-    r = RemoveConnectionInLoop(conn);
-  } else {
-    conn->loop()->RunFunctor(
-        std::bind(&TcpServer::RemoveConnectionInLoop, this, conn));
+void TcpServer::RemoveConnection(const TcpConnectionSPtr &conn) {
+  auto lptr = conn->LoopSPtr();
+  if (lptr) {
+    if (lptr->IsInLoopThread()) {
+      RemoveConnectionInLoop(conn);
+    } else {
+      lptr->RunFunctor(
+          std::bind(&TcpServer::RemoveConnectionInLoop, this, conn));
+    }
   }
-  return r;
 }
 
 // call in any thread
-void TcpServer::RunFunctor(const Functor func) { loop_->RunFunctor(func); }
+void TcpServer::RunFunctor(const Functor func) {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(func);
+  }
+}
+
+void TcpServer::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+  }
+}
 
 int32_t TcpServer::StopInLoop() {
   vraft_logger.FInfo("tcp-server:%s stop", name_.c_str());
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
   int32_t r = 0;
 
   ConnectionMap tmp_conns = connections_;
@@ -81,7 +98,7 @@ int32_t TcpServer::StopInLoop() {
 }
 
 void TcpServer::NewConnection(UvTcpUPtr client) {
-  loop_->AssertInLoopThread();
+  AssertInLoopThread();
 
   sockaddr_in local_addr, peer_addr;
   int namelen = sizeof(sockaddr_in);
@@ -99,7 +116,11 @@ void TcpServer::NewConnection(UvTcpUPtr client) {
 
   std::string conn_name =
       name_ + "#" + local_hp.ToString() + "#" + peer_hp.ToString();
-  TcpConnectionPtr conn(new TcpConnection(loop_, conn_name, std::move(client)));
+
+  auto sptr = loop_.lock();
+  assert(sptr);
+
+  TcpConnectionSPtr conn(new TcpConnection(sptr, conn_name, std::move(client)));
 
   conn->set_on_connection_cb(on_connection_cb_);
   conn->set_on_message_cb(on_message_cb_);
@@ -120,8 +141,8 @@ void TcpServer::Init() {
       std::bind(&TcpServer::NewConnection, this, std::placeholders::_1));
 }
 
-int32_t TcpServer::AddConnectionInLoop(TcpConnectionPtr &conn) {
-  conn->loop()->AssertInLoopThread();
+int32_t TcpServer::AddConnectionInLoop(TcpConnectionSPtr &conn) {
+  AssertInLoopThread();
 
   vraft_logger.FInfo("tcp-server:%s add connection:%s", name_.c_str(),
                      conn->name().c_str());
@@ -130,8 +151,8 @@ int32_t TcpServer::AddConnectionInLoop(TcpConnectionPtr &conn) {
   return r;
 }
 
-int32_t TcpServer::RemoveConnectionInLoop(const TcpConnectionPtr &conn) {
-  conn->loop()->AssertInLoopThread();
+int32_t TcpServer::RemoveConnectionInLoop(const TcpConnectionSPtr &conn) {
+  AssertInLoopThread();
 
   vraft_logger.FInfo("tcp-server:%s remove connection:%s", name_.c_str(),
                      conn->name().c_str());

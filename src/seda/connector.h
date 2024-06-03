@@ -1,6 +1,7 @@
 #ifndef VRAFT_CONNECTOR_H_
 #define VRAFT_CONNECTOR_H_
 
+#include "common.h"
 #include "eventloop.h"
 #include "hostport.h"
 #include "tcp_connection.h"
@@ -17,7 +18,7 @@ void TimerConnectCb(Timer *timer);
 class Connector final {
  public:
   Connector(const HostPort &dest_addr, const TcpOptions &options,
-            EventLoop *loop);
+            EventLoopSPtr loop);
   ~Connector();
   Connector(const Connector &t) = delete;
   Connector &operator=(const Connector &t) = delete;
@@ -27,6 +28,8 @@ class Connector final {
   int32_t Connect(int64_t retry_times);
   int32_t Connect();
   int32_t Close();
+
+  void AssertInLoopThread();
 
   void set_new_conn_func(const ConnectorNewConnFunc &new_conn_func);
   const HostPort &dest_addr() { return dest_addr_; }
@@ -39,10 +42,10 @@ class Connector final {
   const HostPort dest_addr_;
   const TcpOptions options_;
 
-  EventLoop *loop_;
+  EventLoopWPtr loop_;
   UvTcpUPtr conn_;
   UvConnect connect_req_;
-  TimerPtr retry_timer_;
+  TimerSPtr retry_timer_;
   ConnectorNewConnFunc new_conn_func_;
 
   friend void ConnectFinish(UvConnect *req, int32_t status);

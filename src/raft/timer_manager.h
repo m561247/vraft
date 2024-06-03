@@ -53,10 +53,10 @@ class TimerManager final {
 
  private:
   void *data_;
-  TimerPtr tick_;
-  TimerPtr election_;
-  std::unordered_map<uint64_t, TimerPtr> request_votes_;
-  std::unordered_map<uint64_t, TimerPtr> heartbeats_;
+  TimerSPtr tick_;
+  TimerSPtr election_;
+  std::unordered_map<uint64_t, TimerSPtr> request_votes_;
+  std::unordered_map<uint64_t, TimerSPtr> heartbeats_;
 
   uint32_t tick_ms_;
   uint32_t election_ms_;

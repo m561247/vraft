@@ -11,19 +11,17 @@
 
 namespace vraft {
 
-class EventLoop;
 void AsyncQueueCb(UvAsync *uv_async);
+void AsyncQueueCloseCb(UvHandle *handle);
 
 class AsyncQueue {
  public:
-  AsyncQueue() {}
-  ~AsyncQueue() {}
+  AsyncQueue(EventLoopSPtr &loop);
+  ~AsyncQueue();
   AsyncQueue(const AsyncQueue &a) = delete;
   AsyncQueue &operator=(const AsyncQueue &a) = delete;
 
   // call in loop thread
-  void Init(EventLoop *loop);
-  void DoFunctor();
   void AssertInLoopThread();
   void Close();
 
@@ -31,11 +29,18 @@ class AsyncQueue {
   void Push(const Functor func);
 
  private:
-  EventLoop *loop_;
+  void Init();
+  void DoFunctor();
+
+ private:
+  EventLoopWPtr loop_;
   UvAsync uv_async_;
 
   std::mutex mutex_;
   std::queue<Functor> functors_;  // guarded by mutex_
+
+  friend void AsyncQueueCb(UvAsync *uv_async);
+  friend void AsyncQueueCloseCb(UvHandle *handle);
 };
 
 }  // namespace vraft

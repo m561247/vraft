@@ -33,8 +33,8 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-// if loop don't run, resource will not be freed, so cannot pass the valgrind
-// check
+// if loop don't run, resource will not be freed,
+// so cannot pass the valgrind check
 #if 0
 TEST(EventLoop, EventLoop) {
   system("rm -f /tmp/eventloop_test.log");
@@ -42,8 +42,11 @@ TEST(EventLoop, EventLoop) {
   o.logger_name = "EventLoop.EventLoop";
   vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  loop.StopInLoop();
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
+
+  // loop->Stop();
 }
 #endif
 
@@ -53,13 +56,15 @@ TEST(EventLoop, EventLoop2) {
   o.logger_name = "EventLoop.EventLoop2";
   vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
-  std::thread t([l]() { l->Loop(); });
-  std::thread t2([l]() {
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
+
+  std::thread t([loop]() { loop->Loop(); });
+  std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    l->Stop();
+    loop->Stop();
   });
   t.join();
   t2.join();
@@ -74,25 +79,26 @@ TEST(EventLoop, AddTimer) {
   o.logger_name = "EventLoop.AddTimer";
   vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
+
   vraft::TimerParam param;
   param.timeout_ms = 1000;
   param.repeat_ms = 1000;
   param.cb = TimerCb;
   param.data = nullptr;
-  l->AddTimer(param);
+  param.name = "test-timer";
+  loop->AddTimer(param);
 
-  std::thread t([l]() { l->Loop(); });
-  std::thread t2([l]() {
+  std::thread t([loop]() { loop->Loop(); });
+  std::thread t2([loop]() {
     std::cout << "after 5s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(5));
-    l->Stop();
+    loop->Stop();
   });
-
   t.join();
   t2.join();
-
   std::cout << "loop stop" << std::endl;
 }
 
@@ -101,7 +107,10 @@ void TimerCb2(vraft::Timer *timer) {
             << std::endl;
   timer->RepeatDecr();
   if (timer->repeat_counter() == 0) {
-    timer->loop()->StopInLoop();
+    auto sptr = timer->LoopSPtr();
+    if (sptr) {
+      sptr->Stop();
+    }
   }
 }
 
@@ -111,17 +120,20 @@ TEST(EventLoop, AddTimer2) {
   o.logger_name = "EventLoop.AddTimer2";
   vraft::vraft_logger.Init("/tmp/eventloop_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
+
   vraft::TimerParam param;
   param.timeout_ms = 1000;
   param.repeat_ms = 1000;
   param.cb = TimerCb2;
   param.data = nullptr;
   param.repeat_times = 5;
-  l->AddTimer(param);
+  param.name = "test-timer";
+  loop->AddTimer(param);
 
-  std::thread t([l]() { l->Loop(); });
+  std::thread t([loop]() { loop->Loop(); });
   t.join();
 
   std::cout << "loop stop" << std::endl;

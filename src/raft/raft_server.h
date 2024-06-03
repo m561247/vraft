@@ -20,9 +20,9 @@ using RemuPtr = std::shared_ptr<Remu>;
 
 // raft emulator, good!!
 struct Remu {
-  Remu(EventLoop *l) : loop(l) {}
+  Remu(EventLoopSPtr l) : loop(l) {}
 
-  EventLoop *loop;
+  EventLoopWPtr loop;
   std::vector<vraft::Config> configs;
   std::vector<vraft::RaftServerPtr> raft_servers;
 
@@ -35,19 +35,22 @@ struct Remu {
 
 class RaftServer final {
  public:
-  RaftServer(Config &config, EventLoop *loop);
+  RaftServer(Config &config, EventLoopSPtr loop);
   ~RaftServer();
   RaftServer(const RaftServer &t) = delete;
   RaftServer &operator=(const RaftServer &t) = delete;
 
-  void OnConnection(const vraft::TcpConnectionPtr &conn);
-  void OnMessage(const vraft::TcpConnectionPtr &conn, vraft::Buffer *buf);
+  void OnConnection(const vraft::TcpConnectionSPtr &conn);
+  void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf);
 
   int32_t Start();
   int32_t Stop();
 
   Config &config() { return config_; }
-  EventLoop *LoopPtr() { return loop_; }
+  EventLoopSPtr LoopSPtr() {
+    auto sptr = loop_.lock();
+    return sptr;
+  }
   RaftPtr raft() { return raft_; }
 
   void Print(bool tiny, bool one_line) { raft_->Print(tiny, one_line); }
@@ -57,23 +60,26 @@ class RaftServer final {
   TcpClientPtr GetClient(uint64_t dest_addr);
   TcpClientPtr GetClientOrCreate(uint64_t dest_addr);
   int32_t Send(uint64_t dest_addr, const char *buf, unsigned int size);
-  TimerPtr MakeTimer(TimerParam &param);
+  TimerSPtr MakeTimer(TimerParam &param);
 
  private:
   Config config_;
-  EventLoop *loop_;
-  TcpServerPtr server_;
+  EventLoopWPtr loop_;
+  TcpServerSPtr server_;
   std::unordered_map<uint64_t, TcpClientPtr> clients_;
 
   RaftPtr raft_;
 };
 
 // FIXME: raft_(this), maybe this has not finished construct
-inline RaftServer::RaftServer(Config &config, EventLoop *loop)
+inline RaftServer::RaftServer(Config &config, EventLoopSPtr loop)
     : config_(config), loop_(loop) {
   struct TcpOptions options;
+
+  auto sptr = loop_.lock();
+  assert(sptr);
   server_ = std::make_shared<TcpServer>(config_.my_addr(), "raft_server",
-                                        options, loop_);
+                                        options, sptr);
 
   server_->set_on_connection_cb(
       std::bind(&RaftServer::OnConnection, this, std::placeholders::_1));
@@ -120,7 +126,9 @@ inline TcpClientPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
     struct TcpOptions options;
     RaftAddr addr(dest_addr);
     HostPort hostport(IpU32ToIpString(addr.ip()), addr.port());
-    ptr = std::make_shared<TcpClient>("raft_client", loop_, hostport, options);
+    auto sptr = loop_.lock();
+    assert(sptr);
+    ptr = std::make_shared<TcpClient>("raft_client", sptr, hostport, options);
     int32_t rv = ptr->Connect(100);
     if (rv == 0) {
       clients_.insert({dest_addr, ptr});

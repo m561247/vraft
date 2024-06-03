@@ -43,13 +43,13 @@ inline int UvIsClosing(const UvHandle *handle) {
 
 inline int UvLoopInit(UvLoop *loop) {
   int rv = ::uv_loop_init(loop);
-  vraft_logger.FTrace("uv_loop_init:%p, rv:%d", loop, rv);
+  vraft_logger.FTrace("uv_loop_init:%p, rv:%d, %s", loop, rv, UvStrError(rv));
   return rv;
 }
 
 inline int UvRun(UvLoop *loop, UvRunMode mode) {
-  vraft_logger.FTrace("uv_run:%p", loop);
   int rv = ::uv_run(loop, mode);
+  vraft_logger.FTrace("uv_run:%p, rv:%d, %s", loop, rv, UvStrError(rv));
   return rv;
 }
 
@@ -60,7 +60,7 @@ inline void UvStop(UvLoop *loop) {
 
 inline int UvLoopClose(UvLoop *loop) {
   int rv = ::uv_loop_close(loop);
-  vraft_logger.FTrace("uv_loop_close:%p, rv:%d,%s", loop, rv, UvStrError(rv));
+  vraft_logger.FTrace("uv_loop_close:%p, rv:%d, %s", loop, rv, UvStrError(rv));
   return rv;
 }
 
@@ -68,50 +68,53 @@ inline int UvLoopAlive(const UvLoop *loop) { return ::uv_loop_alive(loop); }
 
 inline int UvTcpInit(UvLoop *loop, UvTcp *tcp) {
   int rv = ::uv_tcp_init(loop, tcp);
-  vraft_logger.FTrace("uv_tcp_init:%p, loop:%p, rv:%d", tcp, loop, rv);
+  vraft_logger.FTrace("uv_tcp_init:%p, loop:%p, rv:%d, %s", tcp, loop, rv,
+                      UvStrError(rv));
   return rv;
 }
 
 inline int UvTcpBind(UvTcp *handle, const struct sockaddr *addr,
                      unsigned int flags) {
   int rv = ::uv_tcp_bind(handle, addr, flags);
-  vraft_logger.FTrace("uv_tcp_bind:%p, rv:%d", handle, rv);
+  vraft_logger.FTrace("uv_tcp_bind:%p, rv:%d, %s", handle, rv, UvStrError(rv));
   return rv;
 }
 
 inline int UvListen(UvStream *stream, int backlog, UvConnectionCb cb) {
   int rv = ::uv_listen(stream, backlog, cb);
-  vraft_logger.FTrace("uv_listen:%p, rv:%d", stream, rv);
+  vraft_logger.FTrace("uv_listen:%p, rv:%d, %s", stream, rv, UvStrError(rv));
   return rv;
 }
 
 inline int UvAccept(UvStream *server, UvStream *client) {
   int rv = ::uv_accept(server, client);
-  vraft_logger.FTrace("uv_accept:%p, client:%p, rv:%d", server, client, rv);
+  vraft_logger.FTrace("uv_accept:%p, client:%p, rv:%d, %s", server, client, rv,
+                      UvStrError(rv));
   return rv;
 }
 
 inline int UvTcpConnect(UvConnect *req, UvTcp *handle,
                         const struct sockaddr *addr, UvConnectCb cb) {
   int rv = ::uv_tcp_connect(req, handle, addr, cb);
-  vraft_logger.FTrace("uv_tcp_connect:%p, active:%d, req:%p, rv:%d", handle,
-                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), req,
-                      rv);
+  vraft_logger.FTrace("uv_tcp_connect:%p, active:%d, req:%p, rv:%d, %s", handle,
+                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), req, rv,
+                      UvStrError(rv));
   return rv;
 }
 
 inline int UvTcpNodelay(UvTcp *handle, int enable) {
   int rv = ::uv_tcp_nodelay(handle, enable);
-  vraft_logger.FTrace("uv_tcp_nodelay:%p, nodelay:%d, rv:%d", handle, enable,
-                      rv);
+  vraft_logger.FTrace("uv_tcp_nodelay:%p, nodelay:%d, rv:%d, %s", handle,
+                      enable, rv, UvStrError(rv));
   return rv;
 }
 
 inline int UvReadStart(UvStream *uv_stream, UvAllocCb alloc_cb,
                        UvReadCb read_cb) {
   int rv = ::uv_read_start(uv_stream, alloc_cb, read_cb);
-  vraft_logger.FTrace("uv_read_start:%p, active:%d, rv:%d", uv_stream,
-                      UvIsActive(reinterpret_cast<UvHandle *>(uv_stream)), rv);
+  vraft_logger.FTrace("uv_read_start:%p, active:%d, rv:%d, %s", uv_stream,
+                      UvIsActive(reinterpret_cast<UvHandle *>(uv_stream)), rv,
+                      UvStrError(rv));
   return rv;
 }
 
@@ -139,9 +142,9 @@ inline int UvWrite2(UvWrite *req, UvStream *handle, const uv_buf_t bufs[],
   }
 
   vraft_logger.FTrace(
-      "uv_write:%p, req:%p, bytes:%d, check:%X, nbufs:%d, active:%d, rv:%d",
+      "uv_write:%p, req:%p, bytes:%d, check:%X, nbufs:%d, active:%d, rv:%d, %s",
       handle, req, bytes, u32, nbufs,
-      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv);
+      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv, UvStrError(rv));
 
   for (unsigned int i = 0; i < nbufs; ++i) {
     vraft_logger.FDebug("send data:%s",
@@ -153,33 +156,36 @@ inline int UvWrite2(UvWrite *req, UvStream *handle, const uv_buf_t bufs[],
 
 inline int UvAsyncInit(UvLoop *loop, UvAsync *async, UvAsyncCb cb) {
   int rv = ::uv_async_init(loop, async, cb);
-  vraft_logger.FTrace("uv_async_init:%p, loop:%p, rv:%d", async, loop, rv);
+  vraft_logger.FTrace("uv_async_init:%p, loop:%p, rv:%d, %s", async, loop, rv,
+                      UvStrError(rv));
   return rv;
 }
 
 inline int UvAsyncSend(UvAsync *async) {
   int rv = ::uv_async_send(async);
-  vraft_logger.FTrace("uv_async_send:%p, rv:%d", async, rv);
+  vraft_logger.FTrace("uv_async_send:%p, rv:%d, %s", async, rv, UvStrError(rv));
   return rv;
 }
 
 inline int UvTimerInit(UvLoop *loop, UvTimer *handle) {
   int rv = ::uv_timer_init(loop, handle);
-  vraft_logger.FTrace("uv_timer_init:%p, loop:%p, rv:%d", handle, loop, rv);
+  vraft_logger.FTrace("uv_timer_init:%p, loop:%p, rv:%d, %s", handle, loop, rv,
+                      UvStrError(rv));
   return rv;
 }
 
 inline int UvimerStart(UvTimer *handle, UvTimerCb cb, uint64_t timeout,
                        uint64_t repeat) {
   int rv = ::uv_timer_start(handle, cb, timeout, repeat);
-  vraft_logger.FTrace("uv_timer_start:%p, active:%d, rv:%d", handle,
-                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv);
+  vraft_logger.FTrace("uv_timer_start:%p, active:%d, rv:%d, %s", handle,
+                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv,
+                      UvStrError(rv));
   return rv;
 }
 
 inline int UvTimerStop(UvTimer *handle) {
   int rv = ::uv_timer_stop(handle);
-  vraft_logger.FTrace("uv_timer_stop:%p, active:%d, rv:%d,%s", handle,
+  vraft_logger.FTrace("uv_timer_stop:%p, active:%d, rv:%d, %s", handle,
                       UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv,
                       UvStrError(rv));
   return rv;
@@ -187,8 +193,9 @@ inline int UvTimerStop(UvTimer *handle) {
 
 inline int UvTimerAgain(UvTimer *handle) {
   int rv = ::uv_timer_again(handle);
-  vraft_logger.FTrace("uv_timer_again:%p, active:%d, rv:%d", handle,
-                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv);
+  vraft_logger.FTrace("uv_timer_again:%p, active:%d, rv:%d, %s", handle,
+                      UvIsActive(reinterpret_cast<UvHandle *>(handle)), rv,
+                      UvStrError(rv));
   return rv;
 }
 
