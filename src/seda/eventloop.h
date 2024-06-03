@@ -24,6 +24,7 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
 
   // call in any thread
   void Stop();
+  void WaitStarted();
 
   // 1. do not care the return value
   // 2. if you care, func will send the return value back

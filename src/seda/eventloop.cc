@@ -44,6 +44,12 @@ void EventLoop::Stop() {
   }
 }
 
+void EventLoop::WaitStarted() {
+  while (!started_.load()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
 void EventLoop::RunFunctor(const Functor func) {
   if (IsInLoopThread()) {
     func();
@@ -129,7 +135,8 @@ void EventLoop::AddTimer(TimerSPtr timer) {
 
 void EventLoop::RemoveTimer(TimerId id) {
   AssertInLoopThread();
-  vraft_logger.FInfo("loop %s, remove timer, timer-id:%d", DebugString().c_str(), id);
+  vraft_logger.FInfo("loop %s, remove timer, timer-id:%d",
+                     DebugString().c_str(), id);
   timers_.erase(id);
 }
 

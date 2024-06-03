@@ -61,6 +61,7 @@ TEST(EventLoop, EventLoop2) {
   ASSERT_EQ(rv, 0);
 
   std::thread t([loop]() { loop->Loop(); });
+  loop->WaitStarted();
   std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -92,6 +93,7 @@ TEST(EventLoop, AddTimer) {
   loop->AddTimer(param);
 
   std::thread t([loop]() { loop->Loop(); });
+  loop->WaitStarted();
   std::thread t2([loop]() {
     std::cout << "after 5s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(5));
@@ -134,6 +136,7 @@ TEST(EventLoop, AddTimer2) {
   loop->AddTimer(param);
 
   std::thread t([loop]() { loop->Loop(); });
+  loop->WaitStarted();
   t.join();
 
   std::cout << "loop stop" << std::endl;

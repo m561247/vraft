@@ -50,6 +50,8 @@ TEST(Acceptor, Acceptor) {
   vraft::Acceptor *a = &acceptor;
 
   std::thread t([loop]() { loop->Loop(); });
+  loop->WaitStarted();
+
   loop->RunFunctor([a]() { a->Close(); });
   std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
