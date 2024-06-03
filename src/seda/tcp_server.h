@@ -64,7 +64,7 @@ class TcpServer final {
 };
 
 // call in loop thread
-inline bool TcpServer::IsStart() { return acceptor_.IsStart(); }
+inline bool TcpServer::IsStart() { return acceptor_.Active(); }
 
 inline void TcpServer::set_on_connection_cb(const OnConnectionCallback &cb) {
   on_connection_cb_ = cb;

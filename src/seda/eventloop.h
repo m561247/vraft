@@ -13,6 +13,8 @@
 
 namespace vraft {
 
+void Started(Timer *timer);
+
 class EventLoop : public std::enable_shared_from_this<EventLoop> {
  public:
   EventLoop(const std::string &name);
@@ -34,6 +36,7 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   bool Alive() const;
   bool IsInLoopThread() const;
   void AssertInLoopThread() const;
+  std::string DebugString() const;
 
   // timer
   TimerSPtr MakeTimer(TimerParam &param);
@@ -45,6 +48,8 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   UvLoop *UvLoopPtr();
   int32_t tid() const;
   const std::string &name() const;
+  bool started();
+  void set_started(bool b);
 
   // uv_close callback
   void ResetAsyncQueue();
@@ -54,6 +59,7 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   void Close();
 
  private:
+  std::atomic<bool> started_;
   const std::string name_;
   int32_t tid_;
   UvLoop uv_loop_;
@@ -70,6 +76,10 @@ inline UvLoop *EventLoop::UvLoopPtr() { return &uv_loop_; }
 inline int32_t EventLoop::tid() const { return tid_; }
 
 inline const std::string &EventLoop::name() const { return name_; }
+
+inline bool EventLoop::started() { return started_.load(); }
+
+inline void EventLoop::set_started(bool b) { started_.store(b); }
 
 inline void EventLoop::ResetAsyncQueue() { functors_.reset(); }
 

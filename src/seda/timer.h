@@ -33,6 +33,7 @@ class Timer final {
 
   // call in loop thread
   void AssertInLoopThread();
+  std::string DebugString();
 
   // control
   int32_t Start();
@@ -61,7 +62,6 @@ class Timer final {
 
  private:
   void Init();
-  std::string DebugString();
 
  private:
   std::string name_;

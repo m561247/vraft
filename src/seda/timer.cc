@@ -23,6 +23,7 @@ void HandleUvTimer(UvTimer *uv_timer) {
 }
 
 void TimerCloseCb(UvHandle *handle) {
+  vraft_logger.FInfo("timer:%p close finish", handle);
   Timer *timer = reinterpret_cast<Timer *>(handle->data);
   auto sptr = timer->loop_.lock();
   if (sptr) {
@@ -54,6 +55,19 @@ void Timer::AssertInLoopThread() {
   if (sptr) {
     sptr->AssertInLoopThread();
   }
+}
+
+std::string Timer::DebugString() {
+  void *lptr = nullptr;
+  auto sptr = loop_.lock();
+  if (sptr) {
+    lptr = sptr->UvLoopPtr();
+  }
+  char buf[256];
+  snprintf(buf, sizeof(buf),
+           "id:%ld, name:%s, timeout:%lu, repeat:%lu, handle:%p, loop:%p", id_,
+           name_.c_str(), timeout_ms_, repeat_ms_, &uv_timer_, lptr);
+  return std::string(buf);
 }
 
 int32_t Timer::Start() {
@@ -146,19 +160,6 @@ void Timer::Init() {
     UvTimerInit(sptr->UvLoopPtr(), &uv_timer_);
     uv_timer_.data = this;
   }
-}
-
-std::string Timer::DebugString() {
-  void *lptr = nullptr;
-  auto sptr = loop_.lock();
-  if (sptr) {
-    lptr = sptr->UvLoopPtr();
-  }
-  char buf[256];
-  snprintf(buf, sizeof(buf),
-           "id:%ld, name:%s, timeout:%lu, repeat:%lu, handle:%p, loop:%p", id_,
-           name_.c_str(), timeout_ms_, repeat_ms_, &uv_timer_, lptr);
-  return std::string(buf);
 }
 
 std::atomic<int64_t> Timer::seq_(0);

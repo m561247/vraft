@@ -13,21 +13,30 @@
 
 namespace vraft {
 
-EventLoop::EventLoop(const std::string &name) : name_(name), tid_(0) {
-  vraft_logger.FInfo("loop:%p construct, name:%s", &uv_loop_, name_.c_str());
+void Started(Timer *timer) {
+  assert(timer != nullptr);
+  timer->AssertInLoopThread();
+  auto sptr = timer->LoopSPtr();
+  if (sptr) {
+    sptr->set_started(true);
+    vraft_logger.FInfo("loop set started, %s", sptr->DebugString().c_str());
+  }
+}
+
+EventLoop::EventLoop(const std::string &name)
+    : started_(false), name_(name), tid_(0) {
   int32_t rv = UvLoopInit(&uv_loop_);
+  vraft_logger.FInfo("loop construct, %s", DebugString().c_str());
   assert(rv == 0);
 }
 
 EventLoop::~EventLoop() {
-  int32_t rv = UvLoopClose(&uv_loop_);
-  vraft_logger.FInfo("loop:%p destruct, name:%s, rv:%d, %s", &uv_loop_,
-                     name_.c_str(), rv, UvStrError(rv));
+  UvLoopClose(&uv_loop_);
+  vraft_logger.FInfo("loop destruct, name:%s, handle:%p", name_.c_str(),
+                     &uv_loop_);
 }
 
 void EventLoop::Stop() {
-  vraft_logger.FInfo("loop:%p async stop, name:%s, tid:%d", &uv_loop_,
-                     name_.c_str(), tid_);
   if (IsInLoopThread()) {
     Close();
   } else {
@@ -47,13 +56,20 @@ int32_t EventLoop::Init() {
   auto sptr = shared_from_this();
   functors_ = std::make_shared<AsyncQueue>(sptr);
   stop_ = std::make_shared<AsyncStop>(sptr);
+
+  TimerParam param;
+  param.timeout_ms = 0;
+  param.repeat_ms = 0;
+  param.name = "start-timer";
+  param.cb = Started;
+  sptr->AddTimer(param);
+
   return 0;
 }
 
 int32_t EventLoop::Loop() {
   tid_ = gettid();
-  vraft_logger.FInfo("loop:%p start, name:%s, tid:%d", &uv_loop_, name_.c_str(),
-                     tid_);
+  vraft_logger.FInfo("loop start, %s", DebugString().c_str());
   return UvRun(&uv_loop_, UV_RUN_DEFAULT);
 }
 
@@ -72,10 +88,19 @@ bool EventLoop::IsInLoopThread() const {
 
 void EventLoop::AssertInLoopThread() const {
   if (!IsInLoopThread()) {
-    vraft_logger.FFatal(
-        "AssertInLoopThread, loop:%p, name:%s, loop-tid:%d, current-tid:%d",
-        &uv_loop_, name_.c_str(), tid_, gettid());
+    vraft_logger.FInfo(
+        "loop assert, name:%s, handle:%p, tid:%d, current-tid:%d",
+        name_.c_str(), &uv_loop_, tid_, gettid());
+    assert(0);
   }
+}
+
+std::string EventLoop::DebugString() const {
+  char buf[256];
+  snprintf(buf, sizeof(buf),
+           "name:%s, handle:%p, started:%d, active:%d, tid:%d", name_.c_str(),
+           &uv_loop_, started_.load(), Alive(), tid_);
+  return std::string(buf);
 }
 
 TimerSPtr EventLoop::MakeTimer(TimerParam &param) {
@@ -87,25 +112,24 @@ TimerSPtr EventLoop::MakeTimer(TimerParam &param) {
 
 void EventLoop::AddTimer(TimerParam &param) {
   AssertInLoopThread();
-  TimerSPtr ptr = MakeTimer(param);
-  ptr->Start();
-  vraft_logger.FInfo("loop:%p %s add timer:%p %ld %s", &uv_loop_, name_.c_str(),
-                     ptr->UvTimerPtr(), ptr->id(), ptr->name().c_str());
-  timers_[ptr->id()] = std::move(ptr);
+  TimerSPtr timer = MakeTimer(param);
+  timer->Start();
+  vraft_logger.FInfo("loop %s, add timer, %s", DebugString().c_str(),
+                     timer->DebugString().c_str());
+  timers_[timer->id()] = std::move(timer);
 }
 
 void EventLoop::AddTimer(TimerSPtr timer) {
   AssertInLoopThread();
   timer->Start();
-  vraft_logger.FInfo("loop:%p %s add timer:%p %ld %s", &uv_loop_, name_.c_str(),
-                     timer->UvTimerPtr(), timer->id(), timer->name().c_str());
+  vraft_logger.FInfo("loop %s, add timer, %s", DebugString().c_str(),
+                     timer->DebugString().c_str());
   timers_[timer->id()] = std::move(timer);
 }
 
 void EventLoop::RemoveTimer(TimerId id) {
   AssertInLoopThread();
-  vraft_logger.FInfo("loop:%p %s remove timer:%ld", &uv_loop_, name_.c_str(),
-                     id);
+  vraft_logger.FInfo("loop %s, remove timer, timer-id:%d", DebugString().c_str(), id);
   timers_.erase(id);
 }
 

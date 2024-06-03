@@ -40,20 +40,21 @@ TEST(Acceptor, Acceptor) {
   o.logger_name = "Acceptor.Acceptor";
   vraft::vraft_logger.Init("/tmp/acceptor_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
 
-  vraft::HostPort hp("127.0.0.1:9988");
+  vraft::HostPort addr("127.0.0.1:9988");
   vraft::TcpOptions to;
-  vraft::Acceptor acceptor(hp, l, to);
+  vraft::Acceptor acceptor(loop, addr, to);
   vraft::Acceptor *a = &acceptor;
 
-  std::thread t([l]() { l->Loop(); });
-  l->RunFunctor([a]() { a->Close(); });
-  std::thread t2([l]() {
+  std::thread t([loop]() { loop->Loop(); });
+  loop->RunFunctor([a]() { a->Close(); });
+  std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    l->Stop();
+    loop->Stop();
   });
   t.join();
   t2.join();

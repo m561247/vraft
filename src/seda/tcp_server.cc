@@ -13,7 +13,7 @@ namespace vraft {
 
 TcpServer::TcpServer(const HostPort &addr, const std::string &name,
                      const TcpOptions &options, EventLoopSPtr loop)
-    : name_(name), loop_(loop), connections_(), acceptor_(addr, loop, options) {
+    : name_(name), loop_(loop), connections_(), acceptor_(loop, addr, options) {
   vraft_logger.FInfo("tcp-server:%s construct", name_.c_str());
   // make sure the all the objects finish construct
   Init();

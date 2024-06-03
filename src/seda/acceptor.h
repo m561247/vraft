@@ -10,47 +10,49 @@
 
 namespace vraft {
 
-class EventLoop;
 using AcceptorNewConnFunc = std::function<void(UvTcpUPtr)>;
-
 void AcceptorHandleRead(UvStream *server, int status);
+void AcceptorCloseCb(UvHandle *handle);
 
 class Acceptor final {
  public:
-  Acceptor(const HostPort &addr, EventLoopSPtr loop, const TcpOptions &options);
+  Acceptor(EventLoopSPtr &loop, const HostPort &addr,
+           const TcpOptions &options);
   ~Acceptor();
-  Acceptor(const Acceptor &t) = delete;
-  Acceptor &operator=(const Acceptor &t) = delete;
+  Acceptor(const Acceptor &a) = delete;
+  Acceptor &operator=(const Acceptor &a) = delete;
 
   // call in loop thread
-  int32_t Start();
-  int32_t Close();
-  bool IsStart();
-  void NewConnection(UvTcpUPtr conn);
   void AssertInLoopThread() const;
 
-  UvLoop *UvLoopPtr();
+  // control
+  int32_t Start();
+  int32_t Close();
+  bool Active();
+  void NewConnection(UvTcpUPtr conn);
 
-  // call in loop thread
+  // set/get
+  UvLoop *UvLoopPtr();
   const HostPort &addr() const;
   const TcpOptions &options() const;
   void set_new_conn_func(const AcceptorNewConnFunc &new_conn_func);
 
  private:
-  // call in loop thread
   void Init();
   int32_t Bind();
   int32_t Listen();
+  std::string DebugString();
 
  private:
   const HostPort addr_;
   const TcpOptions options_;
-  EventLoopWPtr loop_;
-  UvTcp server_;
-
   AcceptorNewConnFunc new_conn_func_;
 
+  UvTcp server_;
+  EventLoopWPtr loop_;
+
   friend void AcceptorHandleRead(UvStream *server, int status);
+  friend void AcceptorCloseCb(UvHandle *handle);
 };
 
 inline const HostPort &Acceptor::addr() const { return addr_; }
