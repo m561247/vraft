@@ -51,9 +51,10 @@ class EchoServer {
   void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf) {
     std::string s(buf->BeginRead(), buf->ReadableBytes());
     buf->RetrieveAll();
+    conn->CopySend(s.c_str(), s.size());
+    s.push_back('\0');  // append '\0' for print
     vraft::vraft_logger.FInfo("echo-server OnMessage:[%s]", s.c_str());
     std::cout << "echo-server recv " << s << std::endl;
-    conn->CopySend(s.c_str(), s.size());
   }
 
   vraft::EventLoopSPtr loop_;
