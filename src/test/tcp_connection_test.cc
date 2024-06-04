@@ -35,7 +35,7 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-vraft::EventLoop *lptr;
+vraft::EventLoopSPtr lptr;
 vraft::UvTcpUPtr *uptr;
 std::atomic<bool> b(false);
 
@@ -56,44 +56,37 @@ TEST(TcpConnection, TcpConnection) {
   o.logger_name = "TcpConnection.TcpConnection";
   vraft::vraft_logger.Init("/tmp/tcp_connection_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  lptr = &loop;
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
 
   vraft::UvTcpUPtr ptr = std::make_unique<vraft::UvTcp>();
   uptr = &ptr;
 
-  int32_t rv = vraft::UvTcpInit(lptr->UvLoopPtr(), uptr->get());
+  rv = vraft::UvTcpInit(loop->UvLoopPtr(), uptr->get());
   assert(rv == 0);
 
-  vraft::EventLoop *l = lptr;
+  lptr = loop;
   std::thread t(ConnectLoop);
 
-  std::cout << "wait 3s for connect to baidu ..." << std::endl;
-  std::this_thread::sleep_for(std::chrono::seconds(3));
+  while (!b.load()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
 
-// lambda cannot pass valgrind, sad!!
-#if 0
-  std::thread t2([] {
-    while (!b.load()) {
-      ;
-    }
-  });
-  t2.join();
-#endif
+  vraft::TcpConnection conn(loop, "test_conn", std::move(ptr));
+  std::cout << conn.DebugString() << std::endl;
 
-  vraft::TcpConnection conn(l, "test_conn", std::move(ptr));
   vraft::TcpConnection *pc = &conn;
-  std::cout << "name: " << conn.name() << std::endl;
-  std::cout << conn.ToString() << std::endl;
 
-  l->RunFunctor([pc]() { pc->Close(); });
-  std::thread t3([l]() {
+  loop->RunFunctor([pc]() { pc->Close(); });
+  std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    l->Stop();
+    loop->Stop();
   });
   t.join();
-  t3.join();
+  t2.join();
+  lptr.reset();
   std::cout << "loop stop" << std::endl;
 }
 

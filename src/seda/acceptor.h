@@ -24,6 +24,7 @@ class Acceptor final {
 
   // call in loop thread
   void AssertInLoopThread() const;
+  std::string DebugString();
 
   // control
   int32_t Start();
@@ -41,7 +42,6 @@ class Acceptor final {
   void Init();
   int32_t Bind();
   int32_t Listen();
-  std::string DebugString();
 
  private:
   const HostPort addr_;

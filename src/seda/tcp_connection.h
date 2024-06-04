@@ -29,7 +29,7 @@ void TcpConnectionAllocBuffer2(UvHandle *handle, size_t suggested_size,
                                UvBuf *buf);
 void WriteComplete(UvWrite *req, int status);
 void BufWriteComplete(UvWrite *req, int status);
-void HandleClientClose(UvHandle *client);
+void HandleClientClose(UvHandle *handle);
 
 struct WriteReq {
   UvWrite req;
@@ -67,6 +67,7 @@ class TcpConnection final : public std::enable_shared_from_this<TcpConnection> {
 
   void AssertInLoopThread();
   bool IsInLoopThread();
+  std::string DebugString();
 
   UvLoop *UvLoopPtr();
   EventLoopSPtr LoopSPtr();

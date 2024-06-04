@@ -41,23 +41,26 @@ TEST(Timer, Timer) {
   o.logger_name = "Timer.Timer";
   vraft::vraft_logger.Init("/tmp/timer_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
 
   vraft::TimerParam param;
   param.timeout_ms = 10;
   param.repeat_ms = 10;
   param.cb = TimerCb;
   param.data = nullptr;
-  vraft::Timer timer(param, &loop);
+  param.name = "test-timer";
+  vraft::Timer timer(param, loop);
   vraft::Timer *pt = &timer;
 
-  std::thread t([l]() { l->Loop(); });
-  l->RunFunctor([pt]() { pt->Close(); });
-  std::thread t2([l]() {
+  std::thread t([loop]() { loop->Loop(); });
+  loop->WaitStarted();
+  loop->RunFunctor([pt]() { pt->Close(); });
+  std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    l->Stop();
+    loop->Stop();
   });
 
   t.join();

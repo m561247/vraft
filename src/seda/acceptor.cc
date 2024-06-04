@@ -31,6 +31,18 @@ void Acceptor::AssertInLoopThread() const {
   }
 }
 
+std::string Acceptor::DebugString() {
+  void *lptr = nullptr;
+  auto sptr = loop_.lock();
+  if (sptr) {
+    lptr = sptr->UvLoopPtr();
+  }
+  char buf[256];
+  snprintf(buf, sizeof(buf), "addr:%s, handle:%p, loop:%p",
+           addr_.ToString().c_str(), &server_, lptr);
+  return std::string(buf);
+}
+
 int32_t Acceptor::Start() {
   AssertInLoopThread();
   vraft_logger.FInfo("acceptor start, %s", DebugString().c_str());
@@ -131,18 +143,6 @@ void AcceptorHandleRead(UvStream *server, int status) {
   } else {
     assert(0);
   }
-}
-
-std::string Acceptor::DebugString() {
-  void *lptr = nullptr;
-  auto sptr = loop_.lock();
-  if (sptr) {
-    lptr = sptr->UvLoopPtr();
-  }
-  char buf[256];
-  snprintf(buf, sizeof(buf), "addr:%s, handle:%p, loop:%p",
-           addr_.ToString().c_str(), &server_, lptr);
-  return std::string(buf);
 }
 
 }  // namespace vraft
