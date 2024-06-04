@@ -52,7 +52,12 @@ class EchoServer {
     std::string s(buf->BeginRead(), buf->ReadableBytes());
     buf->RetrieveAll();
     conn->CopySend(s.c_str(), s.size());
-    s.push_back('\0');  // append '\0' for print
+
+    // delete 0xD 0xA, for print pretty
+    if (s.size() >= 2) {
+      s.erase(s.size() - 2);
+    }
+
     vraft::vraft_logger.FInfo("echo-server OnMessage:[%s]", s.c_str());
     std::cout << "echo-server recv " << s << std::endl;
   }
