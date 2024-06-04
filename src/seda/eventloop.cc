@@ -58,6 +58,23 @@ void EventLoop::RunFunctor(const Functor func) {
   }
 }
 
+void EventLoop::AssertInLoopThread() const {
+  if (!IsInLoopThread()) {
+    vraft_logger.FInfo(
+        "loop assert, name:%s, handle:%p, tid:%d, current-tid:%d",
+        name_.c_str(), &uv_loop_, tid_, gettid());
+    assert(0);
+  }
+}
+
+std::string EventLoop::DebugString() const {
+  char buf[256];
+  snprintf(buf, sizeof(buf),
+           "name:%s, handle:%p, started:%d, active:%d, tid:%d", name_.c_str(),
+           &uv_loop_, started_.load(), Alive(), tid_);
+  return std::string(buf);
+}
+
 int32_t EventLoop::Init() {
   auto sptr = shared_from_this();
   functors_ = std::make_shared<AsyncQueue>(sptr);
@@ -90,23 +107,6 @@ bool EventLoop::IsInLoopThread() const {
   } else {
     return true;
   }
-}
-
-void EventLoop::AssertInLoopThread() const {
-  if (!IsInLoopThread()) {
-    vraft_logger.FInfo(
-        "loop assert, name:%s, handle:%p, tid:%d, current-tid:%d",
-        name_.c_str(), &uv_loop_, tid_, gettid());
-    assert(0);
-  }
-}
-
-std::string EventLoop::DebugString() const {
-  char buf[256];
-  snprintf(buf, sizeof(buf),
-           "name:%s, handle:%p, started:%d, active:%d, tid:%d", name_.c_str(),
-           &uv_loop_, started_.load(), Alive(), tid_);
-  return std::string(buf);
 }
 
 TimerSPtr EventLoop::MakeTimer(TimerParam &param) {

@@ -19,8 +19,8 @@ class EchoServer {
  public:
   EchoServer(const vraft::HostPort &listen_addr, vraft::TcpOptions &options) {
     loop_ = std::make_shared<vraft::EventLoop>("echo_server_loop");
-    tcp_server_ = std::make_shared<vraft::TcpServer>(listen_addr, "echo_server",
-                                                     options, loop_);
+    tcp_server_ = std::make_shared<vraft::TcpServer>(loop_, listen_addr,
+                                                     "echo_server", options);
 
     tcp_server_->set_on_connection_cb(
         std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));

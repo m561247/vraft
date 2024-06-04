@@ -78,8 +78,8 @@ inline RaftServer::RaftServer(Config &config, EventLoopSPtr loop)
 
   auto sptr = loop_.lock();
   assert(sptr);
-  server_ = std::make_shared<TcpServer>(config_.my_addr(), "raft_server",
-                                        options, sptr);
+  server_ = std::make_shared<TcpServer>(sptr, config_.my_addr(), "raft_server",
+                                        options);
 
   server_->set_on_connection_cb(
       std::bind(&RaftServer::OnConnection, this, std::placeholders::_1));

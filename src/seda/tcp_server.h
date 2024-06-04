@@ -16,45 +16,41 @@ namespace vraft {
 
 class TcpServer final {
  public:
-  TcpServer(const HostPort &addr, const std::string &name,
-            const TcpOptions &options, EventLoopSPtr loop);
+  TcpServer(EventLoopSPtr &loop, const HostPort &addr, const std::string &name,
+            const TcpOptions &options);
   ~TcpServer();
   TcpServer(const TcpServer &t) = delete;
   TcpServer &operator=(const TcpServer &t) = delete;
 
-  // my thread is loop thread
-  int32_t Start();
-
   // call in any thread
-  int32_t Stop();
-  void AddConnection(TcpConnectionSPtr &conn);
-  void RemoveConnection(const TcpConnectionSPtr &conn);
+  void Stop();
   void RunFunctor(const Functor func);
 
-  void AssertInLoopThread();
-
   // call in loop thread
-  bool IsStart();
+  void AssertInLoopThread();
+  std::string DebugString() const;
+
+  // control
+  int32_t Start();
+  bool Active();
+  void AddConnection(TcpConnectionSPtr &conn);
+  void RemoveConnection(const TcpConnectionSPtr &conn);
+
+  // set/get
   void set_on_connection_cb(const OnConnectionCallback &cb);
   void set_write_complete_cb(const WriteCompleteCallback &cb);
   void set_on_message_cb(const OnMessageCallback &cb);
   const std::string &name() const;
 
-  HostPort Addr() const { return acceptor_.addr(); }
-
  private:
-  // call in loop thread
   void Init();
-  int32_t StopInLoop();
-
   void NewConnection(UvTcpUPtr client);
-  int32_t AddConnectionInLoop(TcpConnectionSPtr &conn);
-  int32_t RemoveConnectionInLoop(const TcpConnectionSPtr &conn);
+  int32_t Close();
 
  private:
   const std::string name_;
-
   EventLoopWPtr loop_;
+
   ConnectionMap connections_;
   Acceptor acceptor_;
 
@@ -64,7 +60,7 @@ class TcpServer final {
 };
 
 // call in loop thread
-inline bool TcpServer::IsStart() { return acceptor_.Active(); }
+inline bool TcpServer::Active() { return acceptor_.Active(); }
 
 inline void TcpServer::set_on_connection_cb(const OnConnectionCallback &cb) {
   on_connection_cb_ = cb;

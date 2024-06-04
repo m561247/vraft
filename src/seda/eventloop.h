@@ -31,13 +31,14 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   void RunFunctor(const Functor func);
 
   // call in loop thread
+  void AssertInLoopThread() const;
+  std::string DebugString() const;
+
   // loop
   int32_t Init();
   int32_t Loop();
   bool Alive() const;
   bool IsInLoopThread() const;
-  void AssertInLoopThread() const;
-  std::string DebugString() const;
 
   // timer
   TimerSPtr MakeTimer(TimerParam &param);

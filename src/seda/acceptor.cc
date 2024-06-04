@@ -31,7 +31,7 @@ void Acceptor::AssertInLoopThread() const {
   }
 }
 
-std::string Acceptor::DebugString() {
+std::string Acceptor::DebugString() const {
   void *lptr = nullptr;
   auto sptr = loop_.lock();
   if (sptr) {

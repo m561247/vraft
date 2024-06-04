@@ -171,8 +171,7 @@ int32_t RaftServer::Stop() {
     assert(rv == 0);
   }
 
-  rv = server_->Stop();
-  assert(rv == 0);
+  server_->Stop();
 
   return rv;
 }

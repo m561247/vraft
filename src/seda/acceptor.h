@@ -24,7 +24,7 @@ class Acceptor final {
 
   // call in loop thread
   void AssertInLoopThread() const;
-  std::string DebugString();
+  std::string DebugString() const;
 
   // control
   int32_t Start();
