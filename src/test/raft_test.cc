@@ -32,8 +32,11 @@ TEST(Remu, Print) {
   o.logger_name = "Remu.Print";
   vraft::vraft_logger.Init("/tmp/remu_print_test", o);
 
-  vraft::EventLoop loop("remu");
-  vraft::Remu remu(&loop);
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("remu");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
+
+  vraft::Remu remu(loop);
   GenerateConfig(remu.configs, 4);
   remu.Create();
   remu.Print();

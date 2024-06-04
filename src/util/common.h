@@ -57,6 +57,16 @@ using TcpClientSPtr = std::shared_ptr<TcpClient>;
 using TcpClientUPtr = std::unique_ptr<TcpClient>;
 using TcpClientWPtr = std::weak_ptr<TcpClient>;
 
+class RaftServer;
+using RaftServerSPtr = std::shared_ptr<RaftServer>;
+using RaftServerUPtr = std::unique_ptr<RaftServer>;
+using RaftServerWPtr = std::weak_ptr<RaftServer>;
+
+class Remu;
+using RemuSPtr = std::shared_ptr<Remu>;
+using RemuUPtr = std::unique_ptr<Remu>;
+using RemuWPtr = std::weak_ptr<Remu>;
+
 }  // namespace vraft
 
 #endif

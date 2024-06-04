@@ -134,7 +134,7 @@ TEST += tcp_client_test
 
 
 # compile
-all: $(MAIN) $(EXAMPLE) 
+all: $(MAIN) $(EXAMPLE) $(TEST)
 main: $(MAIN) 
 example: $(EXAMPLE)
 test: $(TEST)

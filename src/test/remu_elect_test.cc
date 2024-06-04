@@ -9,6 +9,7 @@
 #include "config.h"
 #include "logger.h"
 #include "raft_server.h"
+#include "remu.h"
 #include "test_suite.h"
 #include "timer.h"
 #include "vraft_logger.h"
@@ -17,8 +18,8 @@ void SignalHandler(int signal) {
   std::cout << "recv signal " << strsignal(signal) << std::endl;
 }
 
-vraft::RemuPtr remu;
 vraft::EventLoopSPtr loop;
+vraft::RemuSPtr remu;
 
 void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
@@ -40,7 +41,6 @@ void RemuTick(vraft::Timer *timer) {
     case vraft::kTestStateEnd: {
       std::cout << "exit ..." << std::endl;
       remu->Stop();
-      // remu->Clear();
       loop->Stop();
     }
     default:
@@ -78,20 +78,22 @@ class RemuTest : public ::testing::Test {
     vraft::CodingInit();
 
     loop = std::make_shared<vraft::EventLoop>("remu-loop");
-    remu = std::make_shared<vraft::Remu>(loop.get());
+    int32_t rv = loop->Init();
+    ASSERT_EQ(rv, 0);
+
+    remu = std::make_shared<vraft::Remu>(loop);
   }
 
   void TearDown() override {
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     std::cout << "Tearing down test... \n";
     std::fflush(nullptr);
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    // remu->Clear();
     remu.reset();
-
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     loop.reset();
+    vraft::Logger::ShutDown();
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     // system("rm -rf /tmp/remu_test_dir");
   }
 };
@@ -107,9 +109,12 @@ TEST_F(RemuTest, Elect3) {
   param.data = nullptr;
   loop->AddTimer(param);
 
-  vraft::EventLoop *l = loop.get();
-  std::thread t([l]() { l->Loop(); });
-  t.join();
+  {
+    vraft::EventLoopSPtr l = loop;
+    std::thread t([l]() { l->Loop(); });
+    l->WaitStarted();
+    t.join();
+  }
 
   std::cout << "join thread... \n";
   std::fflush(nullptr);

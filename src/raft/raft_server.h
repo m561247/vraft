@@ -5,33 +5,13 @@
 #include <unordered_map>
 
 #include "allocator.h"
+#include "common.h"
 #include "config.h"
 #include "raft.h"
 #include "tcp_client.h"
 #include "tcp_server.h"
 
 namespace vraft {
-
-class RaftServer;
-using RaftServerPtr = std::shared_ptr<RaftServer>;
-
-class Remu;
-using RemuPtr = std::shared_ptr<Remu>;
-
-// raft emulator, good!!
-struct Remu {
-  Remu(EventLoopSPtr l) : loop(l) {}
-
-  EventLoopWPtr loop;
-  std::vector<vraft::Config> configs;
-  std::vector<vraft::RaftServerPtr> raft_servers;
-
-  void Create();
-  void Start();
-  void Stop();
-  void Clear();
-  void Print(bool tiny = true, bool one_line = true);
-};
 
 class RaftServer final {
  public:
