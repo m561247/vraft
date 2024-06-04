@@ -84,10 +84,9 @@ TEST(TcpClient, TcpClient2) {
   std::thread t([loop]() { loop->Loop(); });
   loop->WaitStarted();
 
-  loop->RunFunctor([pt]() {
-    pt->Connect();
-    std::cout << pt->DebugString() << std::endl;
-  });
+  loop->RunFunctor([pt]() { pt->Connect(); });
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  loop->RunFunctor([pt]() { std::cout << pt->DebugString() << std::endl; });
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
   loop->RunFunctor([pt]() { pt->Stop(); });
