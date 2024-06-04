@@ -33,7 +33,7 @@ COMMON_SRCS := $(wildcard $(SRC_DIRS:=/*.cc))
 # main src
 VRAFT_SERVER_SRCS := src/main/vraft_server.cc $(COMMON_SRCS)
 RLOG_TOOL_SRCS := src/main/rlog_tool.cc $(COMMON_SRCS)
-REMU_SRCS := src/main/remu.cc $(COMMON_SRCS)
+REMU_SRCS := src/main/remu_main.cc $(COMMON_SRCS)
 
 # example src
 ECHO_SERVER_SRCS := src/example/echo_server.cc $(COMMON_SRCS)
