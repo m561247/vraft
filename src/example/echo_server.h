@@ -13,15 +13,18 @@
 #include "vraft_logger.h"
 
 class EchoServer;
-using EchoServerPtr = std::shared_ptr<EchoServer>;
+using EchoServerSPtr = std::shared_ptr<EchoServer>;
+using EchoServerWPtr = std::weak_ptr<EchoServer>;
 
 class EchoServer {
  public:
   EchoServer(const vraft::HostPort &listen_addr, vraft::TcpOptions &options) {
-    loop_ = std::make_shared<vraft::EventLoop>("echo_server_loop");
-    tcp_server_ = std::make_shared<vraft::TcpServer>(loop_, listen_addr,
-                                                     "echo_server", options);
+    loop_ = std::make_shared<vraft::EventLoop>("echo-loop");
+    int32_t rv = loop_->Init();
+    assert(rv == 0);
 
+    tcp_server_ = std::make_shared<vraft::TcpServer>(loop_, listen_addr,
+                                                     "echo-server", options);
     tcp_server_->set_on_connection_cb(
         std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
     tcp_server_->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
@@ -41,8 +44,8 @@ class EchoServer {
 
  private:
   void OnConnection(const vraft::TcpConnectionSPtr &conn) {
-    vraft::vraft_logger.FInfo("echo-server OnConnection:%s",
-                              conn->name().c_str());
+    vraft::vraft_logger.FInfo("echo-server OnConnection, %s",
+                              conn->DebugString().c_str());
   }
 
   void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf) {

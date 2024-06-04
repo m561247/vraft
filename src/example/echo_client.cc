@@ -15,7 +15,7 @@ void SignalHandler(int signal) {
 
 int main(int argc, char **argv) {
 #if 0
-  vraft::LoggerOptions logger_options{"vraft", false, 1, 8192,
+  vraft::LoggerOptions logger_options{"echo-client", false, 1, 8192,
                                       vraft::kLoggerTrace};
   vraft::vraft_logger.Init("/tmp/echo_client.log", logger_options);
 #endif

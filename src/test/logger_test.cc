@@ -8,7 +8,7 @@
 
 TEST(Logger, test) {
   system("rm -f /tmp/logger_test.log");
-  vraft::LoggerOptions logger_options{"vraft", false, 1, 8192,
+  vraft::LoggerOptions logger_options{"logger-test", false, 1, 8192,
                                       vraft::kLoggerTrace};
   logger_options.level = vraft::U8ToLevel(0);
   logger_options.enable_debug = true;

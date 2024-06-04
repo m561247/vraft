@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
       return 0;
     }
 
-    vraft::LoggerOptions logger_options{"vraft", false, 1, 8192,
+    vraft::LoggerOptions logger_options{"vraft-server", false, 1, 8192,
                                         vraft::kLoggerTrace};
     logger_options.level = vraft::U8ToLevel(vraft::GetConfig().log_level());
     logger_options.enable_debug = vraft::GetConfig().enable_debug();

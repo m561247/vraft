@@ -28,11 +28,9 @@ void GenerateConfig(std::vector<vraft::Config> &configs, int32_t peers_num) {
 
 TEST(Remu, Print) {
   system("rm -rf /tmp/remu_print_test");
-
-  vraft::LoggerOptions logger_options{
-      "vraft", false, 1, 8192, vraft::kLoggerTrace, true};
-  std::string log_file = "/tmp/remu_test_dir/log/remu.log";
-  vraft::vraft_logger.Init(log_file, logger_options);
+  vraft::LoggerOptions o;
+  o.logger_name = "Remu.Print";
+  vraft::vraft_logger.Init("/tmp/remu_print_test", o);
 
   vraft::EventLoop loop("remu");
   vraft::Remu remu(&loop);
