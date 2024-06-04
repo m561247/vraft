@@ -9,11 +9,28 @@ void ConnectFinish(UvConnect *req, int32_t status) {
   c->AssertInLoopThread();
 
   if (status == 0) {
+    sockaddr_in local_addr, peer_addr;
+    int namelen = sizeof(sockaddr_in);
+    int rv = 0;
+
+    rv = UvTcpGetSockName(c->conn_.get(), (struct sockaddr *)(&local_addr),
+                          &namelen);
+    assert(rv == 0);
+    HostPort local = SockaddrInToHostPort(&local_addr);
+
+    rv = UvTcpGetPeerName(c->conn_.get(), (struct sockaddr *)(&peer_addr),
+                          &namelen);
+    assert(rv == 0);
+    HostPort peer = SockaddrInToHostPort(&peer_addr);
+
+    vraft_logger.FInfo("connect ok, %s, local:%s, peer:%s",
+                       c->DebugString().c_str(), local.ToString().c_str(),
+                       peer.ToString().c_str());
+
     if (c->new_conn_func_) {
       c->new_conn_func_(std::move(c->conn_));
     }
 
-    vraft_logger.FInfo("connect ok,  %s", c->DebugString().c_str());
     if (c->retry_timer_->Active()) {
       c->retry_timer_->Stop();
     }
