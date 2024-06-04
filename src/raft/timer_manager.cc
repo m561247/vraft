@@ -16,6 +16,7 @@ void TimerManager::MakeTick() {
   param.repeat_ms = tick_ms_;
   param.cb = tick_func_;
   param.data = data_;
+  param.name = "tick-timer";
   tick_ = maketimer_func_(param);
 }
 
@@ -26,6 +27,7 @@ void TimerManager::MakeElection() {
   param.repeat_ms = 0;
   param.cb = election_func_;
   param.data = data_;
+  param.name = "election-timer";
   election_ = maketimer_func_(param);
 }
 
@@ -37,6 +39,7 @@ void TimerManager::MakeElectionPpc() {
     param.repeat_ms = 0;
     param.cb = requestvote_func_;
     param.data = data_;
+    param.name = "rpc-timer";
     item.second = maketimer_func_(param);
     item.second->set_dest_addr(item.first);
   }
@@ -50,6 +53,7 @@ void TimerManager::MakeHeartbeat() {
     param.repeat_ms = heartbeat_ms_;
     param.cb = heartbeat_func_;
     param.data = data_;
+    param.name = "heartbeat-timer";
     item.second = maketimer_func_(param);
     item.second->set_dest_addr(item.first);
   }
@@ -157,6 +161,51 @@ void TimerManager::StopHeartBeat(uint64_t addr) {
   if (it != heartbeats_.end()) {
     if (it->second) {
       it->second->Stop();
+    }
+  }
+}
+
+void TimerManager::Close() {
+  CloseTick();
+  CloseElection();
+  CloseRequestVote();
+  CloseHeartBeat();
+}
+
+void TimerManager::CloseTick() { tick_->Close(); }
+
+void TimerManager::CloseElection() { election_->Close(); }
+
+void TimerManager::CloseRequestVote() {
+  for (auto &item : request_votes_) {
+    if (item.second) {
+      item.second->Close();
+    }
+  }
+}
+
+void TimerManager::CloseRequestVote(uint64_t addr) {
+  auto it = request_votes_.find(addr);
+  if (it != request_votes_.end()) {
+    if (it->second) {
+      it->second->Close();
+    }
+  }
+}
+
+void TimerManager::CloseHeartBeat() {
+  for (auto &item : heartbeats_) {
+    if (item.second) {
+      item.second->Close();
+    }
+  }
+}
+
+void TimerManager::CloseHeartBeat(uint64_t addr) {
+  auto it = heartbeats_.find(addr);
+  if (it != heartbeats_.end()) {
+    if (it->second) {
+      it->second->Close();
     }
   }
 }

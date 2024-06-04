@@ -44,6 +44,14 @@ class TimerManager final {
   void StopHeartBeat();
   void StopHeartBeat(uint64_t addr);
 
+  void Close();
+  void CloseTick();
+  void CloseElection();
+  void CloseRequestVote();
+  void CloseRequestVote(uint64_t addr);
+  void CloseHeartBeat();
+  void CloseHeartBeat(uint64_t addr);
+
   void set_data(void *data);
   void set_tick_func(TimerFunctor func);
   void set_election_func(TimerFunctor func);

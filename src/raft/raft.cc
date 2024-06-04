@@ -119,7 +119,7 @@ int32_t Raft::Start() {
 
 int32_t Raft::Stop() {
   started_ = false;
-  timer_mgr_.Stop();
+  timer_mgr_.Close();
   return 0;
 }
 
