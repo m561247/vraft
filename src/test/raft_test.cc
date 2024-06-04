@@ -10,8 +10,8 @@
 #include "ping_reply.h"
 #include "raft.h"
 #include "raft_server.h"
-#include "tracer.h"
 #include "remu.h"
+#include "tracer.h"
 
 void GenerateConfig(std::vector<vraft::Config> &configs, int32_t peers_num) {
   vraft::GetConfig().set_my_addr(vraft::HostPort("127.0.0.1", 9000));

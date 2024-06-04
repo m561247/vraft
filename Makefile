@@ -64,6 +64,7 @@ TCP_CONNECTION_TEST_SRCS := src/test/tcp_connection_test.cc $(COMMON_SRCS)
 TCP_SERVER_TEST_SRCS := src/test/tcp_server_test.cc $(COMMON_SRCS)
 CONNECTOR_TEST_SRCS := src/test/connector_test.cc $(COMMON_SRCS)
 TCP_CLIENT_TEST_SRCS := src/test/tcp_client_test.cc $(COMMON_SRCS)
+RAFT_SERVER_TEST_SRCS := src/test/raft_server_test.cc $(COMMON_SRCS)
 
 # remu test src
 
@@ -102,6 +103,8 @@ TCP_CONNECTION_TEST_OBJECTS := $(TCP_CONNECTION_TEST_SRCS:.cc=.o)
 TCP_SERVER_TEST_OBJECTS := $(TCP_SERVER_TEST_SRCS:.cc=.o)
 CONNECTOR_TEST_OBJECTS := $(CONNECTOR_TEST_SRCS:.cc=.o)
 TCP_CLIENT_TEST_OBJECTS := $(TCP_CLIENT_TEST_SRCS:.cc=.o)
+RAFT_SERVER_TEST_OBJECTS := $(RAFT_SERVER_TEST_SRCS:.cc=.o)
+
 
 # generate exe
 MAIN := vraft_server rlog_tool remu 
@@ -131,6 +134,7 @@ TEST += tcp_connection_test
 TEST += tcp_server_test
 TEST += connector_test
 TEST += tcp_client_test
+TEST += raft_server_test
 
 
 # compile
@@ -234,6 +238,9 @@ connector_test: $(CONNECTOR_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 tcp_client_test: $(TCP_CLIENT_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+raft_server_test: $(RAFT_SERVER_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 

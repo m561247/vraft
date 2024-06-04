@@ -6,10 +6,10 @@
 #include "config.h"
 #include "logger.h"
 #include "raft_server.h"
+#include "remu.h"
 #include "test_suite.h"
 #include "timer.h"
 #include "vraft_logger.h"
-#include "remu.h"
 
 void SignalHandler(int signal) {
   vraft::Logger::ShutDown();
