@@ -69,7 +69,7 @@ class TcpClient final {
 inline TcpClient::TcpClient(const std::string name, EventLoopSPtr loop,
                             const HostPort &dest_addr,
                             const TcpOptions &options)
-    : name_(name), loop_(loop), connector_(dest_addr, options, loop) {
+    : name_(name), loop_(loop), connector_(loop, dest_addr, options) {
   vraft_logger.FInfo("tcp-client:%s construct", name_.c_str());
   Init();
 }

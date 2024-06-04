@@ -47,7 +47,7 @@ TEST(Connector, Connector) {
 
   vraft::HostPort dest_addr("127.0.0.1:9988");
   vraft::TcpOptions to;
-  vraft::Connector connector(dest_addr, to, loop);
+  vraft::Connector connector(loop, dest_addr, to);
   vraft::Connector *c = &connector;
 
   std::thread t([loop]() { loop->Loop(); });
@@ -76,7 +76,7 @@ TEST(Connector, Connect) {
 
   vraft::HostPort dest_addr("baidu.com:80");
   vraft::TcpOptions to;
-  vraft::Connector connector(dest_addr, to, loop);
+  vraft::Connector connector(loop, dest_addr, to);
   rv = connector.Connect();
   ASSERT_EQ(rv, 0);
 
@@ -107,7 +107,7 @@ TEST(Connector, ConnectRetry) {
 
   vraft::HostPort dest_addr("baidu.com:80");
   vraft::TcpOptions to;
-  vraft::Connector connector(dest_addr, to, loop);
+  vraft::Connector connector(loop, dest_addr, to);
   rv = connector.Connect(10);
   ASSERT_EQ(rv, 0);
 
@@ -138,7 +138,7 @@ TEST(Connector, TimerConnect) {
 
   vraft::HostPort dest_addr("baidu.com:80");
   vraft::TcpOptions to;
-  vraft::Connector connector(dest_addr, to, loop);
+  vraft::Connector connector(loop, dest_addr, to);
   rv = connector.TimerConnect(10);
   ASSERT_EQ(rv, 0);
 

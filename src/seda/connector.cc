@@ -65,8 +65,8 @@ void ConnectorCloseCb(UvHandle *handle) {
   vraft_logger.FInfo("connector:%p close finish", handle);
 }
 
-Connector::Connector(const HostPort &dest_addr, const TcpOptions &options,
-                     EventLoopSPtr loop)
+Connector::Connector(EventLoopSPtr &loop, const HostPort &dest_addr,
+                     const TcpOptions &options)
     : dest_addr_(dest_addr), options_(options), loop_(loop) {
   Init();
   vraft_logger.FInfo("connector construct, %s", DebugString().c_str());

@@ -18,8 +18,8 @@ void ConnectorCloseCb(UvHandle *handle);
 
 class Connector final {
  public:
-  Connector(const HostPort &dest_addr, const TcpOptions &options,
-            EventLoopSPtr loop);
+  Connector(EventLoopSPtr &loop, const HostPort &dest_addr,
+            const TcpOptions &options);
   ~Connector();
   Connector(const Connector &t) = delete;
   Connector &operator=(const Connector &t) = delete;
