@@ -34,4 +34,23 @@ inline void OnConnection(const vraft::TcpConnectionSPtr &conn) {
   }
 }
 
+inline void OnMessage(const vraft::TcpConnectionSPtr &conn,
+                      vraft::Buffer *buf) {
+  std::string s(buf->BeginRead(), buf->ReadableBytes());
+  buf->RetrieveAll();
+
+  // do not send
+  // conn->CopySend(s.c_str(), s.size());
+
+  // delete 0xD 0xA, for print pretty
+  if (s.size() >= 2) {
+    if (s[s.length() - 1] == 0xA && s[s.length() - 2] == 0xD) {
+      s.erase(s.size() - 2);
+    }
+  }
+
+  vraft::vraft_logger.FInfo("echo-client OnMessage:[%s]", s.c_str());
+  std::cout << "echo-client recv " << s << std::endl;
+}
+
 #endif

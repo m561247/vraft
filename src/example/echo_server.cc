@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
   vraft::LoggerOptions logger_options{"echo-server",       false, 1, 8192,
                                       vraft::kLoggerTrace, true};
   vraft::vraft_logger.Init("/tmp/echo_server.log", logger_options);
-
   std::signal(SIGINT, SignalHandler);
 
   vraft::TcpOptions opt = {true};

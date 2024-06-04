@@ -55,7 +55,9 @@ class EchoServer {
 
     // delete 0xD 0xA, for print pretty
     if (s.size() >= 2) {
-      s.erase(s.size() - 2);
+      if (s[s.length() - 1] == 0xA && s[s.length() - 2] == 0xD) {
+        s.erase(s.size() - 2);
+      }
     }
 
     vraft::vraft_logger.FInfo("echo-server OnMessage:[%s]", s.c_str());
