@@ -23,8 +23,8 @@ class EchoServer {
     int32_t rv = loop_->Init();
     assert(rv == 0);
 
-    tcp_server_ = std::make_shared<vraft::TcpServer>(loop_, listen_addr,
-                                                     "echo-server", options);
+    tcp_server_ = std::make_shared<vraft::TcpServer>(loop_, "echo-server",
+                                                     listen_addr, options);
     tcp_server_->set_on_connection_cb(
         std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
     tcp_server_->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,

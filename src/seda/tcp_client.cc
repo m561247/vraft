@@ -2,30 +2,29 @@
 
 namespace vraft {
 
-int32_t TcpClient::TimerConnect(int64_t retry_times) {
-  vraft_logger.FInfo("tcp-client:%s timer-connect, retry_times:%lu",
-                     name_.c_str(), retry_times);
-  return connector_.TimerConnect(retry_times);
+TcpClient::TcpClient(EventLoopSPtr &loop, const std::string name,
+                     const HostPort &dest_addr, const TcpOptions &options)
+    : name_(name), loop_(loop), connector_(loop, dest_addr, options) {
+  vraft_logger.FInfo("tcp-client construct, %s", DebugString().c_str());
+  Init();
 }
 
-int32_t TcpClient::Connect(int64_t retry_times) {
-  vraft_logger.FInfo("tcp-client:%s connect, retry_times:%lu", name_.c_str(),
-                     retry_times);
-  return connector_.Connect(retry_times);
+TcpClient::~TcpClient() {
+  vraft_logger.FInfo("tcp-client destruct, %s", DebugString().c_str());
 }
 
-int32_t TcpClient::Connect() {
-  vraft_logger.FInfo("tcp-client:%s connect", name_.c_str());
-  return connector_.Connect();
-}
-
-int32_t TcpClient::Stop() {
+void TcpClient::Stop() {
   auto sptr = loop_.lock();
   if (sptr) {
-    sptr->RunFunctor(std::bind(&TcpClient::StopInLoop, this));
+    sptr->RunFunctor(std::bind(&TcpClient::Close, this));
   }
+}
 
-  return 0;
+void TcpClient::RunFunctor(const Functor func) {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->RunFunctor(func);
+  }
 }
 
 void TcpClient::AssertInLoopThread() {
@@ -35,61 +34,61 @@ void TcpClient::AssertInLoopThread() {
   }
 }
 
-int32_t TcpClient::StopInLoop() {
-  AssertInLoopThread();
-  vraft_logger.FInfo("tcp-client:%s stop", name_.c_str());
+std::string TcpClient::DebugString() const {
+  void *lptr = nullptr;
+  auto sptr = loop_.lock();
+  if (sptr) {
+    lptr = sptr->UvLoopPtr();
+  }
 
-  int32_t rv = 0;
+  std::string conn = "null";
   if (connection_) {
-    rv = connection_->Close();
-    assert(rv == 0);
+    conn = connection_->ToString();
   }
 
-  rv = connector_.Close();
-  assert(rv == 0);
-
-  return rv;
+  char buf[256];
+  snprintf(buf, sizeof(buf), "name:%s, loop:%p, connector:%s, conn:%s",
+           name_.c_str(), lptr, connector_.DebugString().c_str(), conn.c_str());
+  return std::string(buf);
 }
 
-int32_t TcpClient::Send(const char *buf, unsigned int size) {
-  auto sptr = loop_.lock();
-  if (sptr) {
-    sptr->RunFunctor(std::bind(&TcpClient::SendInLoop, this, buf, size));
+std::string TcpClient::ToString() const {
+  if (connection_) {
+    return connection_->ToString();
+  } else {
+    return "local:-peer:";
   }
-
-  return 0;
 }
 
-int32_t TcpClient::CopySend(const char *buf, unsigned int size) {
-  auto sptr = loop_.lock();
-  if (sptr) {
-    sptr->RunFunctor(std::bind(&TcpClient::CopySendInLoop, this, buf, size));
-  }
-
-  return 0;
+int32_t TcpClient::TimerConnect(int64_t retry_times) {
+  AssertInLoopThread();
+  return connector_.TimerConnect(retry_times);
 }
 
-int32_t TcpClient::BufSend(const char *buf, unsigned int size) {
-  auto sptr = loop_.lock();
-  if (sptr) {
-    sptr->RunFunctor(std::bind(&TcpClient::BufSendInLoop, this, buf, size));
+int32_t TcpClient::Connect(int64_t retry_times) {
+  AssertInLoopThread();
+  return connector_.Connect(retry_times);
+}
+
+int32_t TcpClient::Connect() {
+  AssertInLoopThread();
+  return connector_.Connect();
+}
+
+bool TcpClient::Connected() const {
+  if (connection_) {
+    return connection_->Connected();
+  } else {
+    return false;
   }
-  return 0;
 }
 
 void TcpClient::RemoveConnection(const TcpConnectionSPtr &conn) {
-  auto lptr = conn->LoopSPtr();
-  if (lptr) {
-    if (lptr->IsInLoopThread()) {
-      RemoveConnectionInLoop(conn);
-    } else {
-      lptr->RunFunctor(
-          std::bind(&TcpClient::RemoveConnectionInLoop, this, conn));
-    }
-  }
+  AssertInLoopThread();
+  connection_.reset();
 }
 
-int32_t TcpClient::SendInLoop(const char *buf, unsigned int size) {
+int32_t TcpClient::Send(const char *buf, unsigned int size) {
   AssertInLoopThread();
   if (connection_) {
     return connection_->Send(buf, size);
@@ -98,7 +97,7 @@ int32_t TcpClient::SendInLoop(const char *buf, unsigned int size) {
   }
 }
 
-int32_t TcpClient::CopySendInLoop(const char *buf, unsigned int size) {
+int32_t TcpClient::CopySend(const char *buf, unsigned int size) {
   AssertInLoopThread();
   if (connection_) {
     return connection_->CopySend(buf, size);
@@ -107,7 +106,7 @@ int32_t TcpClient::CopySendInLoop(const char *buf, unsigned int size) {
   }
 }
 
-int32_t TcpClient::BufSendInLoop(const char *buf, unsigned int size) {
+int32_t TcpClient::BufSend(const char *buf, unsigned int size) {
   AssertInLoopThread();
   if (connection_) {
     return connection_->BufSend(buf, size);
@@ -116,9 +115,9 @@ int32_t TcpClient::BufSendInLoop(const char *buf, unsigned int size) {
   }
 }
 
-int32_t TcpClient::RemoveConnectionInLoop(const TcpConnectionSPtr &conn) {
-  connection_.reset();
-  return 0;
+void TcpClient::Init() {
+  connector_.set_new_conn_func(
+      std::bind(&TcpClient::NewConnection, this, std::placeholders::_1));
 }
 
 void TcpClient::NewConnection(UvTcpUPtr client) {
@@ -146,6 +145,7 @@ void TcpClient::NewConnection(UvTcpUPtr client) {
   connection_ =
       std::make_shared<TcpConnection>(sptr, conn_name, std::move(client));
   connection_->set_on_connection_cb(on_connection_cb_);
+  connection_->set_on_message_cb(on_message_cb_);
   connection_->set_write_complete_cb(write_complete_cb_);
   connection_->set_connection_close_cb(
       std::bind(&TcpClient::RemoveConnection, this, std::placeholders::_1));
@@ -160,9 +160,20 @@ void TcpClient::NewConnection(UvTcpUPtr client) {
   }
 }
 
-void TcpClient::Init() {
-  connector_.set_new_conn_func(
-      std::bind(&TcpClient::NewConnection, this, std::placeholders::_1));
+int32_t TcpClient::Close() {
+  AssertInLoopThread();
+  vraft_logger.FInfo("tcp-client close, %s", DebugString().c_str());
+  int32_t rv = 0;
+
+  if (connection_) {
+    rv = connection_->Close();
+    assert(rv == 0);
+  }
+
+  rv = connector_.Close();
+  assert(rv == 0);
+
+  return rv;
 }
 
 }  // namespace vraft

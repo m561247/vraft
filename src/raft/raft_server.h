@@ -57,8 +57,8 @@ class RaftServer final {
 
  private:
   // for raft func
-  TcpClientPtr GetClient(uint64_t dest_addr);
-  TcpClientPtr GetClientOrCreate(uint64_t dest_addr);
+  TcpClientSPtr GetClient(uint64_t dest_addr);
+  TcpClientSPtr GetClientOrCreate(uint64_t dest_addr);
   int32_t Send(uint64_t dest_addr, const char *buf, unsigned int size);
   TimerSPtr MakeTimer(TimerParam &param);
 
@@ -66,7 +66,7 @@ class RaftServer final {
   Config config_;
   EventLoopWPtr loop_;
   TcpServerSPtr server_;
-  std::unordered_map<uint64_t, TcpClientPtr> clients_;
+  std::unordered_map<uint64_t, TcpClientSPtr> clients_;
 
   RaftPtr raft_;
 };
@@ -78,7 +78,7 @@ inline RaftServer::RaftServer(Config &config, EventLoopSPtr loop)
 
   auto sptr = loop_.lock();
   assert(sptr);
-  server_ = std::make_shared<TcpServer>(sptr, config_.my_addr(), "raft_server",
+  server_ = std::make_shared<TcpServer>(sptr, "raft_server", config_.my_addr(),
                                         options);
 
   server_->set_on_connection_cb(
@@ -104,7 +104,7 @@ inline RaftServer::RaftServer(Config &config, EventLoopSPtr loop)
 
 inline RaftServer::~RaftServer() {}
 
-inline TcpClientPtr RaftServer::GetClient(uint64_t dest_addr) {
+inline TcpClientSPtr RaftServer::GetClient(uint64_t dest_addr) {
   auto it = clients_.find(dest_addr);
   if (it != clients_.end()) {
     return it->second;
@@ -115,8 +115,8 @@ inline TcpClientPtr RaftServer::GetClient(uint64_t dest_addr) {
   }
 }
 
-inline TcpClientPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
-  TcpClientPtr ptr = GetClient(dest_addr);
+inline TcpClientSPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
+  TcpClientSPtr ptr = GetClient(dest_addr);
   if (ptr && !ptr->Connected()) {
     clients_.erase(dest_addr);
     ptr.reset();
@@ -128,7 +128,7 @@ inline TcpClientPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
     HostPort hostport(IpU32ToIpString(addr.ip()), addr.port());
     auto sptr = loop_.lock();
     assert(sptr);
-    ptr = std::make_shared<TcpClient>("raft_client", sptr, hostport, options);
+    ptr = std::make_shared<TcpClient>(sptr, "raft_client", hostport, options);
     int32_t rv = ptr->Connect(100);
     if (rv == 0) {
       clients_.insert({dest_addr, ptr});

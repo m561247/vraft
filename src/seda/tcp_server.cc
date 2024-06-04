@@ -11,9 +11,12 @@
 
 namespace vraft {
 
-TcpServer::TcpServer(EventLoopSPtr &loop, const HostPort &addr,
-                     const std::string &name, const TcpOptions &options)
-    : name_(name), loop_(loop), connections_(), acceptor_(loop, addr, options) {
+TcpServer::TcpServer(EventLoopSPtr &loop, const std::string &name,
+                     const HostPort &listen_addr, const TcpOptions &options)
+    : name_(name),
+      loop_(loop),
+      connections_(),
+      acceptor_(loop, listen_addr, options) {
   Init();
   vraft_logger.FInfo("tcp-server construct, %s", DebugString().c_str());
 }
@@ -132,7 +135,7 @@ void TcpServer::NewConnection(UvTcpUPtr client) {
 
 int32_t TcpServer::Close() {
   AssertInLoopThread();
-  vraft_logger.FInfo("tcp-server inner close, %s", DebugString().c_str());
+  vraft_logger.FInfo("tcp-server close, %s", DebugString().c_str());
   int32_t rv = 0;
 
   ConnectionMap tmp_conns = connections_;

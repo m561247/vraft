@@ -52,6 +52,11 @@ using TcpServerSPtr = std::shared_ptr<TcpServer>;
 using TcpServerUPtr = std::unique_ptr<TcpServer>;
 using TcpServerWPtr = std::weak_ptr<TcpServer>;
 
+class TcpClient;
+using TcpClientSPtr = std::shared_ptr<TcpClient>;
+using TcpClientUPtr = std::unique_ptr<TcpClient>;
+using TcpClientWPtr = std::weak_ptr<TcpClient>;
+
 }  // namespace vraft
 
 #endif

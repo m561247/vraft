@@ -47,7 +47,7 @@ TEST(TcpServer, TcpServer) {
 
   vraft::HostPort addr("127.0.0.1:9988");
   vraft::TcpOptions to;
-  vraft::TcpServer tcp_server(loop, addr, "test-tcp-server", to);
+  vraft::TcpServer tcp_server(loop, "test-tcp-server", addr, to);
 
   std::thread t([loop]() { loop->Loop(); });
   loop->WaitStarted();

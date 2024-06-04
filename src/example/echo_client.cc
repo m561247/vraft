@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-vraft::TcpClientPtr client;
+vraft::TcpClientSPtr client;
 vraft::EventLoopSPtr loop;
 
 void SignalHandler(int signal) {
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   vraft::HostPort dest_addr("127.0.0.1", 9988);
 
   client =
-      std::make_shared<vraft::TcpClient>("echo_client", loop, dest_addr, opt);
+      std::make_shared<vraft::TcpClient>(loop, "echo_client", dest_addr, opt);
   client->set_on_connection_cb(std::bind(&OnConnection, std::placeholders::_1));
   client->TimerConnect(100);
 

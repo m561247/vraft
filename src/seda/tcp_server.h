@@ -16,8 +16,8 @@ namespace vraft {
 
 class TcpServer final {
  public:
-  TcpServer(EventLoopSPtr &loop, const HostPort &addr, const std::string &name,
-            const TcpOptions &options);
+  TcpServer(EventLoopSPtr &loop, const std::string &name,
+            const HostPort &listen_addr, const TcpOptions &options);
   ~TcpServer();
   TcpServer(const TcpServer &t) = delete;
   TcpServer &operator=(const TcpServer &t) = delete;

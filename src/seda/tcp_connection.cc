@@ -200,6 +200,8 @@ void TcpConnection::OnMessage(const char *buf, ssize_t size) {
   input_buf_.Append(buf, size);
   if (on_message_cb_) {
     on_message_cb_(shared_from_this(), &input_buf_);
+  } else {
+    input_buf_.RetrieveAll();
   }
 }
 

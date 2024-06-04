@@ -26,7 +26,7 @@ class Connector final {
 
   // call in loop thread
   void AssertInLoopThread();
-  std::string DebugString();
+  std::string DebugString() const;
 
   // control
   int32_t TimerConnect(int64_t retry_times);

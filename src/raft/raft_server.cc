@@ -167,8 +167,7 @@ int32_t RaftServer::Stop() {
   assert(rv == 0);
 
   for (auto &c : clients_) {
-    rv = c.second->Stop();
-    assert(rv == 0);
+    c.second->Stop();
   }
 
   server_->Stop();
@@ -179,7 +178,7 @@ int32_t RaftServer::Stop() {
 int32_t RaftServer::Send(uint64_t dest_addr, const char *buf,
                          unsigned int size) {
   int32_t rv = 0;
-  TcpClientPtr client = GetClientOrCreate(dest_addr);
+  TcpClientSPtr client = GetClientOrCreate(dest_addr);
   if (client) {
     rv = client->CopySend(buf, size);
   } else {
