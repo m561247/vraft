@@ -41,21 +41,23 @@ TEST(Connector, Connector) {
   o.logger_name = "Connector.Connector";
   vraft::vraft_logger.Init("/tmp/connector_test.log", o);
 
-  vraft::EventLoop loop("test_loop");
-  vraft::EventLoop *l = &loop;
+  vraft::EventLoopSPtr loop = std::make_shared<vraft::EventLoop>("test-loop");
+  int32_t rv = loop->Init();
+  ASSERT_EQ(rv, 0);
 
   vraft::HostPort dest_addr("127.0.0.1:9988");
   vraft::TcpOptions to;
-  vraft::Connector connector(dest_addr, to, l);
+  vraft::Connector connector(dest_addr, to, loop);
   vraft::Connector *c = &connector;
 
-  std::thread t([l]() { l->Loop(); });
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-  l->RunFunctor([c]() { c->Close(); });
-  std::thread t2([l]() {
+  std::thread t([loop]() { loop->Loop(); });
+  loop->WaitStarted();
+
+  loop->RunFunctor([c]() { c->Close(); });
+  std::thread t2([loop]() {
     std::cout << "after 3s, call loop stop() ..." << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    l->Stop();
+    loop->Stop();
   });
   t.join();
   t2.join();

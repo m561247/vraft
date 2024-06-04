@@ -4,13 +4,6 @@
 
 namespace vraft {
 
-void Connector::AssertInLoopThread() {
-  auto sptr = loop_.lock();
-  if (sptr) {
-    return sptr->AssertInLoopThread();
-  }
-}
-
 void ConnectFinish(UvConnect *req, int32_t status) {
   Connector *c = reinterpret_cast<Connector *>(req->data);
   c->AssertInLoopThread();
@@ -20,21 +13,20 @@ void ConnectFinish(UvConnect *req, int32_t status) {
       c->new_conn_func_(std::move(c->conn_));
     }
 
-    vraft_logger.FInfo("connector:%s connect ok, retry_left:%ld, timer stop",
-                       c->dest_addr().ToString().c_str(),
-                       c->retry_timer_->repeat_counter());
+    vraft_logger.FInfo("connect ok,  %s", c->DebugString().c_str());
     if (c->retry_timer_->Active()) {
       c->retry_timer_->Stop();
     }
 
   } else {
-    vraft_logger.FError("connector:%s connect error",
-                        c->dest_addr().ToString().c_str());
+    vraft_logger.FError("connect error, %s", c->DebugString().c_str());
   }
 }
 
 void TimerConnectCb(Timer *timer) {
   Connector *c = reinterpret_cast<Connector *>(timer->data());
+  c->AssertInLoopThread();
+
   if (timer->repeat_counter() > 0) {
     timer->RepeatDecr();
     int32_t r = c->Connect();
@@ -42,33 +34,58 @@ void TimerConnectCb(Timer *timer) {
       // get result in ConnectFinish
 
     } else {
-      vraft_logger.FError("connector:%s connect error, retry_left:%ld",
-                          c->dest_addr().ToString().c_str(),
-                          timer->repeat_counter());
+      vraft_logger.FError("connect error, %s", c->DebugString().c_str());
     }
 
   } else {
-    vraft_logger.FError(
-        "connector:%s connect error, retry_left:%ld, timer stop",
-        c->dest_addr().ToString().c_str(), timer->repeat_counter());
+    vraft_logger.FError("connect error, %s, retry-timer stop",
+                        c->DebugString().c_str());
     timer->Stop();
   }
+}
+
+void ConnectorCloseCb(UvHandle *handle) {
+  vraft_logger.FInfo("connector:%p close finish", handle);
 }
 
 Connector::Connector(const HostPort &dest_addr, const TcpOptions &options,
                      EventLoopSPtr loop)
     : dest_addr_(dest_addr), options_(options), loop_(loop) {
   Init();
-  vraft_logger.FInfo("connector:%s construct, handle:%p, conn_req:%p",
-                     dest_addr_.ToString().c_str(), conn_.get(), &connect_req_);
+  vraft_logger.FInfo("connector construct, %s", DebugString().c_str());
 }
 
 Connector::~Connector() {
-  vraft_logger.FInfo("connector:%s destruct, handle:%p, conn_req:%p",
-                     dest_addr_.ToString().c_str(), conn_.get(), &connect_req_);
+  vraft_logger.FInfo("connector destruct, %s", DebugString().c_str());
+}
+
+void Connector::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    return sptr->AssertInLoopThread();
+  }
+}
+
+std::string Connector::DebugString() {
+  void *lptr = nullptr;
+  auto sptr = loop_.lock();
+  if (sptr) {
+    lptr = sptr->UvLoopPtr();
+  }
+  char buf[256];
+  int64_t retry = 0;
+  if (retry_timer_) {
+    retry = retry_timer_->repeat_counter();
+  }
+  snprintf(buf, sizeof(buf),
+           "dest:%s, handle:%p, loop:%p, req:%p, retry_timer:%p, retry:%ld",
+           dest_addr_.ToString().c_str(), conn_.get(), lptr, &connect_req_,
+           retry_timer_.get(), retry);
+  return std::string(buf);
 }
 
 int32_t Connector::TimerConnect(int64_t retry_times) {
+  AssertInLoopThread();
   auto sptr = loop_.lock();
   if (sptr) {
     if (retry_times > 0) {
@@ -83,12 +100,15 @@ int32_t Connector::TimerConnect(int64_t retry_times) {
 }
 
 int32_t Connector::Connect(int64_t retry_times) {
+  AssertInLoopThread();
   int32_t rv = 0;
   for (int64_t i = 0; i < retry_times; ++i) {
     rv = Connect();
     if (rv == 0) {
       break;
     }
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(options_.retry_interval_ms));
   }
   return rv;
 }
@@ -100,8 +120,9 @@ int32_t Connector::Connect() {
 }
 
 int32_t Connector::Close() {
+  AssertInLoopThread();
   if (conn_) {
-    UvClose(reinterpret_cast<UvHandle *>(conn_.get()), nullptr);
+    UvClose(reinterpret_cast<UvHandle *>(conn_.get()), ConnectorCloseCb);
   }
   retry_timer_->Close();
   return 0;
@@ -120,6 +141,7 @@ void Connector::Init() {
     param.cb = TimerConnectCb;
     param.data = this;
     retry_timer_ = sptr->MakeTimer(param);
+    param.name = "connector-retry";
     assert(retry_timer_);
   }
 }

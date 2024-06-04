@@ -14,6 +14,7 @@ using ConnectorNewConnFunc = std::function<void(UvTcpUPtr)>;
 
 void ConnectFinish(UvConnect *req, int32_t status);
 void TimerConnectCb(Timer *timer);
+void ConnectorCloseCb(UvHandle *handle);
 
 class Connector final {
  public:
@@ -24,18 +25,20 @@ class Connector final {
   Connector &operator=(const Connector &t) = delete;
 
   // call in loop thread
+  void AssertInLoopThread();
+  std::string DebugString();
+
+  // control
   int32_t TimerConnect(int64_t retry_times);
   int32_t Connect(int64_t retry_times);
   int32_t Connect();
   int32_t Close();
 
-  void AssertInLoopThread();
-
+  // set/get
   void set_new_conn_func(const ConnectorNewConnFunc &new_conn_func);
-  const HostPort &dest_addr() { return dest_addr_; }
+  const HostPort &dest_addr();
 
  private:
-  // call in loop thread
   void Init();
 
  private:
@@ -55,6 +58,8 @@ inline void Connector::set_new_conn_func(
     const ConnectorNewConnFunc &new_conn_func) {
   new_conn_func_ = new_conn_func;
 }
+
+inline const HostPort &Connector::dest_addr() { return dest_addr_; }
 
 }  // namespace vraft
 
