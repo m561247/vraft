@@ -76,8 +76,9 @@ class RemuTest : public ::testing::Test {
   void SetUp() override {
     std::cout << "setting up test... \n";
     std::fflush(nullptr);
-    test_path =
-        "/tmp/remu_test_dir_" + vraft::NsToString2(vraft::Clock::NSec());
+    // test_path = "/tmp/remu_test_dir_" +
+    // vraft::NsToString2(vraft::Clock::NSec());
+    test_path = "/tmp/remu_test_dir";
     std::string cmd = "rm -rf " + test_path;
     system(cmd.c_str());
 
