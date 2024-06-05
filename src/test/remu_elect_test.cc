@@ -105,6 +105,9 @@ class RemuTest : public ::testing::Test {
     param.name = "remu-timer";
     param.repeat_times = 5;
     loop->AddTimer(param);
+
+    // important !!
+    vraft::current_state = vraft::kTestState0;
   }
 
   void TearDown() override {
