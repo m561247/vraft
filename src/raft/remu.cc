@@ -45,6 +45,9 @@ void Remu::Stop() {
   }
 }
 
-void Remu::Clear() { raft_servers.clear(); }
+void Remu::Clear() {
+  configs.clear();
+  raft_servers.clear();
+}
 
 }  // namespace vraft

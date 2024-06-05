@@ -48,8 +48,6 @@ class SolidData final {
   std::shared_ptr<leveldb::DB> db_;
 };
 
-inline SolidData::~SolidData() {}
-
 }  // namespace vraft
 
 #endif

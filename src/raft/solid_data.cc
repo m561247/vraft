@@ -3,17 +3,29 @@
 #include "coding.h"
 #include "common.h"
 #include "raft_addr.h"
+#include "vraft_logger.h"
 
 namespace vraft {
 
-SolidData::SolidData(const std::string &path) : path_(path) {}
+SolidData::SolidData(const std::string &path) : path_(path) {
+  vraft_logger.FInfo("solid-data construct, path:%s, %p", path_.c_str(), this);
+}
+
+SolidData::~SolidData() {
+  db_.reset();
+  vraft_logger.FInfo("solid-data destruct, path:%s, %p", path_.c_str(), this);
+}
 
 void SolidData::Init() {
   db_options_.create_if_missing = true;
   db_options_.error_if_exists = false;
   leveldb::DB *dbptr;
   leveldb::Status status = leveldb::DB::Open(db_options_, path_, &dbptr);
-  assert(status.ok());
+  if (!status.ok()) {
+    vraft_logger.FError("leveldb open %s error, %s", path_.c_str(),
+                        status.ToString().c_str());
+    assert(0);
+  }
   db_.reset(dbptr);
 
   // maybe init first

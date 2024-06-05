@@ -55,6 +55,8 @@ void RemuTick(vraft::Timer *timer) {
 }
 
 void GenerateConfig(std::vector<vraft::Config> &configs, int32_t peers_num) {
+  configs.clear();
+  vraft::GetConfig().peers().clear();
   vraft::GetConfig().set_my_addr(vraft::HostPort("127.0.0.1", 9000));
   for (int i = 1; i <= peers_num; ++i) {
     vraft::GetConfig().peers().push_back(
@@ -66,6 +68,7 @@ void GenerateConfig(std::vector<vraft::Config> &configs, int32_t peers_num) {
   vraft::GetConfig().set_mode(vraft::kSingleMode);
 
   vraft::GenerateRotateConfig(configs);
+  std::cout << "generate configs, size:" << configs.size() << std::endl;
 }
 
 class RemuTest : public ::testing::Test {
@@ -77,7 +80,6 @@ class RemuTest : public ::testing::Test {
         "/tmp/remu_test_dir_" + vraft::NsToString2(vraft::Clock::NSec());
     std::string cmd = "rm -rf " + test_path;
     system(cmd.c_str());
-    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     vraft::LoggerOptions logger_options{
         "vraft", false, 1, 8192, vraft::kLoggerTrace, true};
@@ -106,7 +108,6 @@ class RemuTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     std::cout << "tearing down test... \n";
     std::fflush(nullptr);
 
