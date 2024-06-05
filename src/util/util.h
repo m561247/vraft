@@ -51,6 +51,8 @@ std::string U32ToHexStr(uint32_t x);
 
 std::string NsToString(uint64_t ns);
 
+std::string NsToString2(uint64_t ns);
+
 bool IsNumber(const std::string &str);
 
 std::string TidToStr(std::thread::id);

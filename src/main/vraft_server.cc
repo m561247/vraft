@@ -8,8 +8,7 @@
 #include "vraft_logger.h"
 
 void SignalHandler(int signal) {
-  vraft::Logger::ShutDown();
-  exit(signal);
+  std::cout << "recv signal " << strsignal(signal) << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -34,7 +33,6 @@ int main(int argc, char **argv) {
     vraft::vraft_logger.Init(log_file, logger_options);
 
     std::signal(SIGINT, SignalHandler);
-    std::signal(SIGSEGV, SignalHandler);
     vraft::CodingInit();
 
     vraft::EventLoopSPtr loop =
@@ -55,5 +53,6 @@ int main(int argc, char **argv) {
     std::cerr << "execption caught: " << msg << std::endl;
   }
 
+  vraft::Logger::ShutDown();
   return 0;
 }
