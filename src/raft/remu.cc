@@ -2,12 +2,14 @@
 
 #include <cstdio>
 
+#include "clock.h"
 #include "raft_server.h"
+#include "util.h"
 
 namespace vraft {
 
 void Remu::Print(bool tiny, bool one_line) {
-  printf("---remu--- :\n");
+  printf("---remu--- %s ---:\n", NsToString(Clock::NSec()).c_str());
   for (auto ptr : raft_servers) {
     ptr->Print(tiny, one_line);
     if (!one_line) {
@@ -22,7 +24,7 @@ void Remu::Create() {
   for (auto conf : configs) {
     auto sptr = loop.lock();
     assert(sptr);
-    vraft::RaftServerSPtr ptr = std::make_shared<vraft::RaftServer>(conf, sptr);
+    vraft::RaftServerSPtr ptr = std::make_shared<vraft::RaftServer>(sptr, conf);
     raft_servers.push_back(ptr);
   }
 }

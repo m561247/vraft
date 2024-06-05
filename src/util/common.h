@@ -67,6 +67,11 @@ using RemuSPtr = std::shared_ptr<Remu>;
 using RemuUPtr = std::unique_ptr<Remu>;
 using RemuWPtr = std::weak_ptr<Remu>;
 
+class Raft;
+using RaftSPtr = std::shared_ptr<Raft>;
+using RaftUPtr = std::unique_ptr<Raft>;
+using RaftWPtr = std::weak_ptr<Raft>;
+
 }  // namespace vraft
 
 #endif

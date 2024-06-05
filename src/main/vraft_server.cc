@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     vraft::EventLoopSPtr loop =
         std::make_shared<vraft::EventLoop>("vraft_server");
     if (vraft::GetConfig().mode() == vraft::kSingleMode) {
-      vraft::RaftServer raft_server(vraft::GetConfig(), loop);
+      vraft::RaftServer raft_server(loop, vraft::GetConfig());
       raft_server.Start();
       loop->Loop();
 

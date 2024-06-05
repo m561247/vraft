@@ -58,7 +58,7 @@ TEST(RaftServer, RaftServer) {
   int32_t rv = loop->Init();
   ASSERT_EQ(rv, 0);
 
-  vraft::RaftServer server(vraft::GetConfig(), loop);
+  vraft::RaftServer server(loop, vraft::GetConfig());
   vraft::RaftServer *ptr = &server;
   loop->RunFunctor([ptr]() { ptr->Start(); });
 

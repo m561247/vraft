@@ -6,8 +6,15 @@
 
 namespace vraft {
 
+RaftServer::RaftServer(EventLoopSPtr &loop, Config &config)
+    : config_(config), loop_(loop) {
+  Init();
+}
+
+RaftServer::~RaftServer() {}
+
 void RaftServer::OnConnection(const vraft::TcpConnectionSPtr &conn) {
-  vraft::vraft_logger.FInfo("raft-server OnConnection:%s",
+  vraft::vraft_logger.FInfo("raft-server on connection:%s",
                             conn->name().c_str());
 }
 
@@ -112,6 +119,35 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
   }
 }
 
+void RaftServer::Init() {
+  struct TcpOptions options;
+  auto sptr = loop_.lock();
+  assert(sptr);
+  server_ = std::make_shared<TcpServer>(sptr, "raft-server", config_.my_addr(),
+                                        options);
+
+  server_->set_on_connection_cb(
+      std::bind(&RaftServer::OnConnection, this, std::placeholders::_1));
+  server_->set_on_message_cb(std::bind(&RaftServer::OnMessage, this,
+                                       std::placeholders::_1,
+                                       std::placeholders::_2));
+
+  RaftConfig rc;
+  RaftAddr me(config_.my_addr().ip32, config_.my_addr().port, 0);
+  rc.me = me;
+  for (auto hostport : config_.peers()) {
+    RaftAddr dest(hostport.ip32, hostport.port, 0);
+    rc.peers.push_back(dest);
+  }
+
+  raft_ = std::make_shared<Raft>(config_.path(), rc);
+  raft_->Init();
+  raft_->set_send(std::bind(&RaftServer::Send, this, std::placeholders::_1,
+                            std::placeholders::_2, std::placeholders::_3));
+  raft_->set_make_timer(
+      std::bind(&RaftServer::MakeTimer, this, std::placeholders::_1));
+}
+
 int32_t RaftServer::Start() {
   int32_t rv = 0;
   rv = server_->Start();
@@ -130,7 +166,6 @@ int32_t RaftServer::Stop() {
   for (auto &c : clients_) {
     c.second->Stop();
   }
-
   server_->Stop();
 
   return rv;
@@ -156,6 +191,42 @@ TimerSPtr RaftServer::MakeTimer(TimerParam &param) {
   } else {
     return nullptr;
   }
+}
+
+TcpClientSPtr RaftServer::GetClient(uint64_t dest_addr) {
+  auto it = clients_.find(dest_addr);
+  if (it != clients_.end()) {
+    return it->second;
+
+  } else {
+    // not found
+    return nullptr;
+  }
+}
+
+TcpClientSPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
+  TcpClientSPtr ptr = GetClient(dest_addr);
+  if (ptr && !ptr->Connected()) {
+    clients_.erase(dest_addr);
+    ptr.reset();
+  }
+
+  if (!ptr) {
+    struct TcpOptions options;
+    RaftAddr addr(dest_addr);
+    HostPort hostport(IpU32ToIpString(addr.ip()), addr.port());
+    auto sptr = loop_.lock();
+    assert(sptr);
+    ptr = std::make_shared<TcpClient>(sptr, "raft_client", hostport, options);
+    int32_t rv = ptr->Connect(100);
+    if (rv == 0) {
+      clients_.insert({dest_addr, ptr});
+    } else {
+      ptr.reset();
+    }
+  }
+
+  return ptr;
 }
 
 }  // namespace vraft

@@ -41,9 +41,6 @@ void Elect(Timer *timer);
 void RequestVoteRpc(Timer *timer);
 void HeartBeat(Timer *timer);
 
-class Raft;
-using RaftPtr = std::shared_ptr<Raft>;
-
 class Raft final {
  public:
   Raft(const std::string &path, const RaftConfig &rc);
