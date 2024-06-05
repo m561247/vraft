@@ -222,7 +222,7 @@ TcpClientSPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
     HostPort hostport(IpU32ToIpString(addr.ip()), addr.port());
     auto sptr = loop_.lock();
     assert(sptr);
-    ptr = std::make_shared<TcpClient>(sptr, "raft_client", hostport, options);
+    ptr = std::make_shared<TcpClient>(sptr, "raft-client", hostport, options);
     int32_t rv = ptr->Connect(100);
     if (rv == 0) {
       clients_.insert({dest_addr, ptr});
