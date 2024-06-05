@@ -12,6 +12,10 @@ namespace vraft {
 
 int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   if (started_) {
+    Tracer tracer(this, true);
+    tracer.PrepareState0();
+    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+
     RaftIndex last_index = LastIndex();
     RaftTerm last_term = LastTerm();
     bool log_ok =
@@ -42,12 +46,20 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
     reply.granted =
         (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
     SendRequestVoteReply(reply);
+    tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+
+    tracer.PrepareState1();
+    vraft_logger.Trace("%s", tracer.Finish().c_str());
   }
   return 0;
 }
 
 int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
   if (started_) {
+    Tracer tracer(this, true);
+    tracer.PrepareState0();
+    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+
     if (msg.term > meta_.term()) {
       StepDown(msg.term);
 
@@ -64,6 +76,9 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
         }
       }
     }
+
+    tracer.PrepareState1();
+    vraft_logger.Trace("%s", tracer.Finish().c_str());
   }
   return 0;
 }

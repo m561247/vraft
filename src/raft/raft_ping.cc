@@ -48,9 +48,16 @@ int32_t Raft::OnPing(struct Ping &msg) {
 
 int32_t Raft::OnPingReply(struct PingReply &msg) {
   if (started_) {
+    Tracer tracer(this, false);
+    tracer.PrepareState0();
+    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+
     vraft_logger.Info("%s recv ping-reply from %s, msg:%s",
                       msg.dest.ToString().c_str(), msg.src.ToString().c_str(),
                       msg.msg.c_str());
+
+    tracer.PrepareState1();
+    vraft_logger.Trace("%s", tracer.Finish().c_str());
   }
   return 0;
 }
