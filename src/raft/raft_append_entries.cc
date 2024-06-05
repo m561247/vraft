@@ -71,7 +71,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
 
   end:
     tracer.PrepareState1();
-    vraft_logger.Trace("%s", tracer.Finish().c_str());
+    tracer.Finish();
   }
   return 0;
 }
@@ -115,7 +115,7 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
     }
 
     tracer.PrepareState1();
-    vraft_logger.Trace("%s", tracer.Finish().c_str());
+    tracer.Finish();
   }
   return 0;
 }

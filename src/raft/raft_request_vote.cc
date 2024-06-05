@@ -49,7 +49,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
     tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
 
     tracer.PrepareState1();
-    vraft_logger.Trace("%s", tracer.Finish().c_str());
+    tracer.Finish();
   }
   return 0;
 }
@@ -78,7 +78,7 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
     }
 
     tracer.PrepareState1();
-    vraft_logger.Trace("%s", tracer.Finish().c_str());
+    tracer.Finish();
   }
   return 0;
 }

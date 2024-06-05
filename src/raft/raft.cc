@@ -29,7 +29,7 @@ const char *StateToStr(enum State state) {
 
 void Tick(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
-  vraft_logger.FInfo("tick: %s", r->ToJsonString(true, true).c_str());
+  vraft_logger.FInfo("raft-tick: %s", r->ToJsonString(true, true).c_str());
   for (auto &dest_addr : r->Peers()) {
     r->SendPing(dest_addr.ToU64());
   }

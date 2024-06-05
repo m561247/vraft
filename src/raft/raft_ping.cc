@@ -40,7 +40,7 @@ int32_t Raft::OnPing(struct Ping &msg) {
     }
 
     tracer.PrepareState1();
-    vraft_logger.Trace("%s", tracer.Finish().c_str());
+    tracer.Finish();
   }
 
   return 0;
@@ -57,7 +57,7 @@ int32_t Raft::OnPingReply(struct PingReply &msg) {
                       msg.msg.c_str());
 
     tracer.PrepareState1();
-    vraft_logger.Trace("%s", tracer.Finish().c_str());
+    tracer.Finish();
   }
   return 0;
 }

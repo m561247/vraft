@@ -1,6 +1,7 @@
 #include "tracer.h"
 
 #include "raft.h"
+#include "vraft_logger.h"
 
 namespace vraft {
 
@@ -63,6 +64,11 @@ std::string Tracer::Finish() {
     }
     s.append("\n" + state1_);
   }
+
+  if (enable_) {
+    vraft_logger.Trace("%s", s.c_str());
+  }
+
   return s;
 }
 }  // namespace vraft

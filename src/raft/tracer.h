@@ -23,6 +23,7 @@ class Tracer final {
   Tracer(const Tracer &t) = delete;
   Tracer &operator=(const Tracer &t) = delete;
 
+  bool enable() { return enable_; }
   void Enable() { enable_ = true; }
   void Disable() { enable_ = false; }
 
