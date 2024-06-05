@@ -19,12 +19,13 @@ void Started(Timer *timer) {
   auto sptr = timer->LoopSPtr();
   if (sptr) {
     sptr->set_started(true);
+    sptr->latch_.CountDown();
     vraft_logger.FInfo("loop set started, %s", sptr->DebugString().c_str());
   }
 }
 
 EventLoop::EventLoop(const std::string &name)
-    : started_(false), name_(name), tid_(0) {
+    : latch_(1), started_(false), name_(name), tid_(0) {
   int32_t rv = UvLoopInit(&uv_loop_);
   vraft_logger.FInfo("loop construct, %s", DebugString().c_str());
   assert(rv == 0);
@@ -45,9 +46,13 @@ void EventLoop::Stop() {
 }
 
 void EventLoop::WaitStarted() {
+  latch_.Wait();
+
+#if 0
   while (!started_.load()) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
+#endif
 }
 
 void EventLoop::RunFunctor(const Functor func) {

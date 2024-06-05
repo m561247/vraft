@@ -52,19 +52,19 @@ TEST(TPL, tpl) {
 
 class MyTestClass : public ::testing::Test {
  protected:
-  void SetUp() override { std::cout << "Setting up test...\n"; }
+  void SetUp() override { std::cout << "setting up test...\n"; }
 
-  void TearDown() override { std::cout << "Tearing down test...\n"; }
+  void TearDown() override { std::cout << "tearing down test...\n"; }
 };
 
-TEST_F(MyTestClass, Test1) {
+TEST_F(MyTestClass, test) {
   ASSERT_EQ(2 + 2, 4);
-  std::cout << "exec MyTestClass.Test1 ..." << std::endl;
+  std::cout << "exec MyTestClass.test ..." << std::endl;
 }
 
-TEST_F(MyTestClass, Test2) {
+TEST_F(MyTestClass, test2) {
   ASSERT_TRUE(true);
-  std::cout << "exec MyTestClass.Test2 ..." << std::endl;
+  std::cout << "exec MyTestClass.test2 ..." << std::endl;
 }
 
 int main(int argc, char **argv) {

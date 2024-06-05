@@ -8,6 +8,7 @@
 #include "async_queue.h"
 #include "async_stop.h"
 #include "common.h"
+#include "count_down.h"
 #include "timer.h"
 #include "uv_wrapper.h"
 
@@ -61,6 +62,7 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   void Close();
 
  private:
+  CountDownLatch latch_;
   std::atomic<bool> started_;
   const std::string name_;
   int32_t tid_;
@@ -71,6 +73,7 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   AsyncStopSPtr stop_;
 
   friend void StopLoop(UvAsync *uv_async);
+  friend void Started(Timer *timer);
 };
 
 inline UvLoop *EventLoop::UvLoopPtr() { return &uv_loop_; }
