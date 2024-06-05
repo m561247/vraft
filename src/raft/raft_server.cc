@@ -9,9 +9,14 @@ namespace vraft {
 RaftServer::RaftServer(EventLoopSPtr &loop, Config &config)
     : config_(config), loop_(loop) {
   Init();
+  vraft_logger.FInfo("raft-server construct, loop:%p, %s, %p",
+                     loop->UvLoopPtr(), config.my_addr().ToString().c_str(),
+                     this);
 }
 
-RaftServer::~RaftServer() {}
+RaftServer::~RaftServer() {
+  vraft_logger.FInfo("raft-server destruct, %p", this);
+}
 
 void RaftServer::OnConnection(const vraft::TcpConnectionSPtr &conn) {
   vraft::vraft_logger.FInfo("raft-server on connection:%s",

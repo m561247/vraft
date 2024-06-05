@@ -119,8 +119,8 @@ class RemuTest : public ::testing::Test {
   }
 };
 
-TEST_F(RemuTest, Elect3) {
-  GenerateConfig(remu->configs, 2);
+TEST_F(RemuTest, Elect5) {
+  GenerateConfig(remu->configs, 4);
   remu->Create();
   remu->Start();
 
@@ -135,8 +135,8 @@ TEST_F(RemuTest, Elect3) {
   std::fflush(nullptr);
 }
 
-TEST_F(RemuTest, Elect5) {
-  GenerateConfig(remu->configs, 4);
+TEST_F(RemuTest, Elect3) {
+  GenerateConfig(remu->configs, 2);
   remu->Create();
   remu->Start();
 

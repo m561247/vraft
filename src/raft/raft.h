@@ -135,8 +135,6 @@ class Raft final {
   friend void HeartBeat(Timer *timer);
 };
 
-inline Raft::~Raft() {}
-
 }  // namespace vraft
 
 #endif

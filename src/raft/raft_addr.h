@@ -21,7 +21,7 @@ class RaftAddr final {
 
   uint64_t ToU64();
   void FromU64(uint64_t u64);
-  std::string ToString();
+  std::string ToString() const;
 
   uint32_t ip() { return ip_; }
   uint16_t port() { return port_; }
@@ -81,7 +81,7 @@ inline void RaftAddr::FromU64(uint64_t u64, uint32_t &ip, uint16_t &port,
   p += sizeof(id_);
 }
 
-inline std::string RaftAddr::ToString() {
+inline std::string RaftAddr::ToString() const {
   std::string ip_str = IpU32ToIpString(ip_);
   char buf[128];
   snprintf(buf, sizeof(buf), "%s:%d#%d", ip_str.c_str(), port_, id_);

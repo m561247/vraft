@@ -93,7 +93,11 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       index_mgr_(rc.peers),
       vote_mgr_(rc.peers),
       timer_mgr_(rc.peers),
-      sm_(path + "/sm") {}
+      sm_(path + "/sm") {
+  vraft_logger.FInfo("raft construct, %s, %p", rc.me.ToString().c_str(), this);
+}
+
+Raft::~Raft() { vraft_logger.FInfo("raft destruct, %p", this); }
 
 int32_t Raft::Start() {
   started_ = true;
