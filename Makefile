@@ -34,6 +34,7 @@ COMMON_SRCS := $(wildcard $(SRC_DIRS:=/*.cc))
 VRAFT_SERVER_SRCS := src/main/vraft_server.cc $(COMMON_SRCS)
 RLOG_TOOL_SRCS := src/main/rlog_tool.cc $(COMMON_SRCS)
 META_TOOL_SRCS := src/main/meta_tool.cc $(COMMON_SRCS)
+DB_TOOL_SRCS := src/main/db_tool.cc $(COMMON_SRCS)
 REMU_SRCS := src/main/remu_main.cc $(COMMON_SRCS)
 
 # example src
@@ -75,6 +76,7 @@ COUNT_DOWN_TEST_SRCS := src/test/count_down_test.cc $(COMMON_SRCS)
 VRAFT_SERVER_OBJECTS := $(VRAFT_SERVER_SRCS:.cc=.o)
 RLOG_TOOL_OBJECTS := $(RLOG_TOOL_SRCS:.cc=.o)
 META_TOOL_OBJECTS := $(META_TOOL_SRCS:.cc=.o)
+DB_TOOL_OBJECTS := $(DB_TOOL_SRCS:.cc=.o)
 REMU_OBJECTS := $(REMU_SRCS:.cc=.o)
 
 # example
@@ -111,7 +113,7 @@ COUNT_DOWN_TEST_OBJECTS := $(COUNT_DOWN_TEST_SRCS:.cc=.o)
 
 
 # generate exe
-MAIN := vraft_server rlog_tool meta_tool remu 
+MAIN := vraft_server rlog_tool meta_tool db_tool remu 
 EXAMPLE := echo_server echo_client 
 
 TEST := tpl_test
@@ -163,6 +165,9 @@ rlog_tool: $(RLOG_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 meta_tool: $(META_TOOL_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
+
+db_tool: $(DB_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 remu: $(REMU_OBJECTS)

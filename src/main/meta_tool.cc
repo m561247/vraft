@@ -11,9 +11,11 @@ int main(int argc, char **argv) {
     std::cout << argv[0] << " meta_path" << std::endl;
     return 0;
   }
+  vraft::CodingInit();
 
   std::string path = argv[1];
   vraft::SolidData meta(path);
+  meta.Init();
   std::cout << meta.ToJsonString(false, true) << std::endl;
 
   return 0;
