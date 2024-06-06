@@ -177,6 +177,8 @@ void Raft::Init() {
   index_mgr_.ResetMatch(0);
 }
 
+int32_t Propose(std::string value) { return 0; }
+
 int32_t Raft::InitConfig() {
   std::ifstream read_file(conf_path_);
   if (read_file) {

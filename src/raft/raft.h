@@ -53,6 +53,9 @@ class Raft final {
   int32_t Stop();
   void Init();
 
+  // propose
+  int32_t Propose(std::string value);
+
   // on message
   int32_t OnPing(struct Ping &msg);
   int32_t OnPingReply(struct PingReply &msg);
