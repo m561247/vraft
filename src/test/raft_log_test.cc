@@ -1168,7 +1168,7 @@ TEST(RaftLog, CheckSum2) {
     EXPECT_EQ(raft_log.LastCheck(), meta10.chk_all);
   }
 
-  system("rm -rf /tmp/raftlog_test_dir");
+  //system("rm -rf /tmp/raftlog_test_dir");
 }
 
 int main(int argc, char **argv) {

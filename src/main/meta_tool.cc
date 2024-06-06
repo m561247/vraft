@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
   std::string path = argv[1];
   vraft::SolidData meta(path);
-  std::cout << meta.ToJsonString(false, false);
+  std::cout << meta.ToJsonString(false, true) << std::endl;
 
   return 0;
 }
