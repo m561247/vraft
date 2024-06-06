@@ -10,6 +10,75 @@
 
 namespace vraft {
 
+/********************************************************************************************
+\* Server i receives an AppendEntries request from server j with
+\* m.mterm <= currentTerm[i]. This just handles m.entries of length 0 or 1, but
+\* implementations could safely accept more by treating them the same as
+\* multiple independent requests of 1 entry.
+HandleAppendEntriesRequest(i, j, m) ==
+    LET logOk == \/ m.mprevLogIndex = 0
+                 \/ /\ m.mprevLogIndex > 0
+                    /\ m.mprevLogIndex <= Len(log[i])
+                    /\ m.mprevLogTerm = log[i][m.mprevLogIndex].term
+    IN /\ m.mterm <= currentTerm[i]
+       /\ \/ /\ \* reject request
+                \/ m.mterm < currentTerm[i]
+                \/ /\ m.mterm = currentTerm[i]
+                   /\ state[i] = Follower
+                   /\ \lnot logOk
+             /\ Reply([mtype           |-> AppendEntriesResponse,
+                       mterm           |-> currentTerm[i],
+                       msuccess        |-> FALSE,
+                       mmatchIndex     |-> 0,
+                       msource         |-> i,
+                       mdest           |-> j],
+                       m)
+             /\ UNCHANGED <<serverVars, logVars>>
+          \/ \* return to follower state
+             /\ m.mterm = currentTerm[i]
+             /\ state[i] = Candidate
+             /\ state' = [state EXCEPT ![i] = Follower]
+             /\ UNCHANGED <<currentTerm, votedFor, logVars, messages>>
+          \/ \* accept request
+             /\ m.mterm = currentTerm[i]
+             /\ state[i] = Follower
+             /\ logOk
+             /\ LET index == m.mprevLogIndex + 1
+                IN \/ \* already done with request
+                       /\ \/ m.mentries = << >>
+                          \/ /\ m.mentries /= << >>
+                             /\ Len(log[i]) >= index
+                             /\ log[i][index].term = m.mentries[1].term
+                          \* This could make our commitIndex decrease (for
+                          \* example if we process an old, duplicated request),
+                          \* but that doesn't really affect anything.
+                       /\ commitIndex' = [commitIndex EXCEPT ![i] =
+                                              m.mcommitIndex]
+                       /\ Reply([mtype           |-> AppendEntriesResponse,
+                                 mterm           |-> currentTerm[i],
+                                 msuccess        |-> TRUE,
+                                 mmatchIndex     |-> m.mprevLogIndex +
+                                                     Len(m.mentries),
+                                 msource         |-> i,
+                                 mdest           |-> j],
+                                 m)
+                       /\ UNCHANGED <<serverVars, log>>
+                   \/ \* conflict: remove 1 entry
+                       /\ m.mentries /= << >>
+                       /\ Len(log[i]) >= index
+                       /\ log[i][index].term /= m.mentries[1].term
+                       /\ LET new == [index2 \in 1..(Len(log[i]) - 1) |->
+                                          log[i][index2]]
+                          IN log' = [log EXCEPT ![i] = new]
+                       /\ UNCHANGED <<serverVars, commitIndex, messages>>
+                   \/ \* no conflict: append entry
+                       /\ m.mentries /= << >>
+                       /\ Len(log[i]) = m.mprevLogIndex
+                       /\ log' = [log EXCEPT ![i] =
+                                      Append(log[i], m.mentries[1])]
+                       /\ UNCHANGED <<serverVars, commitIndex, messages>>
+       /\ UNCHANGED <<candidateVars, leaderVars>>
+********************************************************************************************/
 int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
   if (started_) {
     Tracer tracer(this, true);
@@ -76,6 +145,39 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
   return 0;
 }
 
+int32_t Raft::SendAppendEntriesReply(AppendEntriesReply &msg) {
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kAppendEntriesReply;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+  }
+
+  return 0;
+}
+
+/********************************************************************************************
+\* Server i receives an AppendEntries response from server j with
+\* m.mterm = currentTerm[i].
+HandleAppendEntriesResponse(i, j, m) ==
+    /\ m.mterm = currentTerm[i]
+    /\ \/ /\ m.msuccess \* successful
+          /\ nextIndex'  = [nextIndex  EXCEPT ![i][j] = m.mmatchIndex + 1]
+          /\ matchIndex' = [matchIndex EXCEPT ![i][j] = m.mmatchIndex]
+       \/ /\ \lnot m.msuccess \* not successful
+          /\ nextIndex' = [nextIndex EXCEPT ![i][j] =
+                               Max({nextIndex[i][j] - 1, 1})]
+          /\ UNCHANGED <<matchIndex>>
+    /\ Discard(m)
+    /\ UNCHANGED <<serverVars, candidateVars, logVars, elections>>
+********************************************************************************************/
 int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
   if (started_) {
     Tracer tracer(this, true);

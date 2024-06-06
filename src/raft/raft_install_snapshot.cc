@@ -17,6 +17,13 @@ int32_t Raft::OnInstallSnapshot(struct InstallSnapshot &msg) {
   return 0;
 }
 
+int32_t Raft::SendInstallSnapshotReply(InstallSnapshotReply &msg) {
+  if (started_) {
+    ;
+  }
+  return 0;
+}
+
 int32_t Raft::OnInstallSnapshotReply(struct InstallSnapshotReply &msg) {
   if (started_) {
     ;

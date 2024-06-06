@@ -10,6 +10,34 @@
 
 namespace vraft {
 
+/********************************************************************************************
+\* Message handlers
+\* i = recipient, j = sender, m = message
+
+\* Server i receives a RequestVote request from server j with
+\* m.mterm <= currentTerm[i].
+HandleRequestVoteRequest(i, j, m) ==
+    LET logOk == \/ m.mlastLogTerm > LastTerm(log[i])
+                 \/ /\ m.mlastLogTerm = LastTerm(log[i])
+                    /\ m.mlastLogIndex >= Len(log[i])
+        grant == /\ m.mterm = currentTerm[i]
+                 /\ logOk
+                 /\ votedFor[i] \in {Nil, j}
+    IN /\ m.mterm <= currentTerm[i]
+       /\ \/ grant  /\ votedFor' = [votedFor EXCEPT ![i] = j]
+          \/ ~grant /\ UNCHANGED votedFor
+       /\ Reply([mtype        |-> RequestVoteResponse,
+                 mterm        |-> currentTerm[i],
+                 mvoteGranted |-> grant,
+                 \* mlog is used just for the `elections' history variable for
+                 \* the proof. It would not exist in a real implementation.
+                 mlog         |-> log[i],
+                 msource      |-> i,
+                 mdest        |-> j],
+                 m)
+       /\ UNCHANGED <<state, currentTerm, candidateVars, leaderVars, logVars>>
+
+********************************************************************************************/
 int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   if (started_) {
     Tracer tracer(this, true);
@@ -54,6 +82,43 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   return 0;
 }
 
+int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg) {
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kRequestVoteReply;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+  }
+
+  return 0;
+}
+
+/********************************************************************************************
+\* Server i receives a RequestVote response from server j with
+\* m.mterm = currentTerm[i].
+HandleRequestVoteResponse(i, j, m) ==
+    \* This tallies votes even when the current state is not Candidate, but
+    \* they won't be looked at, so it doesn't matter.
+    /\ m.mterm = currentTerm[i]
+    /\ votesResponded' = [votesResponded EXCEPT ![i] =
+                              votesResponded[i] \cup {j}]
+    /\ \/ /\ m.mvoteGranted
+          /\ votesGranted' = [votesGranted EXCEPT ![i] =
+                                  votesGranted[i] \cup {j}]
+          /\ voterLog' = [voterLog EXCEPT ![i] =
+                              voterLog[i] @@ (j :> m.mlog)]
+       \/ /\ ~m.mvoteGranted
+          /\ UNCHANGED <<votesGranted, voterLog>>
+    /\ Discard(m)
+    /\ UNCHANGED <<serverVars, votedFor, leaderVars, logVars>>
+********************************************************************************************/
 int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
   if (started_) {
     Tracer tracer(this, true);

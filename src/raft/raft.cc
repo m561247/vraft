@@ -35,67 +35,6 @@ void Tick(Timer *timer) {
   }
 }
 
-void Elect(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data());
-  assert(r->state_ == FOLLOWER || r->state_ == CANDIDATE);
-
-  Tracer tracer(r, true);
-  tracer.PrepareState0();
-
-  r->meta_.IncrTerm();
-  r->state_ = CANDIDATE;
-  r->leader_ = RaftAddr(0);
-  r->vote_mgr_.Clear();
-
-  // vote for myself
-  r->meta_.SetVote(r->Me().ToU64());
-
-  // only myself, become leader
-  if (r->vote_mgr_.QuorumAll(r->IfSelfVote())) {
-    r->BecomeLeader();
-    return;
-  }
-
-  tracer.PrepareEvent(kTimer, "election-timer timeout");
-  tracer.PrepareState1();
-  tracer.Finish();
-
-  // start request-vote
-  r->timer_mgr_.StartRequestVote();
-
-  // reset election timer
-  r->timer_mgr_.AgainElection();
-}
-
-void RequestVoteRpc(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data());
-  assert(r->state_ == CANDIDATE);
-
-  Tracer tracer(r, true);
-  tracer.PrepareState0();
-
-  int32_t rv = r->SendRequestVote(timer->dest_addr(), &tracer);
-  assert(rv == 0);
-
-  tracer.PrepareState1();
-  tracer.Finish();
-}
-
-void HeartBeat(Timer *timer) {
-  Raft *r = reinterpret_cast<Raft *>(timer->data());
-  assert(r->state_ == LEADER);
-
-  Tracer tracer(r, true);
-  tracer.PrepareState0();
-
-  tracer.PrepareEvent(kTimer, "heartbeat-timer timeout");
-  int32_t rv = r->SendAppendEntries(timer->dest_addr(), &tracer);
-  assert(rv == 0);
-
-  tracer.PrepareState1();
-  tracer.Finish();
-}
-
 // if path is empty, use rc to initialize,
 // else use the data in path to initialize
 Raft::Raft(const std::string &path, const RaftConfig &rc)
@@ -177,8 +116,6 @@ void Raft::Init() {
   index_mgr_.ResetMatch(0);
 }
 
-int32_t Propose(std::string value) { return 0; }
-
 int32_t Raft::InitConfig() {
   std::ifstream read_file(conf_path_);
   if (read_file) {
@@ -219,23 +156,6 @@ RaftIndex Raft::LastIndex() {
   return last;
 }
 
-RaftTerm Raft::LastTerm() {
-  RaftIndex snapshot_last = sm_.LastIndex();
-  RaftIndex log_last = log_.Last();
-
-  if (log_last >= snapshot_last) {  // log is newer
-    if (log_last == 0) {            // no log, no snapshot
-      return meta_.term();          // return current term
-
-    } else {                         // has log
-      return log_.LastMeta()->term;  // return last log term
-    }
-
-  } else {  // snapshot is newer
-    return sm_.LastTerm();
-  }
-}
-
 RaftTerm Raft::GetTerm(RaftIndex index) {
   assert(index >= 0);
   if (index == 0) {
@@ -254,48 +174,6 @@ RaftTerm Raft::GetTerm(RaftIndex index) {
 
 bool Raft::IfSelfVote() { return (meta_.vote() == Me().ToU64()); }
 
-void Raft::StepDown(RaftTerm new_term) {
-  assert(meta_.term() <= new_term);
-  if (meta_.term() < new_term) {  // newer term
-    meta_.SetTerm(new_term);
-    meta_.SetVote(0);
-    leader_ = RaftAddr(0);
-    state_ = FOLLOWER;
-
-  } else {  // equal term
-    if (state_ != FOLLOWER) {
-      state_ = FOLLOWER;
-    }
-  }
-
-  // close heartbeat timer
-  timer_mgr_.StopHeartBeat();
-
-  // start election timer
-  timer_mgr_.StopRequestVote();
-  timer_mgr_.AgainElection();
-}
-
-void Raft::BecomeLeader() {
-  assert(state_ == CANDIDATE);
-  state_ = LEADER;
-  leader_ = Me().ToU64();
-
-  // stop election timer
-  timer_mgr_.StopElection();
-  timer_mgr_.StopRequestVote();
-
-  // reset index manager
-  index_mgr_.ResetNext(LastIndex() + 1);
-  index_mgr_.ResetMatch(0);
-
-  // append noop
-  AppendNoop();
-
-  // start heartbeat timer
-  timer_mgr_.StartHeartBeat();
-}
-
 void Raft::AppendNoop() {
   AppendEntry entry;
   entry.term = meta_.term();
@@ -304,8 +182,6 @@ void Raft::AppendNoop() {
   int32_t rv = log_.AppendOne(entry);
   assert(rv == 0);
 }
-
-void Raft::MaybeCommit() {}
 
 int32_t Raft::SendPing(uint64_t dest) {
   Ping msg;
@@ -328,106 +204,6 @@ int32_t Raft::SendPing(uint64_t dest) {
   }
   return 0;
 }
-
-int32_t Raft::SendRequestVote(uint64_t dest, Tracer *tracer) {
-  RequestVote msg;
-  msg.src = Me();
-  msg.dest = RaftAddr(dest);
-  msg.term = meta_.term();
-
-  msg.last_log_index = LastIndex();
-  msg.last_log_term = LastTerm();
-
-  std::string body_str;
-  int32_t bytes = msg.ToString(body_str);
-
-  MsgHeader header;
-  header.body_bytes = bytes;
-  header.type = kRequestVote;
-  std::string header_str;
-  header.ToString(header_str);
-
-  if (send_) {
-    header_str.append(std::move(body_str));
-    send_(dest, header_str.data(), header_str.size());
-
-    if (tracer != nullptr) {
-      tracer->PrepareEvent(kSend, msg.ToJsonString(false, true));
-    }
-  }
-  return 0;
-}
-
-int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
-  AppendEntries msg;
-  msg.src = Me();
-  msg.dest = RaftAddr(dest);
-  msg.term = meta_.term();
-
-  msg.pre_log_index = LastIndex() - 1;
-  msg.pre_log_term = GetTerm(msg.pre_log_index);
-  msg.commit_index = commit_;
-
-  std::string body_str;
-  int32_t bytes = msg.ToString(body_str);
-
-  MsgHeader header;
-  header.body_bytes = bytes;
-  header.type = kAppendEntries;
-  std::string header_str;
-  header.ToString(header_str);
-
-  if (send_) {
-    header_str.append(std::move(body_str));
-    send_(dest, header_str.data(), header_str.size());
-
-    if (tracer != nullptr) {
-      tracer->PrepareEvent(kSend, msg.ToJsonString(false, true));
-    }
-  }
-
-  return 0;
-}
-
-int32_t Raft::SendInstallSnapshot(uint64_t dest, Tracer *tracer) { return 0; }
-
-int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg) {
-  std::string body_str;
-  int32_t bytes = msg.ToString(body_str);
-
-  MsgHeader header;
-  header.body_bytes = bytes;
-  header.type = kRequestVoteReply;
-  std::string header_str;
-  header.ToString(header_str);
-
-  if (send_) {
-    header_str.append(std::move(body_str));
-    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
-  }
-
-  return 0;
-}
-
-int32_t Raft::SendAppendEntriesReply(AppendEntriesReply &msg) {
-  std::string body_str;
-  int32_t bytes = msg.ToString(body_str);
-
-  MsgHeader header;
-  header.body_bytes = bytes;
-  header.type = kAppendEntriesReply;
-  std::string header_str;
-  header.ToString(header_str);
-
-  if (send_) {
-    header_str.append(std::move(body_str));
-    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
-  }
-
-  return 0;
-}
-
-int32_t Raft::SendInstallSnapshotReply(InstallSnapshotReply &msg) { return 0; }
 
 nlohmann::json Raft::ToJson() {
   nlohmann::json j;
