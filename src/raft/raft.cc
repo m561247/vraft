@@ -449,28 +449,30 @@ nlohmann::json Raft::ToJson() {
 
 nlohmann::json Raft::ToJsonTiny() {
   nlohmann::json j;
+
+  j[0][0]["term"] = meta_.term();
+  if (meta_.vote() == 0) {
+    j[0][0]["vote"] = "0";
+  } else {
+    RaftAddr addr(meta_.vote());
+    j[0][0]["vote"] = addr.ToString();
+  }
+  j[0][1]["log"] = log_.ToJsonTiny();
+
+  j[0][2]["apply"] = last_apply_;
+  j[0][2]["cmt"] = commit_;
+  j[0][2]["leader"] = leader_.ToString();
+  j[0][2]["run"] = started_;
+
   for (auto dest : config_mgr_.Current().peers) {
     std::string key;
     key.append(dest.ToString());
-    j[0][0][key]["match"] = index_mgr_.indices[dest.ToU64()].match;
-    j[0][0][key]["next"] = index_mgr_.indices[dest.ToU64()].next;
-    j[0][0][key]["grant"] = vote_mgr_.votes[dest.ToU64()].grant;
+    j[0][3][key]["match"] = index_mgr_.indices[dest.ToU64()].match;
+    j[0][3][key]["next"] = index_mgr_.indices[dest.ToU64()].next;
+    j[0][3][key]["grant"] = vote_mgr_.votes[dest.ToU64()].grant;
     // j[key]["dn"] = vote_mgr_.votes[dest.ToU64()].done;
   }
 
-  j[0][1]["term"] = meta_.term();
-  if (meta_.vote() == 0) {
-    j[0][1]["vote"] = "0";
-  } else {
-    RaftAddr addr(meta_.vote());
-    j[0][1]["vote"] = addr.ToString();
-  }
-  j[0][2]["log"] = log_.ToJsonTiny();
-
-  j[0][3]["apply"] = last_apply_;
-  j[0][3]["cmt"] = commit_;
-  j[0][3]["leader"] = leader_.ToString();
-  j[0][3]["run"] = started_;
   j[1] = PointerToHexStr(this);
   return j;
 }
