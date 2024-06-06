@@ -50,8 +50,8 @@ void Tracer::PrepareEvent(EventType event_type, std::string s) {
 
 void Tracer::PrepareState0() {
   if (enable_) {
-    state_header_ =
-        std::string(ts_buf_) + " state_change: " + NsToString(ts_) + " ---";
+    state_header_ = std::string(ts_buf_) + " state_change: " + NsToString(ts_) +
+                    " --- " + raft_->Me().ToString() + " ---";
     state0_ = std::string(ts_buf_) + TimeStampStr() +
               " state_begin : " + raft_->ToJsonString(true, true);
   }
