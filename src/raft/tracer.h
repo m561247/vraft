@@ -14,6 +14,7 @@ enum EventType {
   kSend = 0,
   kRecv,
   kTimer,
+  KOther,
   kEventTypeNum,
 };
 
@@ -47,6 +48,7 @@ class Tracer final {
   Raft *raft_;
   uint64_t ts_;
   char ts_buf_[32];
+  std::string state_header_;
   std::string state0_;
   std::string state1_;
   std::vector<std::string> events_;

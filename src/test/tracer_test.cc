@@ -39,6 +39,8 @@ TEST(Tracer, test) {
   vraft::Tracer tracer(&r, true);
   tracer.PrepareState0();
   tracer.PrepareEvent(vraft::kRecv, event_str);
+  tracer.PrepareEvent(vraft::kTimer, "election-timer timeout");
+  tracer.PrepareEvent(vraft::kTimer, "heartbeat-timer timeout");
   tracer.PrepareEvent(vraft::kSend, event_str2);
   tracer.PrepareState1();
   std::cout << tracer.Finish() << std::endl;

@@ -1,6 +1,7 @@
 #include "tracer.h"
 
 #include "raft.h"
+#include "util.h"
 #include "vraft_logger.h"
 
 namespace vraft {
@@ -9,6 +10,7 @@ void Tracer::Init() {
   ts_ = Clock::NSec();
   snprintf(ts_buf_, sizeof(ts_buf_), "0x%lX", ts_);
 
+  state_header_.clear();
   state0_.clear();
   state1_.clear();
   events_.clear();
@@ -27,17 +29,17 @@ void Tracer::PrepareEvent(EventType event_type, std::string s) {
     switch (event_type) {
       case kSend: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
-                          " event_send : " + s);
+                          " event_send  : " + s);
         break;
       }
       case kRecv: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
-                          " event_recv : " + s);
+                          " event_recv  : " + s);
         break;
       }
       case kTimer: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
-                          " event_timer: " + s);
+                          " event_timer : " + s);
         break;
       }
       default:
@@ -48,21 +50,24 @@ void Tracer::PrepareEvent(EventType event_type, std::string s) {
 
 void Tracer::PrepareState0() {
   if (enable_) {
+    state_header_ =
+        std::string(ts_buf_) + " state_change: " + NsToString(ts_) + " ---";
     state0_ = std::string(ts_buf_) + TimeStampStr() +
-              " state_begin: " + raft_->ToJsonString(true, true);
+              " state_begin : " + raft_->ToJsonString(true, true);
   }
 }
 
 void Tracer::PrepareState1() {
   if (enable_) {
     state1_ = std::string(ts_buf_) + TimeStampStr() +
-              " state_end  : " + raft_->ToJsonString(true, true);
+              " state_end   : " + raft_->ToJsonString(true, true);
   }
 }
 
 std::string Tracer::Finish() {
   std::string s;
   if (enable_) {
+    s.append("\n" + state_header_);
     s.append("\n" + state0_);
     for (auto &e : events_) {
       s.append("\n" + e);
