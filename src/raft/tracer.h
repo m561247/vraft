@@ -13,6 +13,7 @@ class Raft;
 enum EventType {
   kSend = 0,
   kRecv,
+  kTimer,
   kEventTypeNum,
 };
 

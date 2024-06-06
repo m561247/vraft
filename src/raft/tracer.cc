@@ -35,6 +35,11 @@ void Tracer::PrepareEvent(EventType event_type, std::string s) {
                           " event_recv : " + s);
         break;
       }
+      case kTimer: {
+        events_.push_back(std::string(ts_buf_) + TimeStampStr() +
+                          " event_timer: " + s);
+        break;
+      }
       default:
         assert(0);
     }

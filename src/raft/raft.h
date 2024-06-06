@@ -65,9 +65,9 @@ class Raft final {
 
   // send message
   int32_t SendPing(uint64_t dest);
-  int32_t SendRequestVote(uint64_t dest);
-  int32_t SendAppendEntries(uint64_t dest);
-  int32_t SendInstallSnapshot(uint64_t dest);
+  int32_t SendRequestVote(uint64_t dest, Tracer *tracer);
+  int32_t SendAppendEntries(uint64_t dest, Tracer *tracer);
+  int32_t SendInstallSnapshot(uint64_t dest, Tracer *tracer);
   int32_t SendRequestVoteReply(RequestVoteReply &msg);
   int32_t SendAppendEntriesReply(AppendEntriesReply &msg);
   int32_t SendInstallSnapshotReply(InstallSnapshotReply &msg);

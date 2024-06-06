@@ -20,6 +20,8 @@ struct Remu {
   void Start();
   void Stop();
   void Clear();
+
+  void Log();
   void Print(bool tiny = true, bool one_line = true);
 };
 

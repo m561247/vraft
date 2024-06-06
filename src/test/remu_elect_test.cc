@@ -28,6 +28,7 @@ void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
     case vraft::kTestState0: {
       remu->Print();
+      remu->Log();
       int32_t leader_num = 0;
       for (auto ptr : remu->raft_servers) {
         if (ptr->raft()->state() == vraft::LEADER) {

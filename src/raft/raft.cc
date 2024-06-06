@@ -39,6 +39,9 @@ void Elect(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == FOLLOWER || r->state_ == CANDIDATE);
 
+  Tracer tracer(r, true);
+  tracer.PrepareState0();
+
   r->meta_.IncrTerm();
   r->state_ = CANDIDATE;
   r->leader_ = RaftAddr(0);
@@ -53,6 +56,10 @@ void Elect(Timer *timer) {
     return;
   }
 
+  tracer.PrepareEvent(kTimer, "election-timer timeout");
+  tracer.PrepareState1();
+  tracer.Finish();
+
   // start request-vote
   r->timer_mgr_.StartRequestVote();
 
@@ -63,15 +70,30 @@ void Elect(Timer *timer) {
 void RequestVoteRpc(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == CANDIDATE);
-  int32_t rv = r->SendRequestVote(timer->dest_addr());
+
+  Tracer tracer(r, true);
+  tracer.PrepareState0();
+
+  int32_t rv = r->SendRequestVote(timer->dest_addr(), &tracer);
   assert(rv == 0);
+
+  tracer.PrepareState1();
+  tracer.Finish();
 }
 
 void HeartBeat(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == LEADER);
-  int32_t rv = r->SendAppendEntries(timer->dest_addr());
+
+  Tracer tracer(r, true);
+  tracer.PrepareState0();
+
+  tracer.PrepareEvent(kTimer, "heartbeat-timer timeout");
+  int32_t rv = r->SendAppendEntries(timer->dest_addr(), &tracer);
   assert(rv == 0);
+
+  tracer.PrepareState1();
+  tracer.Finish();
 }
 
 // if path is empty, use rc to initialize,
@@ -305,7 +327,7 @@ int32_t Raft::SendPing(uint64_t dest) {
   return 0;
 }
 
-int32_t Raft::SendRequestVote(uint64_t dest) {
+int32_t Raft::SendRequestVote(uint64_t dest, Tracer *tracer) {
   RequestVote msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
@@ -326,11 +348,15 @@ int32_t Raft::SendRequestVote(uint64_t dest) {
   if (send_) {
     header_str.append(std::move(body_str));
     send_(dest, header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kSend, msg.ToJsonString(false, true));
+    }
   }
   return 0;
 }
 
-int32_t Raft::SendAppendEntries(uint64_t dest) {
+int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
   AppendEntries msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
@@ -352,11 +378,16 @@ int32_t Raft::SendAppendEntries(uint64_t dest) {
   if (send_) {
     header_str.append(std::move(body_str));
     send_(dest, header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kSend, msg.ToJsonString(false, true));
+    }
   }
+
   return 0;
 }
 
-int32_t Raft::SendInstallSnapshot(uint64_t dest) { return 0; }
+int32_t Raft::SendInstallSnapshot(uint64_t dest, Tracer *tracer) { return 0; }
 
 int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg) {
   std::string body_str;
