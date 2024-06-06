@@ -42,7 +42,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   if (started_) {
     Tracer tracer(this, true);
     tracer.PrepareState0();
-    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
     RaftIndex last_index = LastIndex();
     RaftTerm last_term = LastTerm();
@@ -51,12 +51,12 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
          (msg.last_log_term == last_term && msg.last_log_index >= last_index));
 
     if (msg.term > meta_.term()) {
-      StepDown(msg.term);
+      StepDown(msg.term, &tracer);
     }
 
     if (msg.term == meta_.term()) {
       if (log_ok && meta_.vote() == 0) {
-        StepDown(meta_.term());
+        StepDown(meta_.term(), &tracer);
 
         // reset election
         timer_mgr_.StopRequestVote();
@@ -74,7 +74,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
     reply.granted =
         (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
     SendRequestVoteReply(reply);
-    tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
 
     tracer.PrepareState1();
     tracer.Finish();
@@ -123,10 +123,10 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
   if (started_) {
     Tracer tracer(this, true);
     tracer.PrepareState0();
-    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
     if (msg.term > meta_.term()) {
-      StepDown(msg.term);
+      StepDown(msg.term, &tracer);
 
     } else {
       // close rpc timer
@@ -137,7 +137,7 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
         vote_mgr_.GetVote(msg.src.ToU64());
 
         if (vote_mgr_.Majority(IfSelfVote()) && state_ != LEADER) {
-          BecomeLeader();
+          BecomeLeader(&tracer);
         }
       }
     }

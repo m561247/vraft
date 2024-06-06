@@ -11,10 +11,11 @@ namespace vraft {
 class Raft;
 
 enum EventType {
-  kSend = 0,
-  kRecv,
-  kTimer,
-  KOther,
+  kEventSend = 0,
+  kEventStart,
+  kEventRecv,
+  kEventTimer,
+  kEventOther,
   kEventTypeNum,
 };
 

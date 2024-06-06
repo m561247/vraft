@@ -18,7 +18,7 @@ int32_t Raft::OnPing(struct Ping &msg) {
 
     Tracer tracer(this, false);
     tracer.PrepareState0();
-    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
     PingReply reply;
     reply.src = msg.dest;
@@ -36,7 +36,7 @@ int32_t Raft::OnPing(struct Ping &msg) {
     if (send_) {
       header_str.append(std::move(reply_str));
       send_(reply.dest.ToU64(), header_str.data(), header_str.size());
-      tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
     }
 
     tracer.PrepareState1();
@@ -50,7 +50,7 @@ int32_t Raft::OnPingReply(struct PingReply &msg) {
   if (started_) {
     Tracer tracer(this, false);
     tracer.PrepareState0();
-    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
     vraft_logger.Info("%s recv ping-reply from %s, msg:%s",
                       msg.dest.ToString().c_str(), msg.src.ToString().c_str(),

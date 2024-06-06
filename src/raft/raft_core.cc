@@ -40,11 +40,11 @@ void Elect(Timer *timer) {
 
   // only myself, become leader
   if (r->vote_mgr_.QuorumAll(r->IfSelfVote())) {
-    r->BecomeLeader();
+    r->BecomeLeader(&tracer);
     return;
   }
 
-  tracer.PrepareEvent(kTimer, "election-timer timeout");
+  tracer.PrepareEvent(kEventTimer, "election-timer timeout");
   tracer.PrepareState1();
   tracer.Finish();
 
@@ -105,7 +105,7 @@ int32_t Raft::SendRequestVote(uint64_t dest, Tracer *tracer) {
     send_(dest, header_str.data(), header_str.size());
 
     if (tracer != nullptr) {
-      tracer->PrepareEvent(kSend, msg.ToJsonString(false, true));
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
     }
   }
   return 0;
@@ -146,7 +146,7 @@ void HeartBeat(Timer *timer) {
   Tracer tracer(r, true);
   tracer.PrepareState0();
 
-  tracer.PrepareEvent(kTimer, "heartbeat-timer timeout");
+  tracer.PrepareEvent(kEventTimer, "heartbeat-timer timeout");
   int32_t rv = r->SendAppendEntries(timer->dest_addr(), &tracer);
   assert(rv == 0);
 
@@ -178,7 +178,7 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
     send_(dest, header_str.data(), header_str.size());
 
     if (tracer != nullptr) {
-      tracer->PrepareEvent(kSend, msg.ToJsonString(false, true));
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
     }
   }
 
@@ -231,7 +231,14 @@ UpdateTerm(i, j, m) ==
        \* messages is unchanged so m can be processed further.
     /\ UNCHANGED <<messages, candidateVars, leaderVars, logVars>>
 ********************************************************************************************/
-void Raft::StepDown(RaftTerm new_term) {
+void Raft::StepDown(RaftTerm new_term, Tracer *tracer) {
+  if (tracer != nullptr) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "step down, term %ld >= %ld", new_term,
+             meta_.term());
+    tracer->PrepareEvent(kEventOther, std::string(buf));
+  }
+
   assert(meta_.term() <= new_term);
   if (meta_.term() < new_term) {  // newer term
     meta_.SetTerm(new_term);
@@ -271,7 +278,11 @@ BecomeLeader(i) ==
                            evoterLog |-> voterLog[i]]}
     /\ UNCHANGED <<messages, currentTerm, votedFor, candidateVars, logVars>>
 ********************************************************************************************/
-void Raft::BecomeLeader() {
+void Raft::BecomeLeader(Tracer *tracer) {
+  if (tracer != nullptr) {
+    tracer->PrepareEvent(kEventOther, "become leader");
+  }
+
   assert(state_ == CANDIDATE);
   state_ = LEADER;
   leader_ = Me().ToU64();
@@ -315,6 +326,10 @@ AdvanceCommitIndex(i) ==
        IN commitIndex' = [commitIndex EXCEPT ![i] = newCommitIndex]
     /\ UNCHANGED <<messages, serverVars, candidateVars, leaderVars, log>>
 ********************************************************************************************/
-void Raft::MaybeCommit() {}
+void Raft::MaybeCommit(Tracer *tracer) {
+  if (tracer != nullptr) {
+    tracer->PrepareEvent(kEventOther, "maybe commit");
+  }
+}
 
 }  // namespace vraft

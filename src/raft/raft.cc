@@ -63,6 +63,10 @@ Raft::~Raft() { vraft_logger.FInfo("raft destruct, %p", this); }
 int32_t Raft::Start() {
   started_ = true;
 
+  Tracer tracer(this, true);
+  tracer.PrepareState0();
+  tracer.PrepareEvent(kEventStart, "raft start");
+
   // make timer
   assert(make_timer_);
   timer_mgr_.set_maketimer_func(make_timer_);
@@ -77,8 +81,10 @@ int32_t Raft::Start() {
   timer_mgr_.StartTick();
 
   // become follower
-  StepDown(meta_.term());
+  StepDown(meta_.term(), &tracer);
 
+  tracer.PrepareState1();
+  tracer.Finish();
   return 0;
 }
 

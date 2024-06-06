@@ -38,10 +38,10 @@ TEST(Tracer, test) {
   std::string event_str2 = msg2.ToJsonString(false, true);
   vraft::Tracer tracer(&r, true);
   tracer.PrepareState0();
-  tracer.PrepareEvent(vraft::kRecv, event_str);
-  tracer.PrepareEvent(vraft::kTimer, "election-timer timeout");
-  tracer.PrepareEvent(vraft::kTimer, "heartbeat-timer timeout");
-  tracer.PrepareEvent(vraft::kSend, event_str2);
+  tracer.PrepareEvent(vraft::kEventRecv, event_str);
+  tracer.PrepareEvent(vraft::kEventTimer, "election-timer timeout");
+  tracer.PrepareEvent(vraft::kEventTimer, "heartbeat-timer timeout");
+  tracer.PrepareEvent(vraft::kEventSend, event_str2);
   tracer.PrepareState1();
   std::cout << tracer.Finish() << std::endl;
   system("rm -rf /tmp/raft_tracer_test");
@@ -76,8 +76,8 @@ TEST(Tracer, test2) {
   vraft::Tracer tracer(&r, true);
   tracer.EnableTimeStamp();
   tracer.PrepareState0();
-  tracer.PrepareEvent(vraft::kRecv, event_str);
-  tracer.PrepareEvent(vraft::kSend, event_str2);
+  tracer.PrepareEvent(vraft::kEventRecv, event_str);
+  tracer.PrepareEvent(vraft::kEventSend, event_str2);
   tracer.PrepareState1();
   std::cout << tracer.Finish() << std::endl;
   system("rm -rf /tmp/raft_tracer_test");
@@ -112,8 +112,8 @@ TEST(Tracer, test3) {
   vraft::Tracer tracer(&r, false);
   tracer.EnableTimeStamp();
   tracer.PrepareState0();
-  tracer.PrepareEvent(vraft::kRecv, event_str);
-  tracer.PrepareEvent(vraft::kSend, event_str2);
+  tracer.PrepareEvent(vraft::kEventRecv, event_str);
+  tracer.PrepareEvent(vraft::kEventSend, event_str2);
   tracer.PrepareState1();
   std::cout << "expect null [" << tracer.Finish() << "]" << std::endl;
   EXPECT_EQ(tracer.Finish(), std::string(""));

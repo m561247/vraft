@@ -83,7 +83,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
   if (started_) {
     Tracer tracer(this, true);
     tracer.PrepareState0();
-    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
     AppendEntriesReply reply;
     reply.src = msg.dest;
@@ -95,7 +95,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
 
     if (msg.term < meta_.term()) {
       SendAppendEntriesReply(reply);
-      tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
       goto end;
     }
 
@@ -103,7 +103,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
       reply.term = msg.term;
     }
 
-    StepDown(msg.term);
+    StepDown(msg.term, &tracer);
     if (leader_.ToU64() == 0) {
       leader_ = msg.src;
     } else {
@@ -112,14 +112,14 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
 
     if (msg.pre_log_index > LastIndex()) {  // reject
       SendAppendEntriesReply(reply);
-      tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
       goto end;
     }
 
     assert(msg.pre_log_index <= LastIndex());
     if (GetTerm(msg.pre_log_index) != msg.pre_log_term) {  // reject
       SendAppendEntriesReply(reply);
-      tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
       goto end;
     }
 
@@ -136,7 +136,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
     timer_mgr_.AgainElection();
 
     SendAppendEntriesReply(reply);
-    tracer.PrepareEvent(kSend, reply.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
 
   end:
     tracer.PrepareState1();
@@ -182,11 +182,11 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
   if (started_) {
     Tracer tracer(this, true);
     tracer.PrepareState0();
-    tracer.PrepareEvent(kRecv, msg.ToJsonString(false, true));
+    tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
     assert(state_ == LEADER);
     if (msg.term > meta_.term()) {
-      StepDown(msg.term);
+      StepDown(msg.term, &tracer);
 
     } else {
       assert(msg.term == meta_.term());
@@ -200,7 +200,7 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
 
         } else {
           index_mgr_.SetMatch(msg.src, pre_index + msg.num_entries);
-          MaybeCommit();
+          MaybeCommit(&tracer);
         }
 
         index_mgr_.SetNext(msg.src, index_mgr_.GetMatch(msg.src) + 1);

@@ -90,15 +90,17 @@ class Raft final {
   void set_make_timer(MakeTimerFunc func) { make_timer_ = func; }
 
  private:
-  int32_t InitConfig();
   bool IfSelfVote();
-  void BecomeLeader();
+  int32_t InitConfig();
+
   void AppendNoop();
-  void MaybeCommit();
+  void MaybeCommit(Tracer *tracer);
+  void BecomeLeader(Tracer *tracer);
+  void StepDown(RaftTerm new_term, Tracer *tracer);
+
   RaftIndex LastIndex();
   RaftTerm LastTerm();
   RaftTerm GetTerm(RaftIndex index);
-  void StepDown(RaftTerm new_term);
 
  private:
   // path

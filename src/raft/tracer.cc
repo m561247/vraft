@@ -27,19 +27,30 @@ std::string Tracer::TimeStampStr() {
 void Tracer::PrepareEvent(EventType event_type, std::string s) {
   if (enable_) {
     switch (event_type) {
-      case kSend: {
+      case kEventStart: {
+        events_.push_back(std::string(ts_buf_) + TimeStampStr() +
+                          " event_start : " + s);
+        break;
+      }
+
+      case kEventSend: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
                           " event_send  : " + s);
         break;
       }
-      case kRecv: {
+      case kEventRecv: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
                           " event_recv  : " + s);
         break;
       }
-      case kTimer: {
+      case kEventTimer: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
                           " event_timer : " + s);
+        break;
+      }
+      case kEventOther: {
+        events_.push_back(std::string(ts_buf_) + TimeStampStr() +
+                          " event_other : " + s);
         break;
       }
       default:
