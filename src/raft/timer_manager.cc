@@ -62,11 +62,14 @@ void TimerManager::MakeHeartbeat() {
 void TimerManager::StartTick() { tick_->Start(); }
 
 void TimerManager::StartElection() {
-  election_->Again(0, random_election_ms_.Get());
+  next_election_ms_ = random_election_ms_.Get();
+  election_->Again(0, next_election_ms_);
 }
 
 void TimerManager::AgainElection() {
-  election_->Again(random_election_ms_.Get(), 0);
+  last_election_ms_ = next_election_ms_;
+  next_election_ms_ = random_election_ms_.Get();
+  election_->Again(next_election_ms_, 0);
 }
 
 void TimerManager::StartRequestVote() {

@@ -59,6 +59,9 @@ class TimerManager final {
   void set_heartbeat_func(TimerFunctor func);
   void set_maketimer_func(MakeTimerFunc func);
 
+  uint32_t last_election_ms() const;
+  uint32_t next_election_ms() const;
+
  private:
   void *data_;
   TimerSPtr tick_;
@@ -71,6 +74,9 @@ class TimerManager final {
   uint32_t request_vote_ms_;
   uint32_t heartbeat_ms_;
   SimpleRandom random_election_ms_;
+
+  uint32_t last_election_ms_;
+  uint32_t next_election_ms_;
 
   TimerFunctor tick_func_;
   TimerFunctor election_func_;
@@ -85,7 +91,9 @@ inline TimerManager::TimerManager(const std::vector<RaftAddr> &peers)
       election_ms_(1500),
       request_vote_ms_(500),
       heartbeat_ms_(500),
-      random_election_ms_(election_ms_, 2 * election_ms_) {
+      random_election_ms_(election_ms_, 3 * election_ms_),
+      last_election_ms_(0),
+      next_election_ms_(0) {
   Reset(peers);
 }
 
@@ -120,6 +128,14 @@ inline void TimerManager::set_heartbeat_func(TimerFunctor func) {
 
 inline void TimerManager::set_maketimer_func(MakeTimerFunc func) {
   maketimer_func_ = func;
+}
+
+inline uint32_t TimerManager::last_election_ms() const {
+  return last_election_ms_;
+}
+
+inline uint32_t TimerManager::next_election_ms() const {
+  return next_election_ms_;
 }
 
 }  // namespace vraft

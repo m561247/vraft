@@ -463,6 +463,8 @@ nlohmann::json Raft::ToJsonTiny() {
   j[0][2]["cmt"] = commit_;
   j[0][2]["leader"] = leader_.ToString();
   j[0][2]["run"] = started_;
+  j[0][2]["elect_ms"][0] = timer_mgr_.last_election_ms();
+  j[0][2]["elect_ms"][1] = timer_mgr_.next_election_ms();
 
   for (auto dest : config_mgr_.Current().peers) {
     std::string key;
