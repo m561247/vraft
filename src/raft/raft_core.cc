@@ -237,7 +237,19 @@ ClientRequest(i, v) ==
     /\ UNCHANGED <<messages, serverVars, candidateVars,
                    leaderVars, commitIndex>>
 ********************************************************************************************/
-int32_t Raft::Propose(std::string value, Functor cb) { return 0; }
+int32_t Raft::Propose(std::string value, Functor cb) {
+  Tracer tracer(this, true);
+  tracer.PrepareState0();
+  char buf[128];
+  snprintf(buf, sizeof(buf), "propose value, length:%lu", value.size());
+  tracer.PrepareEvent(kEventOther, std::string(buf));
+
+  MaybeCommit(&tracer);
+
+  tracer.PrepareState1();
+  tracer.Finish();
+  return 0;
+}
 
 /********************************************************************************************
 \* The term of the last entry in a log, or 0 if the log is empty.
@@ -366,8 +378,30 @@ AdvanceCommitIndex(i) ==
     /\ UNCHANGED <<messages, serverVars, candidateVars, leaderVars, log>>
 ********************************************************************************************/
 void Raft::MaybeCommit(Tracer *tracer) {
+  assert(state_ == LEADER);
+  uint64_t new_commit = index_mgr_.MajorityMin(LastIndex());
+  if (commit_ >= new_commit) {
+    return;
+  }
+
+  assert(new_commit >= log_.First());
+  MetaValue new_commit_meta;
+  int32_t rv = log_.GetMeta(new_commit, new_commit_meta);
+  assert(rv == 0);
+
+  if (new_commit_meta.term != meta_.term()) {
+    return;
+  }
+
+  RaftIndex old_commit = commit_;  // record for tracer
+  commit_ = new_commit;
+  assert(commit_ <= log_.Last());
+
   if (tracer != nullptr) {
-    tracer->PrepareEvent(kEventOther, "maybe commit");
+    char buf[128];
+    snprintf(buf, sizeof(buf), "advance commit from %u to %u", old_commit,
+             commit_);
+    tracer->PrepareEvent(kEventOther, std::string(buf));
   }
 }
 

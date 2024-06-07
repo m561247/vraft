@@ -184,38 +184,56 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
-    assert(state_ == LEADER);
+    // drop stale
+    if (msg.term < meta_.term()) {
+      char buf[128];
+      snprintf(buf, sizeof(buf), "drop stale response, term %lu < %lu",
+               msg.term, meta_.term());
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+      goto end;
+    }
+
     if (msg.term > meta_.term()) {
       StepDown(msg.term, &tracer);
 
     } else {
       assert(msg.term == meta_.term());
+      assert(state_ == LEADER);
 
-      // reset hb timer ?
+      // reset heartbeat timer
+      timer_mgr_.AgainHeartBeat(msg.src.ToU64());
 
-      if (msg.success) {
-        RaftIndex pre_index = index_mgr_.GetNext(msg.src) - 1;
-        if (index_mgr_.GetMatch(msg.src) > pre_index + msg.num_entries) {
+      if (msg.success) {  // follower return match
+        if (index_mgr_.GetMatch(msg.src) >
+            msg.pre_log_index + msg.num_entries) {
           // maybe pipeline ?
 
         } else {
-          index_mgr_.SetMatch(msg.src, pre_index + msg.num_entries);
+          assert(index_mgr_.GetMatch(msg.src) <=
+                 msg.pre_log_index + msg.num_entries);
+
+          // increase match index
+          index_mgr_.SetMatch(msg.src, msg.pre_log_index + msg.num_entries);
           MaybeCommit(&tracer);
         }
 
+        // increase next index
         index_mgr_.SetNext(msg.src, index_mgr_.GetMatch(msg.src) + 1);
 
-      } else {
+      } else {  // follower return not match
+        // decrease next index
         if (index_mgr_.GetNext(msg.src) > 1) {
           index_mgr_.DecrNext(msg.src);
         }
 
+        // speed up next index!!
         if (index_mgr_.GetNext(msg.src) > msg.last_log_index + 1) {
           index_mgr_.SetNext(msg.src, msg.last_log_index + 1);
         }
       }
     }
 
+  end:
     tracer.PrepareState1();
     tracer.Finish();
   }

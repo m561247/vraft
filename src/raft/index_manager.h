@@ -2,6 +2,7 @@
 #define VRAFT_INDEX_MANAGER_H_
 
 #include <unordered_map>
+#include <vector>
 
 #include "common.h"
 #include "nlohmann/json.hpp"
@@ -20,9 +21,7 @@ class IndexManager final {
   ~IndexManager();
   IndexManager(const IndexManager &t) = delete;
   IndexManager &operator=(const IndexManager &t) = delete;
-
-  bool Majority(RaftIndex index);
-  RaftIndex MajorityMin();
+  RaftIndex MajorityMin(RaftIndex leader_match_index);
 
   void Reset(const std::vector<RaftAddr> &peers);
   void ResetNext(RaftIndex index);
@@ -59,9 +58,15 @@ inline IndexManager::IndexManager(const std::vector<RaftAddr> &peers) {
 
 inline IndexManager::~IndexManager() {}
 
-inline bool IndexManager::Majority(RaftIndex index) { return false; }
-
-inline RaftIndex IndexManager::MajorityMin() { return 0; }
+inline RaftIndex IndexManager::MajorityMin(RaftIndex leader_match_index) {
+  std::vector<RaftIndex> matches;
+  matches.push_back(leader_match_index);
+  for (auto &item : indices) {
+    matches.push_back(item.second.match);
+  }
+  std::sort(matches.begin(), matches.end());
+  return matches.at((matches.size() - 1) / 2);
+}
 
 inline void IndexManager::Reset(const std::vector<RaftAddr> &peers) {
   indices.clear();
