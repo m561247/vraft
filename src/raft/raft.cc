@@ -160,7 +160,7 @@ int32_t Raft::InitConfig() {
 RaftIndex Raft::LastIndex() {
   RaftIndex snapshot_last = sm_.LastIndex();
   RaftIndex log_last = log_.Last();
-  RaftIndex last = std::min(snapshot_last, log_last);
+  RaftIndex last = std::max(snapshot_last, log_last);
   return last;
 }
 

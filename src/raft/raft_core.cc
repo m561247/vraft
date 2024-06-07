@@ -33,6 +33,8 @@ void Elect(Timer *timer) {
   r->meta_.IncrTerm();
   r->state_ = CANDIDATE;
   r->leader_ = RaftAddr(0);
+
+  // reset candidate state, vote-manager
   r->vote_mgr_.Clear();
 
   // vote for myself
@@ -291,15 +293,15 @@ void Raft::BecomeLeader(Tracer *tracer) {
   timer_mgr_.StopElection();
   timer_mgr_.StopRequestVote();
 
-  // reset index manager
+  // reset leader state, index-manager
   index_mgr_.ResetNext(LastIndex() + 1);
   index_mgr_.ResetMatch(0);
 
-  // append noop
-  AppendNoop();
-
   // start heartbeat timer
   timer_mgr_.StartHeartBeat();
+
+  // append noop
+  AppendNoop();
 }
 
 /********************************************************************************************

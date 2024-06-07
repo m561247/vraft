@@ -35,8 +35,8 @@ void TimerManager::MakeElectionPpc() {
   assert(maketimer_func_);
   for (auto &item : request_votes_) {
     TimerParam param;
-    param.timeout_ms = request_vote_ms_;
-    param.repeat_ms = 0;
+    param.timeout_ms = 0;
+    param.repeat_ms = request_vote_ms_;
     param.cb = requestvote_func_;
     param.data = data_;
     param.name = "rpc-timer";
