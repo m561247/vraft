@@ -50,12 +50,15 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
         ((msg.last_log_term > last_term) ||
          (msg.last_log_term == last_term && msg.last_log_index >= last_index));
 
+    // maybe step down first
     if (msg.term > meta_.term()) {
       StepDown(msg.term, &tracer);
     }
+    assert(msg.term <= meta_.term());
 
+    // if grant
     if (msg.term == meta_.term()) {
-      if (log_ok && meta_.vote() == 0) {
+      if (log_ok && meta_.vote() == 0) {  // give my vote
         StepDown(meta_.term(), &tracer);
 
         // reset election
@@ -65,8 +68,13 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
         // vote
         meta_.SetVote(msg.src.ToU64());
       }
+
+    } else {
+      // msg.term < meta_.term()
+      // reject
     }
 
+    // reply
     RequestVoteReply reply;
     reply.src = msg.dest;
     reply.dest = msg.src;
@@ -125,10 +133,24 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
-    if (msg.term > meta_.term()) {
+    // drop stale
+    if (msg.term < meta_.term()) {
+      char buf[128];
+      snprintf(buf, sizeof(buf), "drop stale response, term %lu < %lu",
+               msg.term, meta_.term());
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+      goto end;
+    }
+
+    if (msg.term > meta_.term()) {  // step down
       StepDown(msg.term, &tracer);
 
-    } else {
+    } else {  // process
+      assert(msg.term == meta_.term());
+
+      // get response
+      vote_mgr_.Done(msg.src.ToU64());
+
       // close rpc timer
       timer_mgr_.StopRequestVote(msg.src.ToU64());
 
@@ -136,12 +158,13 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
         // get vote
         vote_mgr_.GetVote(msg.src.ToU64());
 
-        if (vote_mgr_.Majority(IfSelfVote()) && state_ != LEADER) {
+        if (vote_mgr_.Majority(IfSelfVote()) && state_ == CANDIDATE) {
           BecomeLeader(&tracer);
         }
       }
     }
 
+  end:
     tracer.PrepareState1();
     tracer.Finish();
   }

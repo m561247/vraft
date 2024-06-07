@@ -27,6 +27,7 @@ class VoteManager final {
   bool QuorumAll(bool my_vote);
   void Clear();
   void GetVote(uint64_t id);
+  void Done(uint64_t id);
 
  public:
   std::unordered_map<uint64_t, VoteItem> votes;
@@ -85,10 +86,9 @@ inline void VoteManager::Clear() {
   }
 }
 
-inline void VoteManager::GetVote(uint64_t id) {
-  votes[id].grant = true;
-  votes[id].done = true;
-}
+inline void VoteManager::GetVote(uint64_t id) { votes[id].grant = true; }
+
+inline void VoteManager::Done(uint64_t id) { votes[id].done = true; }
 
 inline nlohmann::json VoteManager::ToJson() {
   nlohmann::json j;
