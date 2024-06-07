@@ -371,6 +371,7 @@ class RaftLog final {
   RaftLog &operator=(const RaftLog &t) = delete;
   void Init();
   void Check();
+  bool IndexValid(RaftIndex index);
 
   int32_t AppendOne(AppendEntry &entry);
   int32_t AppendSome(std::vector<AppendEntry> &entries);

@@ -157,14 +157,51 @@ void HeartBeat(Timer *timer) {
 }
 
 int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
+  RaftIndex last_index = LastIndex();
+  RaftIndex next_index = index_mgr_.GetNext(dest);
+  RaftIndex pre_index = next_index - 1;
+  assert(pre_index <= last_index);
+
+  if (next_index < log_.First()) {
+    // do not have log, send snapshot
+    return 0;
+  }
+  assert(next_index >= log_.First());
+
+  RaftTerm pre_term = 0;
+  if (pre_index > log_.First()) {
+    pre_term = GetTerm(pre_index);
+
+  } else if (pre_index == 0) {
+    pre_term = 0;
+
+  } else if (pre_index == sm_.LastIndex()) {
+    pre_term = sm_.LastTerm();
+
+  } else {
+    // do not have log, send snapshot
+    return 0;
+  }
+
   AppendEntries msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
   msg.term = meta_.term();
+  msg.pre_log_index = pre_index;
+  msg.pre_log_term = pre_term;
 
-  msg.pre_log_index = LastIndex() - 1;
-  msg.pre_log_term = GetTerm(msg.pre_log_index);
-  msg.commit_index = commit_;
+  if (log_.IndexValid(next_index)) {
+    LogEntry entry;
+    int32_t rv = log_.Get(next_index, entry);
+    assert(rv == 0);
+    msg.entries.push_back(entry);
+  }
+
+  // tla+
+  // mcommitIndex   |-> Min({commitIndex[i], lastEntry}),
+  // logcabin:
+  // request.set_commit_index(std::min(commitIndex, prevLogIndex + numEntries));
+  msg.commit_index = std::min(commit_, pre_index + 1);
 
   std::string body_str;
   int32_t bytes = msg.ToString(body_str);

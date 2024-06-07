@@ -230,6 +230,19 @@ void RaftLog::Check() {
   }
 }
 
+bool RaftLog::IndexValid(RaftIndex index) {
+  if (index == 0) {
+    return false;
+  }
+
+  if (first_ <= index && index <= last_) {
+    return true;
+
+  } else {
+    return false;
+  }
+}
+
 RaftLog::RaftLog(const std::string &path)
     : first_(0),
       last_(0),
