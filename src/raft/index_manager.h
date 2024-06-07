@@ -21,7 +21,7 @@ class IndexManager final {
   ~IndexManager();
   IndexManager(const IndexManager &t) = delete;
   IndexManager &operator=(const IndexManager &t) = delete;
-  RaftIndex MajorityMin(RaftIndex leader_match_index);
+  RaftIndex MajorityMax(RaftIndex leader_match_index);
 
   void Reset(const std::vector<RaftAddr> &peers);
   void ResetNext(RaftIndex index);
@@ -58,7 +58,7 @@ inline IndexManager::IndexManager(const std::vector<RaftAddr> &peers) {
 
 inline IndexManager::~IndexManager() {}
 
-inline RaftIndex IndexManager::MajorityMin(RaftIndex leader_match_index) {
+inline RaftIndex IndexManager::MajorityMax(RaftIndex leader_match_index) {
   std::vector<RaftIndex> matches;
   matches.push_back(leader_match_index);
   for (auto &item : indices) {

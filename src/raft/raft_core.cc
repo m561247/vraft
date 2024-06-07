@@ -379,7 +379,7 @@ AdvanceCommitIndex(i) ==
 ********************************************************************************************/
 void Raft::MaybeCommit(Tracer *tracer) {
   assert(state_ == LEADER);
-  uint64_t new_commit = index_mgr_.MajorityMin(LastIndex());
+  uint64_t new_commit = index_mgr_.MajorityMax(LastIndex());
   if (commit_ >= new_commit) {
     return;
   }
