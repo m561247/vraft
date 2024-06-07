@@ -198,7 +198,7 @@ ClientRequest(i, v) ==
     /\ UNCHANGED <<messages, serverVars, candidateVars,
                    leaderVars, commitIndex>>
 ********************************************************************************************/
-int32_t Propose(std::string value) { return 0; }
+int32_t Raft::Propose(std::string value, Functor cb) { return 0; }
 
 /********************************************************************************************
 \* The term of the last entry in a log, or 0 if the log is empty.
@@ -240,7 +240,7 @@ void Raft::StepDown(RaftTerm new_term, Tracer *tracer) {
   }
 
   assert(meta_.term() <= new_term);
-  if (meta_.term() < new_term) {  // newer term
+  if (meta_.term() < new_term) {  // larger term
     meta_.SetTerm(new_term);
     meta_.SetVote(0);
     leader_ = RaftAddr(0);

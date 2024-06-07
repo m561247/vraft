@@ -13,7 +13,7 @@ TEST(SolidData, construct) {
   solid_data.Init();
   std::cout << "term: " << solid_data.term() << std::endl;
   std::cout << "vote: " << solid_data.vote() << std::endl;
-  EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(0));
+  EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(1));
   EXPECT_EQ(solid_data.vote(), static_cast<uint64_t>(0));
 }
 
@@ -25,7 +25,7 @@ TEST(SolidData, persist) {
     solid_data.Init();
     std::cout << "term: " << solid_data.term() << std::endl;
     std::cout << "vote: " << solid_data.vote() << std::endl;
-    EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(0));
+    EXPECT_EQ(solid_data.term(), static_cast<uint64_t>(1));
     EXPECT_EQ(solid_data.vote(), static_cast<uint64_t>(0));
 
     solid_data.SetTerm(3);

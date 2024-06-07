@@ -38,7 +38,8 @@ void Tick(Timer *timer) {
 // if path is empty, use rc to initialize,
 // else use the data in path to initialize
 Raft::Raft(const std::string &path, const RaftConfig &rc)
-    : home_path_(path),
+    : started_(false),
+      home_path_(path),
       conf_path_(path + "/conf/conf.json"),
       meta_path_(path + "/meta"),
       log_path_(path + "/rlog"),
@@ -46,15 +47,16 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       state_(FOLLOWER),
       commit_(0),
       last_apply_(0),
-      leader_(0),
-      started_(false),
-      meta_(path + "/meta"),
       log_(path + "/rlog"),
+      meta_(path + "/meta"),
+      leader_(0),
       config_mgr_(rc),
-      index_mgr_(rc.peers),
       vote_mgr_(rc.peers),
+      index_mgr_(rc.peers),
+      sm_(path + "/sm"),
       timer_mgr_(rc.peers),
-      sm_(path + "/sm") {
+      send_(nullptr),
+      make_timer_(nullptr) {
   vraft_logger.FInfo("raft construct, %s, %p", rc.me.ToString().c_str(), this);
 }
 
@@ -253,10 +255,10 @@ nlohmann::json Raft::ToJsonTiny() {
   for (auto dest : config_mgr_.Current().peers) {
     std::string key;
     key.append(dest.ToString());
-    j[0][3][key]["match"] = index_mgr_.indices[dest.ToU64()].match;
-    j[0][3][key]["next"] = index_mgr_.indices[dest.ToU64()].next;
-    j[0][3][key]["grant"] = vote_mgr_.votes[dest.ToU64()].grant;
-    // j[key]["dn"] = vote_mgr_.votes[dest.ToU64()].done;
+    j[0][3][key][0]["match"] = index_mgr_.indices[dest.ToU64()].match;
+    j[0][3][key][0]["next"] = index_mgr_.indices[dest.ToU64()].next;
+    j[0][3][key][1]["grant"] = vote_mgr_.votes[dest.ToU64()].grant;
+    j[0][3][key][1]["done"] = vote_mgr_.votes[dest.ToU64()].done;
   }
 
   j[1] = PointerToHexStr(this);

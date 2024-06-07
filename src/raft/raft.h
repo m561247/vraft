@@ -54,7 +54,7 @@ class Raft final {
   void Init();
 
   // propose
-  int32_t Propose(std::string value);
+  int32_t Propose(std::string value, Functor cb);
 
   // on message
   int32_t OnPing(struct Ping &msg);
@@ -103,34 +103,35 @@ class Raft final {
   RaftTerm GetTerm(RaftIndex index);
 
  private:
-  // path
+  bool started_;
   std::string home_path_;
   std::string conf_path_;
   std::string meta_path_;
   std::string log_path_;
   std::string sm_path_;
 
-  // in-memory data
+  // raft state: every server
   enum State state_;
   RaftIndex commit_;
   RaftIndex last_apply_;
-  RaftAddr leader_;
-  bool started_;
 
-  // persistent data
-  SolidData meta_;
   RaftLog log_;
+  SolidData meta_;
 
-  // manager
+  RaftAddr leader_;  // leader cache
   ConfigManager config_mgr_;
-  IndexManager index_mgr_;
-  VoteManager vote_mgr_;
-  TimerManager timer_mgr_;
 
-  // state machine
+  // raft state: candidate
+  VoteManager vote_mgr_;
+
+  // raft state: leader
+  IndexManager index_mgr_;
+
+  // raft state: state machine
   StateMachine sm_;
 
-  // func
+  // assistant
+  TimerManager timer_mgr_;
   SendFunc send_;
   MakeTimerFunc make_timer_;
 

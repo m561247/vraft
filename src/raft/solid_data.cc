@@ -35,7 +35,7 @@ void SolidData::Init() {
                            sizeof(kTermKey));
     status = db_->Get(leveldb::ReadOptions(), sls_key, &value);
     if (status.IsNotFound()) {
-      term_ = 0;
+      term_ = 1;
       char value_buf[sizeof(term_)];
       EncodeFixed64(value_buf, term_);
       leveldb::Slice sls_value(value_buf, sizeof(term_));
