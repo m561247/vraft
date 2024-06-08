@@ -85,67 +85,158 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
+    // temp variable used behind, define here due to "goto", make compiler happy
+    RaftIndex index;
+
+    // set response to a rejection
+    // if we accept, we will overwrite it
     AppendEntriesReply reply;
     reply.src = msg.dest;
     reply.dest = msg.src;
     reply.term = meta_.term();
     reply.success = false;
     reply.last_log_index = LastIndex();
+    reply.pre_log_index = msg.pre_log_index;
     reply.num_entries = msg.entries.size();
 
+    // stale term, send reply
     if (msg.term < meta_.term()) {
-      SendAppendEntriesReply(reply);
-      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
+      char buf[128];
+      snprintf(buf, sizeof(buf), "reject, stale term %lu < %lu", msg.term,
+               meta_.term());
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+
       goto end;
     }
 
+    // overwrite reply term
     if (msg.term > meta_.term()) {
       reply.term = msg.term;
     }
 
+    // step down
     StepDown(msg.term, &tracer);
+
+    // if get here, means we find a new leader
+    // reset election timer immediately
+    timer_mgr_.StopRequestVote();
+    timer_mgr_.AgainElection();
+
+    // update leader cache
     if (leader_.ToU64() == 0) {
       leader_ = msg.src;
     } else {
       assert(leader_.ToU64() == msg.src.ToU64());
     }
 
-    if (msg.pre_log_index > LastIndex()) {  // reject
-      SendAppendEntriesReply(reply);
-      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
+    // leave a gap, reject
+    if (msg.pre_log_index > LastIndex()) {
+      char buf[128];
+      snprintf(buf, sizeof(buf), "reject, leave a gap, msg-pre:%u, my-last:%u",
+               msg.pre_log_index, LastIndex());
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+
       goto end;
     }
-
     assert(msg.pre_log_index <= LastIndex());
-    if (GetTerm(msg.pre_log_index) != msg.pre_log_term) {  // reject
-      SendAppendEntriesReply(reply);
-      tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
-      goto end;
+
+    // pre-term not match, reject
+    if (log_.IndexValid(msg.pre_log_index)) {
+      RaftTerm my_pre_term = GetTerm(msg.pre_log_index);
+      if (my_pre_term != msg.pre_log_term) {
+        char buf[128];
+        snprintf(buf, sizeof(buf),
+                 "reject, term not match, msg-pre-term:%lu, my-pre-term:%lu",
+                 msg.pre_log_term, my_pre_term);
+        tracer.PrepareEvent(kEventOther, std::string(buf));
+
+        goto end;
+      }
     }
 
-    // make log same
-
+    // if we get here, means accept
     reply.success = true;
-    reply.last_log_index = LastIndex();
-    if (commit_ < msg.commit_index) {
-      commit_ = msg.commit_index;
+
+    // make log same, append new entries
+    // do nothing with already matched entries, just retain them
+    index = msg.pre_log_index;
+    for (auto it = msg.entries.begin(); it != msg.entries.end(); ++it) {
+      ++index;
+      LogEntry &entry = *it;
+      assert(entry.index == index);
+
+      // maybe snapshot, continue
+      if (index < log_.First()) {
+        continue;
+      }
+
+      // maybe truncate log
+      if (log_.Last() >= index) {
+        MetaValue meta;
+        int32_t rv = log_.GetMeta(index, meta);
+        assert(rv == 0);
+
+        // already match, continue
+        if (meta.term == entry.append_entry.term) {
+          continue;
+        }
+
+        assert(commit_ < index);
+
+        rv = log_.DeleteFrom(index);
+        assert(rv == 0);
+
+        char buf[128];
+        snprintf(buf, sizeof(buf), "truncate log from %u", index);
+        tracer.PrepareEvent(kEventOther, std::string(buf));
+      }
+
+      // append this and all following entries.
+      do {
+        LogEntry &entry_to_append = *it;
+        int32_t rv = log_.AppendOne(entry.append_entry);
+        assert(rv == 0);
+
+        char buf[128];
+        snprintf(buf, sizeof(buf),
+                 "append log, index:%u, term:%lu, value-len:%lu",
+                 entry_to_append.index, entry_to_append.append_entry.term,
+                 entry_to_append.append_entry.value.size());
+        tracer.PrepareEvent(kEventOther, std::string(buf));
+
+      } while (it != msg.entries.end());
+
+      // process over
+      break;
     }
 
-    // reset election timer
+    // overwrite reply
+    reply.last_log_index = LastIndex();
+
+    // update commit index
+    if (commit_ < msg.commit_index) {
+      char buf[128];
+      snprintf(buf, sizeof(buf), "update commit from %u to %u", commit_,
+               msg.commit_index);
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+
+      commit_ = msg.commit_index;
+      assert(commit_ <= LastIndex());
+    }
+
+    // reset election timer again
     timer_mgr_.StopRequestVote();
     timer_mgr_.AgainElection();
 
-    SendAppendEntriesReply(reply);
-    tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
-
   end:
+    SendAppendEntriesReply(reply, &tracer);
     tracer.PrepareState1();
     tracer.Finish();
   }
   return 0;
 }
 
-int32_t Raft::SendAppendEntriesReply(AppendEntriesReply &msg) {
+int32_t Raft::SendAppendEntriesReply(AppendEntriesReply &msg, Tracer *tracer) {
   std::string body_str;
   int32_t bytes = msg.ToString(body_str);
 
@@ -158,6 +249,10 @@ int32_t Raft::SendAppendEntriesReply(AppendEntriesReply &msg) {
   if (send_) {
     header_str.append(std::move(body_str));
     send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
+    }
   }
 
   return 0;
@@ -200,9 +295,6 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
       assert(msg.term == meta_.term());
       assert(state_ == LEADER);
 
-      // reset heartbeat timer
-      timer_mgr_.AgainHeartBeat(msg.src.ToU64());
-
       if (msg.success) {  // follower return match
         if (index_mgr_.GetMatch(msg.src) >
             msg.pre_log_index + msg.num_entries) {
@@ -231,6 +323,14 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
           index_mgr_.SetNext(msg.src, msg.last_log_index + 1);
         }
       }
+
+      // send reply immediately
+      if (index_mgr_.GetNext(msg.src) <= LastIndex()) {
+        SendAppendEntries(msg.src.ToU64(), &tracer);
+      }
+
+      // reset heartbeat timer
+      timer_mgr_.AgainHeartBeat(msg.src.ToU64());
     }
 
   end:

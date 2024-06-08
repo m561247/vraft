@@ -67,13 +67,13 @@ class Raft final {
   int32_t OnInstallSnapshotReply(struct InstallSnapshotReply &msg);
 
   // send message
-  int32_t SendPing(uint64_t dest);
+  int32_t SendPing(uint64_t dest, Tracer *tracer);
   int32_t SendRequestVote(uint64_t dest, Tracer *tracer);
   int32_t SendAppendEntries(uint64_t dest, Tracer *tracer);
   int32_t SendInstallSnapshot(uint64_t dest, Tracer *tracer);
-  int32_t SendRequestVoteReply(RequestVoteReply &msg);
-  int32_t SendAppendEntriesReply(AppendEntriesReply &msg);
-  int32_t SendInstallSnapshotReply(InstallSnapshotReply &msg);
+  int32_t SendRequestVoteReply(RequestVoteReply &msg, Tracer *tracer);
+  int32_t SendAppendEntriesReply(AppendEntriesReply &msg, Tracer *tracer);
+  int32_t SendInstallSnapshotReply(InstallSnapshotReply &msg, Tracer *tracer);
 
   // utils
   int16_t Id() { return config_mgr_.Current().me.id(); }

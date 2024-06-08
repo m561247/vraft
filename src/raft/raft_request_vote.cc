@@ -81,8 +81,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
     reply.term = meta_.term();
     reply.granted =
         (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
-    SendRequestVoteReply(reply);
-    tracer.PrepareEvent(kEventSend, reply.ToJsonString(false, true));
+    SendRequestVoteReply(reply, &tracer);
 
     tracer.PrepareState1();
     tracer.Finish();
@@ -90,7 +89,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   return 0;
 }
 
-int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg) {
+int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg, Tracer *tracer) {
   std::string body_str;
   int32_t bytes = msg.ToString(body_str);
 
@@ -103,6 +102,10 @@ int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg) {
   if (send_) {
     header_str.append(std::move(body_str));
     send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
+    }
   }
 
   return 0;

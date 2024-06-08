@@ -31,7 +31,7 @@ void Tick(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   vraft_logger.FInfo("raft-tick: %s", r->ToJsonString(true, true).c_str());
   for (auto &dest_addr : r->Peers()) {
-    r->SendPing(dest_addr.ToU64());
+    r->SendPing(dest_addr.ToU64(), nullptr);
   }
 }
 
@@ -191,7 +191,7 @@ void Raft::AppendNoop() {
   assert(rv == 0);
 }
 
-int32_t Raft::SendPing(uint64_t dest) {
+int32_t Raft::SendPing(uint64_t dest, Tracer *tracer) {
   Ping msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
@@ -209,6 +209,10 @@ int32_t Raft::SendPing(uint64_t dest) {
   if (send_) {
     header_str.append(std::move(body_str));
     send_(dest, header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
+    }
   }
   return 0;
 }
