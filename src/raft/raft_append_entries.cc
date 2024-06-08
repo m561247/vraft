@@ -323,10 +323,10 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
       // send reply immediately
       if (index_mgr_.GetNext(msg.src) <= LastIndex()) {
         SendAppendEntries(msg.src.ToU64(), &tracer);
-      }
 
-      // reset heartbeat timer
-      timer_mgr_.AgainHeartBeat(msg.src.ToU64());
+        // reset heartbeat timer
+        timer_mgr_.AgainHeartBeat(msg.src.ToU64());
+      }
     }
 
   end:

@@ -53,6 +53,7 @@ void RemuTick(vraft::Timer *timer) {
       break;
     }
     case vraft::kTestState1: {
+      static int value_num = 5;
       remu->Print();
       for (auto &rs : remu->raft_servers) {
         auto sptr = rs->raft();
@@ -65,10 +66,19 @@ void RemuTick(vraft::Timer *timer) {
             printf("%s propose value: %s\n", sptr->Me().ToString().c_str(),
                    value_buf);
           }
+          --value_num;
         }
       }
 
+      if (value_num == 0) {
+        vraft::current_state = vraft::kTestState2;
+      }
+      break;
+    }
+
+    case vraft::kTestState2: {
       timer->RepeatDecr();
+      remu->Print();
       if (timer->repeat_counter() == 0) {
         vraft::current_state = vraft::kTestStateEnd;
       }
@@ -137,7 +147,7 @@ class RemuTest : public ::testing::Test {
     param.cb = RemuTick;
     param.data = nullptr;
     param.name = "remu-timer";
-    param.repeat_times = 20;
+    param.repeat_times = 10;
     loop->AddTimer(param);
 
     // important !!

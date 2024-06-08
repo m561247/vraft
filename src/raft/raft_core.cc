@@ -164,12 +164,13 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
 
   if (next_index < log_.First()) {
     // do not have log, send snapshot
+    assert(0);
     return 0;
   }
   assert(next_index >= log_.First());
 
   RaftTerm pre_term = 0;
-  if (pre_index > log_.First()) {
+  if (pre_index >= log_.First()) {
     pre_term = GetTerm(pre_index);
 
   } else if (pre_index == 0) {
@@ -180,6 +181,7 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
 
   } else {
     // do not have log, send snapshot
+    assert(0);
     return 0;
   }
 
@@ -201,7 +203,8 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
   // mcommitIndex   |-> Min({commitIndex[i], lastEntry}),
   // logcabin:
   // request.set_commit_index(std::min(commitIndex, prevLogIndex + numEntries));
-  msg.commit_index = std::min(commit_, pre_index + 1);
+  msg.commit_index =
+      std::min(commit_, pre_index + static_cast<RaftIndex>(msg.entries.size()));
 
   std::string body_str;
   int32_t bytes = msg.ToString(body_str);
@@ -267,8 +270,9 @@ int32_t Raft::Propose(std::string value, Functor cb) {
     for (auto &peer : config_mgr_.Current().peers) {
       rv = SendAppendEntries(peer.ToU64(), &tracer);
       assert(rv == 0);
+
+      timer_mgr_.AgainHeartBeat(peer.ToU64());
     }
-    timer_mgr_.AgainHeartBeat();
   }
 
 end:

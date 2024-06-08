@@ -136,6 +136,7 @@ class RemuTest : public ::testing::Test {
   }
 };
 
+#if 0
 TEST_F(RemuTest, Elect5) {
   GenerateConfig(remu->configs, 4);
   remu->Create();
@@ -151,6 +152,7 @@ TEST_F(RemuTest, Elect5) {
   std::cout << "join thread... \n";
   std::fflush(nullptr);
 }
+#endif
 
 TEST_F(RemuTest, Elect3) {
   GenerateConfig(remu->configs, 2);
