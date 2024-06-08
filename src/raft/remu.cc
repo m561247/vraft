@@ -18,7 +18,6 @@ void Remu::Log(std::string key) {
   }
 
   uint64_t ts = Clock::NSec();
-  snprintf(ts_buf, sizeof(ts_buf), "0x%lX", ts);
 
   std::string str;
   str.append("\n");
