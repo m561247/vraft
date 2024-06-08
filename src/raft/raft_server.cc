@@ -151,6 +151,7 @@ void RaftServer::Init() {
                             std::placeholders::_2, std::placeholders::_3));
   raft_->set_make_timer(
       std::bind(&RaftServer::MakeTimer, this, std::placeholders::_1));
+  raft_->set_assert_loop(std::bind(&RaftServer::AssertInLoopThread, this));
 }
 
 int32_t RaftServer::Start() {
@@ -232,6 +233,13 @@ TcpClientSPtr RaftServer::GetClientOrCreate(uint64_t dest_addr) {
   }
 
   return ptr;
+}
+
+void RaftServer::AssertInLoopThread() {
+  auto sptr = loop_.lock();
+  if (sptr) {
+    sptr->AssertInLoopThread();
+  }
 }
 
 }  // namespace vraft

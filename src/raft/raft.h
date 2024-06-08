@@ -85,9 +85,10 @@ class Raft final {
   void Print(bool tiny, bool one_line);
 
   // get set
-  enum State state() { return state_; }
-  void set_send(SendFunc func) { send_ = func; }
-  void set_make_timer(MakeTimerFunc func) { make_timer_ = func; }
+  enum State state();
+  void set_send(SendFunc func);
+  void set_make_timer(MakeTimerFunc func);
+  void set_assert_loop(AssertInLoopThreadFunc assert_loop);
 
  private:
   bool IfSelfVote();
@@ -134,12 +135,23 @@ class Raft final {
   TimerManager timer_mgr_;
   SendFunc send_;
   MakeTimerFunc make_timer_;
+  AssertInLoopThreadFunc assert_loop_;
 
   friend void Tick(Timer *timer);
   friend void Elect(Timer *timer);
   friend void RequestVoteRpc(Timer *timer);
   friend void HeartBeat(Timer *timer);
 };
+
+inline enum State Raft::state() { return state_; }
+
+inline void Raft::set_send(SendFunc func) { send_ = func; }
+
+inline void Raft::set_make_timer(MakeTimerFunc func) { make_timer_ = func; }
+
+inline void Raft::set_assert_loop(AssertInLoopThreadFunc assert_loop) {
+  assert_loop_ = assert_loop;
+}
 
 }  // namespace vraft
 

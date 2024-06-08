@@ -238,6 +238,10 @@ ClientRequest(i, v) ==
                    leaderVars, commitIndex>>
 ********************************************************************************************/
 int32_t Raft::Propose(std::string value, Functor cb) {
+  if (assert_loop_) {
+    assert_loop_();
+  }
+
   Tracer tracer(this, true);
   tracer.PrepareState0();
   char buf[128];

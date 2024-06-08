@@ -35,6 +35,7 @@ class RaftServer final {
 
   // debug
   void Print(bool tiny, bool one_line);
+  void AssertInLoopThread();
 
  private:
   void Init();
