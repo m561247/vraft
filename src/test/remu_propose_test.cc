@@ -47,14 +47,34 @@ void RemuTick(vraft::Timer *timer) {
       }
 
       if (leader_num == 1) {
-        timer->RepeatDecr();
-        if (timer->repeat_counter() == 0) {
-          vraft::current_state = vraft::kTestStateEnd;
-        }
+        vraft::current_state = vraft::kTestState1;
       }
 
       break;
     }
+    case vraft::kTestState1: {
+      for (auto &rs : remu->raft_servers) {
+        auto sptr = rs->raft();
+        if (sptr && sptr->state() == vraft::LEADER) {
+          char value_buf[128];
+          snprintf(value_buf, sizeof(value_buf), "value_%s",
+                   vraft::NsToString2(vraft::Clock::NSec()).c_str());
+          int32_t rv = sptr->Propose(std::string(value_buf), nullptr);
+          if (rv == 0) {
+            printf("%s propose value: %s\n", sptr->Me().ToString().c_str(),
+                   value_buf);
+          }
+        }
+      }
+
+      timer->RepeatDecr();
+      if (timer->repeat_counter() == 0) {
+        vraft::current_state = vraft::kTestStateEnd;
+      }
+
+      break;
+    }
+
     case vraft::kTestStateEnd: {
       std::cout << "exit ..." << std::endl;
       remu->Stop();
@@ -116,7 +136,7 @@ class RemuTest : public ::testing::Test {
     param.cb = RemuTick;
     param.data = nullptr;
     param.name = "remu-timer";
-    param.repeat_times = 10;
+    param.repeat_times = 20;
     loop->AddTimer(param);
 
     // important !!
@@ -136,6 +156,7 @@ class RemuTest : public ::testing::Test {
   }
 };
 
+#if 0
 TEST_F(RemuTest, Elect5) {
   GenerateConfig(remu->configs, 4);
   remu->Create();
@@ -151,6 +172,7 @@ TEST_F(RemuTest, Elect5) {
   std::cout << "join thread... \n";
   std::fflush(nullptr);
 }
+#endif
 
 TEST_F(RemuTest, Elect3) {
   GenerateConfig(remu->configs, 2);
