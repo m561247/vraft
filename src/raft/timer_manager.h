@@ -89,9 +89,9 @@ inline TimerManager::TimerManager(const std::vector<RaftAddr> &peers)
     : data_(nullptr),
       tick_ms_(1000),
       election_ms_(1500),
-      request_vote_ms_(800),
+      request_vote_ms_(1000),
       heartbeat_ms_(500),
-      random_election_ms_(election_ms_, 3 * election_ms_),
+      random_election_ms_(election_ms_, 2 * election_ms_),
       last_election_ms_(0),
       next_election_ms_(0) {
   Reset(peers);

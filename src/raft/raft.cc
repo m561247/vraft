@@ -63,6 +63,10 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
 Raft::~Raft() { vraft_logger.FInfo("raft destruct, %p", this); }
 
 int32_t Raft::Start() {
+  if (assert_loop_) {
+    assert_loop_();
+  }
+
   started_ = true;
 
   Tracer tracer(this, true, tracer_cb_);
@@ -91,12 +95,20 @@ int32_t Raft::Start() {
 }
 
 int32_t Raft::Stop() {
+  if (assert_loop_) {
+    assert_loop_();
+  }
+
   started_ = false;
   timer_mgr_.Close();
   return 0;
 }
 
 void Raft::Init() {
+  if (assert_loop_) {
+    assert_loop_();
+  }
+
   int32_t rv;
   char cmd_buf[256];
 
