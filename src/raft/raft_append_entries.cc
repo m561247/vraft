@@ -194,15 +194,8 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
       // append this and all following entries.
       do {
         LogEntry &entry_to_append = *it;
-        int32_t rv = log_.AppendOne(entry.append_entry);
+        int32_t rv = log_.AppendOne(entry_to_append.append_entry, &tracer);
         assert(rv == 0);
-
-        char buf[128];
-        snprintf(buf, sizeof(buf),
-                 "append log, index:%u, term:%lu, value-len:%lu",
-                 entry_to_append.index, entry_to_append.append_entry.term,
-                 entry_to_append.append_entry.value.size());
-        tracer.PrepareEvent(kEventOther, std::string(buf));
 
         ++it;
         ++index;

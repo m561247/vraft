@@ -95,7 +95,7 @@ class Raft final {
   bool IfSelfVote();
   int32_t InitConfig();
 
-  void AppendNoop();
+  void AppendNoop(Tracer *tracer);
   void MaybeCommit(Tracer *tracer);
   void BecomeLeader(Tracer *tracer);
   void StepDown(RaftTerm new_term, Tracer *tracer);

@@ -413,7 +413,7 @@ TEST(RaftLog, Append) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
       std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
                 << std::endl;
       std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -456,7 +456,7 @@ TEST(RaftLog, CheckSum) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
       std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
                 << std::endl;
       std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -506,7 +506,7 @@ TEST(RaftLog, DeleteFrom) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
       std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
                 << std::endl;
       std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -556,7 +556,7 @@ TEST(RaftLog, DeleteFrom2) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -587,7 +587,7 @@ TEST(RaftLog, DeleteFrom2) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -672,7 +672,7 @@ TEST(RaftLog, DeleteUtil) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -729,7 +729,7 @@ TEST(RaftLog, DeleteUtil) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -794,7 +794,7 @@ TEST(RaftLog, DeleteFrom_DeleteUtil) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -863,7 +863,7 @@ TEST(RaftLog, DeleteFrom_DeleteUtil2) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << raft_log.ToJsonString(true, true) << std::endl;
@@ -932,7 +932,7 @@ TEST(RaftLog, Get) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
       std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
                 << std::endl;
     }
@@ -1004,7 +1004,7 @@ TEST(RaftLog, LastEntry) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
     }
 
     std::cout << "first: " << raft_log.First() << std::endl;
@@ -1087,7 +1087,7 @@ TEST(RaftLog, CheckSum2) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
       std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
                 << std::endl;
     }
@@ -1160,7 +1160,7 @@ TEST(RaftLog, CheckSum2) {
       char buf[32];
       snprintf(buf, sizeof(buf), "value_%d", i);
       entry.value = buf;
-      raft_log.AppendOne(entry);
+      raft_log.AppendOne(entry, nullptr);
       std::cout << "append " << buf << ": " << raft_log.ToJsonString(true, true)
                 << std::endl;
     }

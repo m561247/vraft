@@ -4,6 +4,7 @@
 
 #include "coding.h"
 #include "leveldb/write_batch.h"
+#include "tracer.h"
 
 namespace vraft {
 
@@ -332,7 +333,7 @@ MetaValuePtr RaftLog::LastMeta() {
   }
 }
 
-int32_t RaftLog::AppendOne(AppendEntry &entry) {
+int32_t RaftLog::AppendOne(AppendEntry &entry, Tracer *tracer) {
   Check();
   RaftIndex tmp_first, tmp_last, tmp_append;
   uint32_t tmp_checksum = 0;
@@ -400,6 +401,15 @@ int32_t RaftLog::AppendOne(AppendEntry &entry) {
   wo.sync = true;
   leveldb::Status s = db_->Write(wo, &batch);
   assert(s.ok());
+
+  if (tracer) {
+    char buf[128];
+    snprintf(buf, sizeof(buf),
+             "append one log, term:%lu, index:%u, type:%s, value-len:%lu",
+             entry.term, append_, EntryTypeToStr(entry.type),
+             entry.value.size());
+    tracer->PrepareEvent(kEventOther, std::string(buf));
+  }
 
   // update index after persist value
   // do not need to persist append index every time

@@ -360,6 +360,7 @@ class U32ComparatorImpl : public leveldb::Comparator {
  private:
 };
 
+class Tracer;
 class RaftLog;
 using RaftLogUPtr = std::unique_ptr<RaftLog>;
 
@@ -373,7 +374,7 @@ class RaftLog final {
   void Check();
   bool IndexValid(RaftIndex index);
 
-  int32_t AppendOne(AppendEntry &entry);
+  int32_t AppendOne(AppendEntry &entry, Tracer *tracer);
   int32_t AppendSome(std::vector<AppendEntry> &entries);
   int32_t DeleteFrom(RaftIndex from_index);
   int32_t DeleteUtil(RaftIndex to_index);

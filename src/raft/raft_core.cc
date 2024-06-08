@@ -259,16 +259,16 @@ int32_t Raft::Propose(std::string value, Functor cb) {
   entry.term = meta_.term();
   entry.type = kData;
   entry.value = value;
-  rv = log_.AppendOne(entry);
+  rv = log_.AppendOne(entry, &tracer);
   assert(rv == 0);
-
-  snprintf(buf, sizeof(buf), "leader append log, term:%lu, value-len:%lu",
-           entry.term, entry.value.size());
-  tracer.PrepareEvent(kEventOther, std::string(buf));
 
   MaybeCommit(&tracer);
   if (config_mgr_.Current().peers.size() > 0) {
-    timer_mgr_.StartHeartBeat();
+    for (auto &peer : config_mgr_.Current().peers) {
+      rv = SendAppendEntries(peer.ToU64(), &tracer);
+      assert(rv == 0);
+    }
+    timer_mgr_.AgainHeartBeat();
   }
 
 end:
@@ -376,7 +376,7 @@ void Raft::BecomeLeader(Tracer *tracer) {
   timer_mgr_.StartHeartBeat();
 
   // append noop
-  AppendNoop();
+  AppendNoop(tracer);
 }
 
 /********************************************************************************************

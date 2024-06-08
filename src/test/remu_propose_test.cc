@@ -53,6 +53,7 @@ void RemuTick(vraft::Timer *timer) {
       break;
     }
     case vraft::kTestState1: {
+      remu->Print();
       for (auto &rs : remu->raft_servers) {
         auto sptr = rs->raft();
         if (sptr && sptr->state() == vraft::LEADER) {

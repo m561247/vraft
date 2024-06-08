@@ -182,12 +182,12 @@ RaftTerm Raft::GetTerm(RaftIndex index) {
 
 bool Raft::IfSelfVote() { return (meta_.vote() == Me().ToU64()); }
 
-void Raft::AppendNoop() {
+void Raft::AppendNoop(Tracer *tracer) {
   AppendEntry entry;
   entry.term = meta_.term();
   entry.type = kNoop;
   entry.value.append("0");
-  int32_t rv = log_.AppendOne(entry);
+  int32_t rv = log_.AppendOne(entry, tracer);
   assert(rv == 0);
 }
 
