@@ -21,9 +21,9 @@ vraft::EventLoopSPtr loop;
 vraft::RemuSPtr remu;
 std::string test_path;
 
-void RemuLogState() {
+void RemuLogState(std::string key) {
   if (remu) {
-    remu->Log();
+    remu->Log(key);
   }
 }
 

@@ -8,28 +8,35 @@
 
 namespace vraft {
 
-void Remu::Log() {
-  uint64_t ts = Clock::NSec();
+void Remu::Log(std::string key) {
   char ts_buf[64];
+  if (key.empty()) {
+    uint64_t ts = Clock::NSec();
+    snprintf(ts_buf, sizeof(ts_buf), "0x%lX", ts);
+  } else {
+    snprintf(ts_buf, sizeof(ts_buf), "%s", key.c_str());
+  }
+
+  uint64_t ts = Clock::NSec();
   snprintf(ts_buf, sizeof(ts_buf), "0x%lX", ts);
 
   std::string str;
   str.append("\n");
   str.append(ts_buf);
-  str.append(" remu-tick: ");
+  str.append(" global-state: ");
   str.append(NsToString(ts));
 
   for (auto ptr : raft_servers) {
     str.append("\n");
     str.append(ts_buf);
-    str.append(" remu-tick: ");
+    str.append(" global-state: ");
     str.append(ptr->raft()->ToJsonString(true, true));
   }
   vraft_logger.FInfo("%s", str.c_str());
 }
 
 void Remu::Print(bool tiny, bool one_line) {
-  printf("--- remu-tick --- %s ---:\n", NsToString(Clock::NSec()).c_str());
+  printf("--- global-state --- %s ---:\n", NsToString(Clock::NSec()).c_str());
   for (auto ptr : raft_servers) {
     ptr->Print(tiny, one_line);
     if (!one_line) {

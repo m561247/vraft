@@ -90,7 +90,7 @@ std::string Tracer::Finish() {
     vraft_logger.Trace("%s", s.c_str());
 
     if (cb_) {
-      cb_();
+      cb_(std::string(ts_buf_));
     }
   }
 

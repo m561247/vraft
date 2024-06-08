@@ -22,7 +22,7 @@ enum EventType {
 
 class Tracer final {
  public:
-  Tracer(Raft *r, bool enable, Functor cb);
+  Tracer(Raft *r, bool enable, TracerCb cb);
   ~Tracer();
   Tracer(const Tracer &t) = delete;
   Tracer &operator=(const Tracer &t) = delete;
@@ -55,10 +55,10 @@ class Tracer final {
   std::string state1_;
   std::vector<std::string> events_;
 
-  Functor cb_;
+  TracerCb cb_;
 };
 
-inline Tracer::Tracer(Raft *r, bool enable, Functor cb)
+inline Tracer::Tracer(Raft *r, bool enable, TracerCb cb)
     : enable_(enable), timestamp_(false), raft_(r), cb_(cb) {
   Init();
 }

@@ -15,14 +15,14 @@ struct Remu {
   EventLoopWPtr loop;
   std::vector<vraft::Config> configs;
   std::vector<vraft::RaftServerSPtr> raft_servers;
-  Functor tracer_cb;
+  TracerCb tracer_cb;
 
   void Create();
   void Start();
   void Stop();
   void Clear();
 
-  void Log();
+  void Log(std::string key);
   void Print(bool tiny = true, bool one_line = true);
 };
 

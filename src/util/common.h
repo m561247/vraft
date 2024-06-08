@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <string>
 
 namespace vraft {
 
@@ -14,6 +15,8 @@ using RaftTerm = uint64_t;
 
 using Functor = std::function<void()>;
 using FunctorFinish = std::function<void(int32_t)>;
+
+using TracerCb = std::function<void(std::string)>;
 
 using SendFunc =
     std::function<int32_t(uint64_t dest, const char *buf, unsigned int size)>;
