@@ -244,11 +244,33 @@ int32_t Raft::Propose(std::string value, Functor cb) {
   snprintf(buf, sizeof(buf), "propose value, length:%lu", value.size());
   tracer.PrepareEvent(kEventOther, std::string(buf));
 
-  MaybeCommit(&tracer);
+  int32_t rv = 0;
+  AppendEntry entry;
 
+  if (state_ != LEADER) {
+    rv = -1;
+    goto end;
+  }
+
+  entry.term = meta_.term();
+  entry.type = kData;
+  entry.value = value;
+  rv = log_.AppendOne(entry);
+  assert(rv == 0);
+
+  snprintf(buf, sizeof(buf), "leader append log, term:%lu, value-len:%lu",
+           entry.term, entry.value.size());
+  tracer.PrepareEvent(kEventOther, std::string(buf));
+
+  MaybeCommit(&tracer);
+  if (config_mgr_.Current().peers.size() > 0) {
+    timer_mgr_.StartHeartBeat();
+  }
+
+end:
   tracer.PrepareState1();
   tracer.Finish();
-  return 0;
+  return rv;
 }
 
 /********************************************************************************************
