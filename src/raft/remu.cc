@@ -9,15 +9,14 @@
 namespace vraft {
 
 void Remu::Log(std::string key) {
+  uint64_t ts = Clock::NSec();
   char ts_buf[64];
   if (key.empty()) {
-    uint64_t ts = Clock::NSec();
+    ts = Clock::NSec();
     snprintf(ts_buf, sizeof(ts_buf), "0x%lX", ts);
   } else {
     snprintf(ts_buf, sizeof(ts_buf), "%s", key.c_str());
   }
-
-  uint64_t ts = Clock::NSec();
 
   std::string str;
   str.append("\n");
