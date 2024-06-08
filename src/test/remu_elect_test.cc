@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <csignal>
+#include <functional>
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -16,13 +17,16 @@
 #include "util.h"
 #include "vraft_logger.h"
 
-void SignalHandler(int signal) {
-  std::cout << "recv signal " << strsignal(signal) << std::endl;
-}
-
 vraft::EventLoopSPtr loop;
 vraft::RemuSPtr remu;
 std::string test_path;
+
+void SignalHandler(int signal) {
+  std::cout << "recv signal " << strsignal(signal) << std::endl;
+  std::cout << "exit ..." << std::endl;
+  loop->RunFunctor(std::bind(&vraft::Remu::Stop, remu.get()));
+  loop->Stop();
+}
 
 void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
