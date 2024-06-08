@@ -65,7 +65,7 @@ Raft::~Raft() { vraft_logger.FInfo("raft destruct, %p", this); }
 int32_t Raft::Start() {
   started_ = true;
 
-  Tracer tracer(this, true);
+  Tracer tracer(this, true, tracer_cb_);
   tracer.PrepareState0();
   tracer.PrepareEvent(kEventStart, "raft start");
 

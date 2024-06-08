@@ -27,7 +27,7 @@ void Elect(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == FOLLOWER || r->state_ == CANDIDATE);
 
-  Tracer tracer(r, true);
+  Tracer tracer(r, true, r->tracer_cb_);
   tracer.PrepareState0();
 
   r->meta_.IncrTerm();
@@ -74,7 +74,7 @@ void RequestVoteRpc(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == CANDIDATE);
 
-  Tracer tracer(r, true);
+  Tracer tracer(r, true, r->tracer_cb_);
   tracer.PrepareState0();
 
   int32_t rv = r->SendRequestVote(timer->dest_addr(), &tracer);
@@ -145,7 +145,7 @@ void HeartBeat(Timer *timer) {
   Raft *r = reinterpret_cast<Raft *>(timer->data());
   assert(r->state_ == LEADER);
 
-  Tracer tracer(r, true);
+  Tracer tracer(r, true, r->tracer_cb_);
   tracer.PrepareState0();
 
   tracer.PrepareEvent(kEventTimer, "heartbeat-timer timeout");
@@ -242,7 +242,7 @@ int32_t Raft::Propose(std::string value, Functor cb) {
     assert_loop_();
   }
 
-  Tracer tracer(this, true);
+  Tracer tracer(this, true, tracer_cb_);
   tracer.PrepareState0();
   char buf[128];
   snprintf(buf, sizeof(buf), "propose value, length:%lu", value.size());

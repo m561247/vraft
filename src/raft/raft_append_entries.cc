@@ -81,7 +81,7 @@ HandleAppendEntriesRequest(i, j, m) ==
 ********************************************************************************************/
 int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
   if (started_) {
-    Tracer tracer(this, true);
+    Tracer tracer(this, true, tracer_cb_);
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
@@ -204,6 +204,9 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
                  entry_to_append.append_entry.value.size());
         tracer.PrepareEvent(kEventOther, std::string(buf));
 
+        ++it;
+        ++index;
+
       } while (it != msg.entries.end());
 
       // process over
@@ -275,7 +278,7 @@ HandleAppendEntriesResponse(i, j, m) ==
 ********************************************************************************************/
 int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
   if (started_) {
-    Tracer tracer(this, true);
+    Tracer tracer(this, true, tracer_cb_);
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 

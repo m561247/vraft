@@ -15,6 +15,7 @@ struct Remu {
   EventLoopWPtr loop;
   std::vector<vraft::Config> configs;
   std::vector<vraft::RaftServerSPtr> raft_servers;
+  Functor tracer_cb;
 
   void Create();
   void Start();

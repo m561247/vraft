@@ -18,8 +18,6 @@ using FunctorFinish = std::function<void(int32_t)>;
 using SendFunc =
     std::function<int32_t(uint64_t dest, const char *buf, unsigned int size)>;
 
-using AssertInLoopThreadFunc = std::function<void()>;
-
 class EventLoop;
 using EventLoopSPtr = std::shared_ptr<EventLoop>;
 using EventLoopUPtr = std::unique_ptr<EventLoop>;

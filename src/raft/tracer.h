@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "clock.h"
+#include "common.h"
 
 namespace vraft {
 
@@ -21,7 +22,7 @@ enum EventType {
 
 class Tracer final {
  public:
-  Tracer(Raft *r, bool enable);
+  Tracer(Raft *r, bool enable, Functor cb);
   ~Tracer();
   Tracer(const Tracer &t) = delete;
   Tracer &operator=(const Tracer &t) = delete;
@@ -53,10 +54,12 @@ class Tracer final {
   std::string state0_;
   std::string state1_;
   std::vector<std::string> events_;
+
+  Functor cb_;
 };
 
-inline Tracer::Tracer(Raft *r, bool enable)
-    : enable_(enable), timestamp_(false), raft_(r) {
+inline Tracer::Tracer(Raft *r, bool enable, Functor cb)
+    : enable_(enable), timestamp_(false), raft_(r), cb_(cb) {
   Init();
 }
 

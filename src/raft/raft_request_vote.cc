@@ -40,7 +40,7 @@ HandleRequestVoteRequest(i, j, m) ==
 ********************************************************************************************/
 int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   if (started_) {
-    Tracer tracer(this, true);
+    Tracer tracer(this, true, tracer_cb_);
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
@@ -132,7 +132,7 @@ HandleRequestVoteResponse(i, j, m) ==
 ********************************************************************************************/
 int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
   if (started_) {
-    Tracer tracer(this, true);
+    Tracer tracer(this, true, tracer_cb_);
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 

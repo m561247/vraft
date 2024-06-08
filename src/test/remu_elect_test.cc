@@ -21,6 +21,12 @@ vraft::EventLoopSPtr loop;
 vraft::RemuSPtr remu;
 std::string test_path;
 
+void RemuLogState() {
+  if (remu) {
+    remu->Log();
+  }
+}
+
 void SignalHandler(int signal) {
   std::cout << "recv signal " << strsignal(signal) << std::endl;
   std::cout << "exit ..." << std::endl;
@@ -32,7 +38,7 @@ void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
     case vraft::kTestState0: {
       remu->Print();
-      remu->Log();
+      // remu->Log();
       int32_t leader_num = 0;
       for (auto ptr : remu->raft_servers) {
         if (ptr->raft()->state() == vraft::LEADER) {
@@ -102,6 +108,7 @@ class RemuTest : public ::testing::Test {
     ASSERT_EQ(rv, 0);
 
     remu = std::make_shared<vraft::Remu>(loop);
+    remu->tracer_cb = RemuLogState;
 
     vraft::TimerParam param;
     param.timeout_ms = 0;

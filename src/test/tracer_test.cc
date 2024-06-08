@@ -36,7 +36,7 @@ TEST(Tracer, test) {
 
   std::string event_str = msg.ToJsonString(false, true);
   std::string event_str2 = msg2.ToJsonString(false, true);
-  vraft::Tracer tracer(&r, true);
+  vraft::Tracer tracer(&r, true, nullptr);
   tracer.PrepareState0();
   tracer.PrepareEvent(vraft::kEventRecv, event_str);
   tracer.PrepareEvent(vraft::kEventTimer, "election-timer timeout");
@@ -73,7 +73,7 @@ TEST(Tracer, test2) {
 
   std::string event_str = msg.ToJsonString(false, true);
   std::string event_str2 = msg2.ToJsonString(false, true);
-  vraft::Tracer tracer(&r, true);
+  vraft::Tracer tracer(&r, true, nullptr);
   tracer.EnableTimeStamp();
   tracer.PrepareState0();
   tracer.PrepareEvent(vraft::kEventRecv, event_str);
@@ -109,7 +109,7 @@ TEST(Tracer, test3) {
 
   std::string event_str = msg.ToJsonString(false, true);
   std::string event_str2 = msg2.ToJsonString(false, true);
-  vraft::Tracer tracer(&r, false);
+  vraft::Tracer tracer(&r, false, nullptr);
   tracer.EnableTimeStamp();
   tracer.PrepareState0();
   tracer.PrepareEvent(vraft::kEventRecv, event_str);

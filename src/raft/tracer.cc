@@ -88,6 +88,10 @@ std::string Tracer::Finish() {
 
   if (enable_) {
     vraft_logger.Trace("%s", s.c_str());
+
+    if (cb_) {
+      cb_();
+    }
   }
 
   return s;
