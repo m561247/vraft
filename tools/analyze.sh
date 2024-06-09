@@ -14,10 +14,14 @@ for id in `cat ${dir}/temp/ids`; do
     cat ${dir}/remu.log.sm | grep state_change | grep ${id} | awk '{print $1}' | sort | uniq > ${dir}/temp/keys.${id}
 done
 
+rm -f ${file}.sm.tmp
+touch ${file}.sm.tmp
+
 for file in `ls ${dir}/temp/keys.*`; do
     echo "analyzing ${file} ..."
 
-    awk 'NR==FNR { key[$1] = 1; next } $1 in key' "${key}" "${dir}/remu.log.sm" >> ${file}.sm.tmp
+    echo "generate ${file}.sm.tmp ..."
+    awk 'NR==FNR { key[$1] = 1; next } $1 in key' "${file}" "${dir}/remu.log.sm" >> ${file}.sm.tmp
 
     cat ${file}.sm.tmp | awk '{if (last != $1) {if (NR != 1) print ""; last = $1} print}' > ${file}.sm
     cp ${file}.sm ${dir}

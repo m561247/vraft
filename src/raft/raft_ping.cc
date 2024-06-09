@@ -23,6 +23,7 @@ int32_t Raft::OnPing(struct Ping &msg) {
     PingReply reply;
     reply.src = msg.dest;
     reply.dest = msg.src;
+    reply.uid = UniqId(&reply);
     reply.msg = "pang";
     std::string reply_str;
     int32_t bytes = reply.ToString(reply_str);

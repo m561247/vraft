@@ -89,6 +89,7 @@ int32_t Raft::SendRequestVote(uint64_t dest, Tracer *tracer) {
   msg.src = Me();
   msg.dest = RaftAddr(dest);
   msg.term = meta_.term();
+  msg.uid = UniqId(&msg);
 
   msg.last_log_index = LastIndex();
   msg.last_log_term = LastTerm();
@@ -189,6 +190,7 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
   msg.src = Me();
   msg.dest = RaftAddr(dest);
   msg.term = meta_.term();
+  msg.uid = UniqId(&msg);
   msg.pre_log_index = pre_index;
   msg.pre_log_term = pre_term;
 

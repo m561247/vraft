@@ -94,6 +94,7 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
     reply.src = msg.dest;
     reply.dest = msg.src;
     reply.term = meta_.term();
+    reply.uid = UniqId(&reply);
     reply.success = false;
     reply.last_log_index = LastIndex();
     reply.pre_log_index = msg.pre_log_index;

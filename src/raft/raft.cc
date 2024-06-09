@@ -214,6 +214,7 @@ int32_t Raft::SendPing(uint64_t dest, Tracer *tracer) {
   Ping msg;
   msg.src = Me();
   msg.dest = RaftAddr(dest);
+  msg.uid = UniqId(&msg);
   msg.msg = "ping";
 
   std::string body_str;

@@ -79,6 +79,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
     reply.src = msg.dest;
     reply.dest = msg.src;
     reply.term = meta_.term();
+    reply.uid = UniqId(&reply);
     reply.granted =
         (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
     SendRequestVoteReply(reply, &tracer);
