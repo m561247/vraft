@@ -67,11 +67,11 @@ int32_t Raft::Start() {
     assert_loop_();
   }
 
-  started_ = true;
-
   Tracer tracer(this, true, tracer_cb_);
   tracer.PrepareState0();
   tracer.PrepareEvent(kEventStart, "raft start");
+
+  started_ = true;
 
   // make timer
   assert(make_timer_);
@@ -99,8 +99,15 @@ int32_t Raft::Stop() {
     assert_loop_();
   }
 
+  Tracer tracer(this, true, tracer_cb_);
+  tracer.PrepareState0();
+  tracer.PrepareEvent(kEventStop, "raft stop");
+
   started_ = false;
   timer_mgr_.Close();
+
+  tracer.PrepareState1();
+  tracer.Finish();
   return 0;
 }
 

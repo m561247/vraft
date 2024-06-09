@@ -14,6 +14,7 @@ class Raft;
 enum EventType {
   kEventSend = 0,
   kEventStart,
+  kEventStop,
   kEventRecv,
   kEventTimer,
   kEventOther,

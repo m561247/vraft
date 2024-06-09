@@ -33,6 +33,12 @@ void Tracer::PrepareEvent(EventType event_type, std::string s) {
         break;
       }
 
+      case kEventStop: {
+        events_.push_back(std::string(ts_buf_) + TimeStampStr() +
+                          " event_stop  : " + s);
+        break;
+      }
+
       case kEventSend: {
         events_.push_back(std::string(ts_buf_) + TimeStampStr() +
                           " event_send  : " + s);

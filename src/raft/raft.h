@@ -85,6 +85,7 @@ class Raft final {
   void Print(bool tiny, bool one_line);
 
   // get set
+  bool started() const;
   enum State state();
   void set_send(SendFunc func);
   void set_make_timer(MakeTimerFunc func);
@@ -144,6 +145,8 @@ class Raft final {
   friend void RequestVoteRpc(Timer *timer);
   friend void HeartBeat(Timer *timer);
 };
+
+inline bool Raft::started() const { return started_; }
 
 inline enum State Raft::state() { return state_; }
 

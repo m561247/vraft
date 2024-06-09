@@ -2,7 +2,7 @@
 
 dir="/tmp/remu_test_dir/log/"
 
-cat ${dir}/remu.log | grep -E "state_change|event_start|state_begin|event_recv|event_send|event_timer|event_other|state_end" | awk '{if (last != $1) {if (NR != 1) print ""; last = $1} print}' > ${dir}/remu.log.sm
+cat ${dir}/remu.log | grep -E "state_change|event_start|event_stop|state_begin|event_recv|event_send|event_timer|event_other|state_end" | awk '{if (last != $1) {if (NR != 1) print ""; last = $1} print}' > ${dir}/remu.log.sm
 cat ${dir}/remu.log | grep "raft-tick:" > ${dir}/remu.log.tick
 cat ${dir}/remu.log | grep "global-state:" | awk '{if (last != $1) {if (NR != 1) print ""; last = $1} print}' > ${dir}/remu.log.global
 
@@ -16,9 +16,9 @@ done
 
 for file in `ls ${dir}/temp/keys.*`; do
     echo "analyzing ${file} ..."
-    for key in `cat ${file}`; do
-        cat ${dir}/remu.log.sm | grep ${key}  >> ${file}.sm.tmp
-    done
+
+    awk 'NR==FNR { key[$1] = 1; next } $1 in key' "${key}" "${dir}/remu.log.sm" >> ${file}.sm.tmp
+
     cat ${file}.sm.tmp | awk '{if (last != $1) {if (NR != 1) print ""; last = $1} print}' > ${file}.sm
-    mv ${file}.sm ${dir}
+    cp ${file}.sm ${dir}
 done
