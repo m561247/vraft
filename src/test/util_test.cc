@@ -6,6 +6,13 @@
 
 #include "simple_random.h"
 
+TEST(UniqId, test) {
+  char buf[20];
+  for (int i = 0; i < 20; ++i) {
+    printf("0x%X \n", vraft::UniqId(&buf[i]));
+  }
+}
+
 TEST(SimpleRandom, test) {
   vraft::SimpleRandom r(150, 300);
   for (int i = 0; i < 10; ++i) {

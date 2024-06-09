@@ -18,6 +18,7 @@ TEST(Ping, test) {
   vraft::Ping msg;
   msg.src = src;
   msg.dest = dest;
+  msg.uid = vraft::UniqId(&msg);
   msg.msg = "ping";
 
   std::string msg_str;
@@ -40,9 +41,10 @@ TEST(Ping, test) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  EXPECT_EQ(msg.msg, msg2.msg);
+  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
+  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
+  ASSERT_EQ(msg.msg, msg2.msg);
+  ASSERT_EQ(msg.uid, msg2.uid);
 }
 
 int main(int argc, char **argv) {

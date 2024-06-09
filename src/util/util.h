@@ -61,6 +61,8 @@ std::string CurrentTid();
 
 bool TidValid(std::thread::id);
 
+uint32_t UniqId(void *ptr);
+
 }  // namespace vraft
 
 #endif

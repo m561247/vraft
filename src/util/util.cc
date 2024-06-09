@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 
+#include "clock.h"
+
 namespace vraft {
 
 void Split(const std::string &str, char separator,
@@ -244,6 +246,16 @@ bool TidValid(std::thread::id tid) {
   if (s.size() == 0) return false;
   if (!IsNumber(s)) return false;
   return true;
+}
+
+uint32_t UniqId(void *ptr) {
+  char buf[sizeof(void *) + sizeof(uint64_t)];
+  uint64_t ts = Clock::NSec();
+  memcpy(buf, ptr, sizeof(void *));
+  char *p = buf + sizeof(void *);
+  memcpy(p, &ts, sizeof(uint64_t));
+  uint32_t crc32 = Crc32(buf, sizeof(void *) + sizeof(uint64_t));
+  return crc32;
 }
 
 }  // namespace vraft
