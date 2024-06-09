@@ -91,7 +91,7 @@ class Raft final {
   void set_make_timer(MakeTimerFunc func);
   void set_assert_loop(Functor assert_loop);
   void set_tracer_cb(TracerCb tracer_cb);
-  void set_sm(StateMachineSPtr sm);
+  void set_create_sm(CreateSMFunc create_sm);
   StateMachineSPtr sm();
 
  private:
@@ -141,6 +141,7 @@ class Raft final {
   MakeTimerFunc make_timer_;
   Functor assert_loop_;
   TracerCb tracer_cb_;
+  CreateSMFunc create_sm_;
 
   friend void Tick(Timer *timer);
   friend void Elect(Timer *timer);
@@ -162,7 +163,9 @@ inline void Raft::set_assert_loop(Functor assert_loop) {
 
 inline void Raft::set_tracer_cb(TracerCb tracer_cb) { tracer_cb_ = tracer_cb; }
 
-inline void Raft::set_sm(StateMachineSPtr sm) { sm_ = sm; }
+inline void Raft::set_create_sm(CreateSMFunc create_sm) {
+  create_sm_ = create_sm;
+}
 
 inline StateMachineSPtr Raft::sm() { return sm_; }
 

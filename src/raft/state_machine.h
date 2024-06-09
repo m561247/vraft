@@ -8,6 +8,8 @@
 
 namespace vraft {
 
+using CreateSMFunc = std::function<StateMachineSPtr(std::string &path)>;
+
 class LogEntry;
 
 class StateMachine {
@@ -16,8 +18,6 @@ class StateMachine {
   ~StateMachine();
   StateMachine(const StateMachine &t) = delete;
   StateMachine &operator=(const StateMachine &t) = delete;
-
-  int32_t Init();
 
   virtual int32_t Restore() = 0;
   virtual int32_t Apply(LogEntry *entry) = 0;

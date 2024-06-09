@@ -71,6 +71,16 @@ int32_t Raft::Start() {
   tracer.PrepareState0();
   tracer.PrepareEvent(kEventStart, "raft start");
 
+  if (create_sm_) {
+    sm_ = create_sm_(sm_path_);
+    assert(sm_);
+  }
+
+  if (sm_) {
+    sm_->Restore();
+    last_apply_ = sm_->LastIndex();
+  }
+
   started_ = true;
 
   // make timer
@@ -140,11 +150,6 @@ void Raft::Init() {
 
   meta_.Init();
   log_.Init();
-
-  if (sm_) {
-    sm_->Init();
-    last_apply_ = sm_->LastIndex();
-  }
 
   // reset managers
   index_mgr_.ResetNext(LastIndex() + 1);
