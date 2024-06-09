@@ -19,6 +19,7 @@ TEST(RequestVote, test) {
   msg.src = src;
   msg.dest = dest;
   msg.term = 77;
+  msg.uid = vraft::UniqId(&msg);
   msg.last_log_term = 88;
   msg.last_log_index = 99;
 
@@ -42,11 +43,12 @@ TEST(RequestVote, test) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  EXPECT_EQ(msg.term, msg2.term);
-  EXPECT_EQ(msg.last_log_term, msg2.last_log_term);
-  EXPECT_EQ(msg.last_log_index, msg2.last_log_index);
+  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
+  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
+  ASSERT_EQ(msg.term, msg2.term);
+  ASSERT_EQ(msg.uid, msg2.uid);
+  ASSERT_EQ(msg.last_log_term, msg2.last_log_term);
+  ASSERT_EQ(msg.last_log_index, msg2.last_log_index);
 }
 
 int main(int argc, char **argv) {

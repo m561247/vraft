@@ -30,7 +30,7 @@ struct Ping {
 };
 
 inline int32_t Ping::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(int32_t) +
+  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(uid) +
          2 * sizeof(int32_t) + msg.size();
 }
 

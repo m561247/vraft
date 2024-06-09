@@ -15,6 +15,7 @@ struct RequestVote {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
   RaftTerm term;
+  uint32_t uid;
 
   RaftIndex last_log_index;
   RaftTerm last_log_term;
@@ -31,7 +32,7 @@ struct RequestVote {
 };
 
 inline int32_t RequestVote::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) +
+  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uid) +
          sizeof(last_log_term) + sizeof(last_log_index);
 }
 
@@ -64,6 +65,10 @@ inline int32_t RequestVote::ToString(const char *ptr, int32_t len) {
   p += sizeof(term);
   size += sizeof(term);
 
+  EncodeFixed32(p, uid);
+  p += sizeof(uid);
+  size += sizeof(uid);
+
   EncodeFixed32(p, last_log_index);
   p += sizeof(last_log_index);
   size += sizeof(last_log_index);
@@ -95,6 +100,9 @@ inline bool RequestVote::FromString(const char *ptr, int32_t len) {
   term = DecodeFixed64(p);
   p += sizeof(term);
 
+  uid = DecodeFixed32(p);
+  p += sizeof(uid);
+
   last_log_index = DecodeFixed32(p);
   p += sizeof(last_log_index);
 
@@ -106,12 +114,12 @@ inline bool RequestVote::FromString(const char *ptr, int32_t len) {
 
 inline nlohmann::json RequestVote::ToJson() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dest"] = dest.ToString();
-  j["term"] = term;
-  j["last_log_index"] = last_log_index;
-  j["last_log_term"] = last_log_term;
-  j["this"] = PointerToHexStr(this);
+  j[0]["src"] = src.ToString();
+  j[0]["dest"] = dest.ToString();
+  j[0]["term"] = term;
+  j[0]["uid"] = U32ToHexStr(uid);
+  j[1]["last_log_index"] = last_log_index;
+  j[1]["last_log_term"] = last_log_term;
   return j;
 }
 
@@ -122,7 +130,7 @@ inline nlohmann::json RequestVote::ToJsonTiny() {
   j["tm"] = term;
   j["lidx"] = last_log_index;
   j["ltm"] = last_log_term;
-  j["ts"] = PointerToHexStr(this);
+  j["uid"] = U32ToHexStr(uid);
   return j;
 }
 
