@@ -123,7 +123,7 @@ inline std::string PingReply::ToJsonString(bool tiny, bool one_line) {
   if (tiny) {
     j["pir"] = ToJsonTiny();
   } else {
-    j["ping_reply"] = ToJson();
+    j["ping-reply"] = ToJson();
   }
 
   if (one_line) {

@@ -162,7 +162,7 @@ inline std::string AppendEntriesReply::ToJsonString(bool tiny, bool one_line) {
   if (tiny) {
     j["aer"] = ToJsonTiny();
   } else {
-    j["append_entries_reply"] = ToJson();
+    j["append-entries-reply"] = ToJson();
   }
 
   if (one_line) {

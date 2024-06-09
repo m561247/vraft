@@ -118,8 +118,8 @@ inline nlohmann::json RequestVote::ToJson() {
   j[0]["dest"] = dest.ToString();
   j[0]["term"] = term;
   j[0]["uid"] = U32ToHexStr(uid);
-  j[1]["last_log_index"] = last_log_index;
-  j[1]["last_log_term"] = last_log_term;
+  j[1]["last"] = last_log_index;
+  j[1]["last-term"] = last_log_term;
   return j;
 }
 
@@ -128,7 +128,7 @@ inline nlohmann::json RequestVote::ToJsonTiny() {
   j["src"] = src.ToString();
   j["dst"] = dest.ToString();
   j["tm"] = term;
-  j["lidx"] = last_log_index;
+  j["last"] = last_log_index;
   j["ltm"] = last_log_term;
   j["uid"] = U32ToHexStr(uid);
   return j;
@@ -139,7 +139,7 @@ inline std::string RequestVote::ToJsonString(bool tiny, bool one_line) {
   if (tiny) {
     j["rv"] = ToJsonTiny();
   } else {
-    j["request_vote"] = ToJson();
+    j["request-vote"] = ToJson();
   }
 
   if (one_line) {

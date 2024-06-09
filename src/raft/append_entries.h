@@ -189,7 +189,7 @@ inline nlohmann::json AppendEntries::ToJson() {
   j[1]["pre"] = pre_log_index;
   j[1]["pre-term"] = pre_log_term;
   j[1]["commit"] = commit_index;
-  j[1]["entry_count"] = entries.size();
+  j[1]["entry-count"] = entries.size();
   for (size_t i = 0; i < entries.size(); ++i) {
     j[2]["entries"][i] = entries[i].ToJson();
   }
@@ -217,7 +217,7 @@ inline std::string AppendEntries::ToJsonString(bool tiny, bool one_line) {
   if (tiny) {
     j["ae"] = ToJsonTiny();
   } else {
-    j["append_entries"] = ToJson();
+    j["append-entries"] = ToJson();
   }
 
   if (one_line) {

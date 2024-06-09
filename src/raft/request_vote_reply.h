@@ -129,7 +129,7 @@ inline std::string RequestVoteReply::ToJsonString(bool tiny, bool one_line) {
   if (tiny) {
     j["rvr"] = ToJsonTiny();
   } else {
-    j["request_vote_reply"] = ToJson();
+    j["request-vote-reply"] = ToJson();
   }
 
   if (one_line) {
