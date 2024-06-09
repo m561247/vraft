@@ -177,8 +177,8 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
   } else if (pre_index == 0) {
     pre_term = 0;
 
-  } else if (pre_index == sm_.LastIndex()) {
-    pre_term = sm_.LastTerm();
+  } else if (sm_ && pre_index == sm_->LastIndex()) {
+    pre_term = sm_->LastTerm();
 
   } else {
     // do not have log, send snapshot
@@ -288,7 +288,10 @@ end:
 LastTerm(xlog) == IF Len(xlog) = 0 THEN 0 ELSE xlog[Len(xlog)].term
 ********************************************************************************************/
 RaftTerm Raft::LastTerm() {
-  RaftIndex snapshot_last = sm_.LastIndex();
+  RaftIndex snapshot_last = 0;
+  if (sm_) {
+    snapshot_last = sm_->LastIndex();
+  }
   RaftIndex log_last = log_.Last();
 
   if (log_last >= snapshot_last) {  // log is newer
@@ -300,7 +303,8 @@ RaftTerm Raft::LastTerm() {
     }
 
   } else {  // snapshot is newer
-    return sm_.LastTerm();
+    assert(sm_);
+    return sm_->LastTerm();
   }
 }
 
@@ -416,7 +420,9 @@ void Raft::MaybeCommit(Tracer *tracer) {
     return;
   }
 
+  assert(new_commit > commit_);
   assert(new_commit >= log_.First());
+
   MetaValue new_commit_meta;
   int32_t rv = log_.GetMeta(new_commit, new_commit_meta);
   assert(rv == 0);
@@ -428,6 +434,23 @@ void Raft::MaybeCommit(Tracer *tracer) {
   RaftIndex old_commit = commit_;  // record for tracer
   commit_ = new_commit;
   assert(commit_ <= log_.Last());
+
+  // state machine apply
+  if (commit_ > last_apply_) {
+    if (sm_) {
+      for (RaftIndex i = last_apply_ + 1; i <= commit_; ++i) {
+        LogEntry log_entry;
+        int32_t rv = log_.Get(i, log_entry);
+        assert(rv == 0);
+
+        rv = sm_->Apply(&log_entry);
+        assert(rv == 0);
+
+        // propose call back with rv
+      }
+    }
+    last_apply_ = commit_;
+  }
 
   if (tracer != nullptr) {
     char buf[128];

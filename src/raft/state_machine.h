@@ -10,25 +10,23 @@ namespace vraft {
 
 class LogEntry;
 
-class StateMachine final {
+class StateMachine {
  public:
   StateMachine(std::string path);
   ~StateMachine();
   StateMachine(const StateMachine &t) = delete;
   StateMachine &operator=(const StateMachine &t) = delete;
-  void Init() { Restore(); }
 
-  virtual int32_t Restore() { return 0; }
-  virtual int32_t Apply(LogEntry *entry) { return 0; }
-  virtual RaftIndex LastIndex() { return 0; }
-  virtual RaftTerm LastTerm() { return 0; }
+  int32_t Init();
+
+  virtual int32_t Restore() = 0;
+  virtual int32_t Apply(LogEntry *entry) = 0;
+  virtual RaftIndex LastIndex() = 0;
+  virtual RaftTerm LastTerm() = 0;
 
  private:
+  std::string path_;
 };
-
-inline StateMachine::StateMachine(std::string path) {}
-
-inline StateMachine::~StateMachine() {}
 
 }  // namespace vraft
 

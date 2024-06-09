@@ -53,7 +53,7 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       config_mgr_(rc),
       vote_mgr_(rc.peers),
       index_mgr_(rc.peers),
-      sm_(path + "/sm"),
+      sm_(nullptr),
       timer_mgr_(rc.peers),
       send_(nullptr),
       make_timer_(nullptr) {
@@ -131,12 +131,20 @@ void Raft::Init() {
   system(cmd_buf);
   assert(rv == 0);
 
+  snprintf(cmd_buf, sizeof(cmd_buf), "mkdir -p %s", sm_path_.c_str());
+  system(cmd_buf);
+  assert(rv == 0);
+
   rv = InitConfig();
   assert(rv == 0);
 
   meta_.Init();
   log_.Init();
-  sm_.Init();
+
+  if (sm_) {
+    sm_->Init();
+    last_apply_ = sm_->LastIndex();
+  }
 
   // reset managers
   index_mgr_.ResetNext(LastIndex() + 1);
@@ -177,7 +185,11 @@ int32_t Raft::InitConfig() {
 }
 
 RaftIndex Raft::LastIndex() {
-  RaftIndex snapshot_last = sm_.LastIndex();
+  RaftIndex snapshot_last = 0;
+  if (sm_) {
+    snapshot_last = sm_->LastIndex();
+  }
+
   RaftIndex log_last = log_.Last();
   RaftIndex last = std::max(snapshot_last, log_last);
   return last;
@@ -195,7 +207,8 @@ RaftTerm Raft::GetTerm(RaftIndex index) {
   if (rv == 0) {
     return meta.term;
   } else {
-    return sm_.LastTerm();
+    assert(sm_);
+    return sm_->LastTerm();
   }
 }
 

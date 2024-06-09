@@ -91,6 +91,8 @@ class Raft final {
   void set_make_timer(MakeTimerFunc func);
   void set_assert_loop(Functor assert_loop);
   void set_tracer_cb(TracerCb tracer_cb);
+  void set_sm(StateMachineSPtr sm);
+  StateMachineSPtr sm();
 
  private:
   bool IfSelfVote();
@@ -131,7 +133,7 @@ class Raft final {
   IndexManager index_mgr_;
 
   // raft state: state machine
-  StateMachine sm_;
+  StateMachineSPtr sm_;
 
   // assistant
   TimerManager timer_mgr_;
@@ -159,6 +161,10 @@ inline void Raft::set_assert_loop(Functor assert_loop) {
 }
 
 inline void Raft::set_tracer_cb(TracerCb tracer_cb) { tracer_cb_ = tracer_cb; }
+
+inline void Raft::set_sm(StateMachineSPtr sm) { sm_ = sm; }
+
+inline StateMachineSPtr Raft::sm() { return sm_; }
 
 }  // namespace vraft
 
