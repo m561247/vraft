@@ -22,8 +22,9 @@ TEST(AppendEntriesReply, test) {
   msg.uid = vraft::UniqId(&msg);
   msg.success = true;
   msg.last_log_index = 88;
-  msg.pre_log_index = 99;
-  msg.num_entries = 123;
+  msg.req_pre_index = 99;
+  msg.req_num_entries = 123;
+  msg.req_term = 55;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -51,8 +52,9 @@ TEST(AppendEntriesReply, test) {
   ASSERT_EQ(msg.uid, msg2.uid);
   ASSERT_EQ(msg.success, msg2.success);
   ASSERT_EQ(msg.last_log_index, msg2.last_log_index);
-  ASSERT_EQ(msg.pre_log_index, msg2.pre_log_index);
-  ASSERT_EQ(msg.num_entries, msg2.num_entries);
+  ASSERT_EQ(msg.req_pre_index, msg2.req_pre_index);
+  ASSERT_EQ(msg.req_num_entries, msg2.req_num_entries);
+  ASSERT_EQ(msg.req_term, msg2.req_term);
 }
 
 int main(int argc, char **argv) {

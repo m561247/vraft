@@ -97,8 +97,9 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
     reply.uid = UniqId(&reply);
     reply.success = false;
     reply.last_log_index = LastIndex();
-    reply.pre_log_index = msg.pre_log_index;
-    reply.num_entries = msg.entries.size();
+    reply.req_pre_index = msg.pre_log_index;
+    reply.req_num_entries = msg.entries.size();
+    reply.req_term = msg.term;
 
     // stale term, send reply
     if (msg.term < meta_.term()) {
@@ -279,34 +280,43 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
     // drop stale
     if (msg.term < meta_.term()) {
       char buf[128];
-      snprintf(buf, sizeof(buf), "drop stale response, term %lu < %lu",
+      snprintf(buf, sizeof(buf), "drop response, stale term %lu < %lu",
                msg.term, meta_.term());
       tracer.PrepareEvent(kEventOther, std::string(buf));
       goto end;
     }
+
+    // drop response, rpc term not equal
+    if (msg.req_term != meta_.term()) {
+      char buf[128];
+      snprintf(buf, sizeof(buf),
+               "drop response, rpc term not equal, current-term %lu != "
+               "msg.req-term:%lu",
+               meta_.term(), msg.req_term);
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+      goto end;
+    }
+
+    assert((state_ == LEADER));
 
     if (msg.term > meta_.term()) {
       StepDown(msg.term, &tracer);
 
     } else {
       assert(msg.term == meta_.term());
-      if (state_ != LEADER) {
-        tracer.PrepareState1();
-        tracer.Finish();
-        assert(0);
-      }
+      assert(msg.req_term == meta_.term());
 
       if (msg.success) {  // follower return match
         if (index_mgr_.GetMatch(msg.src) >
-            msg.pre_log_index + msg.num_entries) {
+            msg.req_pre_index + msg.req_num_entries) {
           // maybe pipeline ?
 
         } else {
           assert(index_mgr_.GetMatch(msg.src) <=
-                 msg.pre_log_index + msg.num_entries);
+                 msg.req_pre_index + msg.req_num_entries);
 
           // increase match index
-          index_mgr_.SetMatch(msg.src, msg.pre_log_index + msg.num_entries);
+          index_mgr_.SetMatch(msg.src, msg.req_pre_index + msg.req_num_entries);
           MaybeCommit(&tracer);
         }
 

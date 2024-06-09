@@ -19,6 +19,9 @@ struct RequestVoteReply {
 
   bool granted;  // uint8_t
 
+  // send back
+  RaftTerm req_term;
+
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
   int32_t ToString(const char *ptr, int32_t len);
@@ -32,7 +35,7 @@ struct RequestVoteReply {
 
 inline int32_t RequestVoteReply::MaxBytes() {
   return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uid) +
-         sizeof(uint8_t);
+         sizeof(uint8_t) + sizeof(req_term);
 }
 
 inline int32_t RequestVoteReply::ToString(std::string &s) {
@@ -72,6 +75,10 @@ inline int32_t RequestVoteReply::ToString(const char *ptr, int32_t len) {
   p += sizeof(granted);
   size += sizeof(uint8_t);
 
+  EncodeFixed64(p, req_term);
+  p += sizeof(req_term);
+  size += sizeof(req_term);
+
   assert(size <= len);
   return size;
 }
@@ -101,6 +108,9 @@ inline bool RequestVoteReply::FromString(const char *ptr, int32_t len) {
   granted = DecodeFixed8(p);
   p += sizeof(uint8_t);
 
+  req_term = DecodeFixed64(p);
+  p += sizeof(req_term);
+
   return true;
 }
 
@@ -111,6 +121,7 @@ inline nlohmann::json RequestVoteReply::ToJson() {
   j[0]["term"] = term;
   j[0]["uid"] = U32ToHexStr(uid);
   j[1]["grant"] = granted;
+  j[1]["req-term"] = req_term;
   return j;
 }
 
@@ -120,6 +131,7 @@ inline nlohmann::json RequestVoteReply::ToJsonTiny() {
   j["dst"] = dest.ToString();
   j["tm"] = term;
   j["gr"] = granted;
+  j["rtm"] = req_term;
   j["uid"] = U32ToHexStr(uid);
   return j;
 }

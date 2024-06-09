@@ -82,6 +82,7 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
     reply.uid = UniqId(&reply);
     reply.granted =
         (msg.term == meta_.term() && meta_.vote() == msg.src.ToU64());
+    reply.req_term = msg.term;
     SendRequestVoteReply(reply, &tracer);
 
     tracer.PrepareState1();
@@ -142,6 +143,17 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
       char buf[128];
       snprintf(buf, sizeof(buf), "drop stale response, term %lu < %lu",
                msg.term, meta_.term());
+      tracer.PrepareEvent(kEventOther, std::string(buf));
+      goto end;
+    }
+
+    // drop response, rpc term not equal
+    if (msg.req_term != meta_.term()) {
+      char buf[128];
+      snprintf(buf, sizeof(buf),
+               "drop response, rpc term not equal, current-term %lu != "
+               "msg.req-term:%lu",
+               meta_.term(), msg.req_term);
       tracer.PrepareEvent(kEventOther, std::string(buf));
       goto end;
     }

@@ -20,9 +20,10 @@ struct AppendEntriesReply {
   bool success;              // uint8_t
   RaftIndex last_log_index;  // to speed up
 
-  // send back to leader
-  RaftIndex pre_log_index;  // from leader
-  int32_t num_entries;      // from leader
+  // send back
+  RaftIndex req_pre_index;  // from leader
+  int32_t req_num_entries;  // from leader
+  RaftTerm req_term;        // from leader
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -37,8 +38,8 @@ struct AppendEntriesReply {
 
 inline int32_t AppendEntriesReply::MaxBytes() {
   return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uid) +
-         sizeof(uint8_t) + sizeof(last_log_index) + sizeof(pre_log_index) +
-         sizeof(num_entries);
+         sizeof(uint8_t) + sizeof(last_log_index) + sizeof(req_pre_index) +
+         sizeof(req_num_entries) + sizeof(req_term);
 }
 
 inline int32_t AppendEntriesReply::ToString(std::string &s) {
@@ -82,13 +83,17 @@ inline int32_t AppendEntriesReply::ToString(const char *ptr, int32_t len) {
   p += sizeof(last_log_index);
   size += sizeof(last_log_index);
 
-  EncodeFixed32(p, pre_log_index);
-  p += sizeof(pre_log_index);
-  size += sizeof(pre_log_index);
+  EncodeFixed32(p, req_pre_index);
+  p += sizeof(req_pre_index);
+  size += sizeof(req_pre_index);
 
-  EncodeFixed32(p, num_entries);
-  p += sizeof(num_entries);
-  size += sizeof(num_entries);
+  EncodeFixed32(p, req_num_entries);
+  p += sizeof(req_num_entries);
+  size += sizeof(req_num_entries);
+
+  EncodeFixed64(p, req_term);
+  p += sizeof(req_term);
+  size += sizeof(req_term);
 
   assert(size <= len);
   return size;
@@ -122,11 +127,14 @@ inline bool AppendEntriesReply::FromString(const char *ptr, int32_t len) {
   last_log_index = DecodeFixed32(p);
   p += sizeof(last_log_index);
 
-  pre_log_index = DecodeFixed32(p);
-  p += sizeof(pre_log_index);
+  req_pre_index = DecodeFixed32(p);
+  p += sizeof(req_pre_index);
 
-  num_entries = DecodeFixed32(p);
-  p += sizeof(num_entries);
+  req_num_entries = DecodeFixed32(p);
+  p += sizeof(req_num_entries);
+
+  req_term = DecodeFixed64(p);
+  p += sizeof(req_term);
 
   return true;
 }
@@ -139,8 +147,9 @@ inline nlohmann::json AppendEntriesReply::ToJson() {
   j[0]["uid"] = U32ToHexStr(uid);
   j[1]["success"] = success;
   j[1]["last"] = last_log_index;
-  j[2]["pre"] = pre_log_index;
-  j[2]["entry_count"] = num_entries;
+  j[2]["req-pre"] = req_pre_index;
+  j[2]["req-entry-count"] = req_num_entries;
+  j[2]["req-term"] = req_term;
   return j;
 }
 
@@ -152,8 +161,9 @@ inline nlohmann::json AppendEntriesReply::ToJsonTiny() {
   j["uid"] = U32ToHexStr(uid);
   j["suc"] = success;
   j["last"] = last_log_index;
-  j["pre"] = pre_log_index;
-  j["cnt"] = num_entries;
+  j["req-pre"] = req_pre_index;
+  j["req-cnt"] = req_num_entries;
+  j["req-tm"] = req_term;
   return j;
 }
 

@@ -21,6 +21,7 @@ TEST(RequestVoteReply, test) {
   msg.term = 77;
   msg.uid = vraft::UniqId(&msg);
   msg.granted = true;
+  msg.req_term = 88;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -47,6 +48,7 @@ TEST(RequestVoteReply, test) {
   ASSERT_EQ(msg.term, msg2.term);
   ASSERT_EQ(msg.uid, msg2.uid);
   ASSERT_EQ(msg.granted, msg2.granted);
+  ASSERT_EQ(msg.req_term, msg2.req_term);
 }
 
 int main(int argc, char **argv) {
