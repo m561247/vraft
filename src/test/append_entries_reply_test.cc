@@ -19,6 +19,7 @@ TEST(AppendEntriesReply, test) {
   msg.src = src;
   msg.dest = dest;
   msg.term = 77;
+  msg.uid = vraft::UniqId(&msg);
   msg.success = true;
   msg.last_log_index = 88;
   msg.pre_log_index = 99;
@@ -44,13 +45,14 @@ TEST(AppendEntriesReply, test) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  EXPECT_EQ(msg.term, msg2.term);
-  EXPECT_EQ(msg.success, msg2.success);
-  EXPECT_EQ(msg.last_log_index, msg2.last_log_index);
-  EXPECT_EQ(msg.pre_log_index, msg2.pre_log_index);
-  EXPECT_EQ(msg.num_entries, msg2.num_entries);
+  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
+  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
+  ASSERT_EQ(msg.term, msg2.term);
+  ASSERT_EQ(msg.uid, msg2.uid);
+  ASSERT_EQ(msg.success, msg2.success);
+  ASSERT_EQ(msg.last_log_index, msg2.last_log_index);
+  ASSERT_EQ(msg.pre_log_index, msg2.pre_log_index);
+  ASSERT_EQ(msg.num_entries, msg2.num_entries);
 }
 
 int main(int argc, char **argv) {

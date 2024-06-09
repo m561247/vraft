@@ -15,6 +15,7 @@ struct AppendEntriesReply {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
   RaftTerm term;
+  uint32_t uid;
 
   bool success;              // uint8_t
   RaftIndex last_log_index;  // to speed up
@@ -35,8 +36,9 @@ struct AppendEntriesReply {
 };
 
 inline int32_t AppendEntriesReply::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uint8_t) +
-         sizeof(last_log_index) + sizeof(pre_log_index) + sizeof(num_entries);
+  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uid) +
+         sizeof(uint8_t) + sizeof(last_log_index) + sizeof(pre_log_index) +
+         sizeof(num_entries);
 }
 
 inline int32_t AppendEntriesReply::ToString(std::string &s) {
@@ -67,6 +69,10 @@ inline int32_t AppendEntriesReply::ToString(const char *ptr, int32_t len) {
   EncodeFixed64(p, term);
   p += sizeof(term);
   size += sizeof(term);
+
+  EncodeFixed32(p, uid);
+  p += sizeof(uid);
+  size += sizeof(uid);
 
   EncodeFixed8(p, success);
   p += sizeof(success);
@@ -107,6 +113,9 @@ inline bool AppendEntriesReply::FromString(const char *ptr, int32_t len) {
   term = DecodeFixed64(p);
   p += sizeof(term);
 
+  uid = DecodeFixed32(p);
+  p += sizeof(uid);
+
   success = DecodeFixed8(p);
   p += sizeof(uint8_t);
 
@@ -124,14 +133,14 @@ inline bool AppendEntriesReply::FromString(const char *ptr, int32_t len) {
 
 inline nlohmann::json AppendEntriesReply::ToJson() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dest"] = dest.ToString();
-  j["term"] = term;
-  j["success"] = success;
-  j["last_log_index"] = last_log_index;
-  j["pre_log_index"] = pre_log_index;
-  j["num_entries"] = num_entries;
-  j["this"] = PointerToHexStr(this);
+  j[0]["src"] = src.ToString();
+  j[0]["dest"] = dest.ToString();
+  j[0]["term"] = term;
+  j[0]["uid"] = U32ToHexStr(uid);
+  j[1]["success"] = success;
+  j[1]["last"] = last_log_index;
+  j[2]["pre"] = pre_log_index;
+  j[2]["entry_count"] = num_entries;
   return j;
 }
 
@@ -140,11 +149,11 @@ inline nlohmann::json AppendEntriesReply::ToJsonTiny() {
   j["src"] = src.ToString();
   j["dst"] = dest.ToString();
   j["tm"] = term;
+  j["uid"] = U32ToHexStr(uid);
   j["suc"] = success;
-  j["lidx"] = last_log_index;
-  j["pidx"] = pre_log_index;
-  j["no."] = num_entries;
-  j["ts"] = PointerToHexStr(this);
+  j["last"] = last_log_index;
+  j["pre"] = pre_log_index;
+  j["cnt"] = num_entries;
   return j;
 }
 
