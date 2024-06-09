@@ -51,6 +51,7 @@ void Remu::Create() {
     assert(sptr);
     vraft::RaftServerSPtr ptr = std::make_shared<vraft::RaftServer>(sptr, conf);
     ptr->raft()->set_tracer_cb(tracer_cb);
+    ptr->raft()->set_create_sm(create_sm);
     raft_servers.push_back(ptr);
   }
 }

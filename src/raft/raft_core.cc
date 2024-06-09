@@ -436,6 +436,25 @@ void Raft::MaybeCommit(Tracer *tracer) {
   assert(commit_ <= log_.Last());
 
   // state machine apply
+  StateMachineApply(tracer);
+
+  if (tracer != nullptr) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "advance commit from %u to %u", old_commit,
+             commit_);
+    tracer->PrepareEvent(kEventOther, std::string(buf));
+  }
+}
+
+void Raft::StateMachineApply(Tracer *tracer) {
+  if (tracer) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "state-machine apply, last-apply:%u, commit:%u",
+             last_apply_, commit_);
+    tracer->PrepareEvent(kEventOther, std::string(buf));
+  }
+
+  // state machine apply
   if (commit_ > last_apply_) {
     if (sm_) {
       for (RaftIndex i = last_apply_ + 1; i <= commit_; ++i) {
@@ -443,20 +462,15 @@ void Raft::MaybeCommit(Tracer *tracer) {
         int32_t rv = log_.Get(i, log_entry);
         assert(rv == 0);
 
-        rv = sm_->Apply(&log_entry);
-        assert(rv == 0);
+        if (log_entry.append_entry.type == kData) {
+          rv = sm_->Apply(&log_entry, Me());
+          assert(rv == 0);
 
-        // propose call back with rv
+          // propose call back with rv
+        }
       }
     }
     last_apply_ = commit_;
-  }
-
-  if (tracer != nullptr) {
-    char buf[128];
-    snprintf(buf, sizeof(buf), "advance commit from %u to %u", old_commit,
-             commit_);
-    tracer->PrepareEvent(kEventOther, std::string(buf));
   }
 }
 

@@ -220,6 +220,9 @@ int32_t Raft::OnAppendEntries(struct AppendEntries &msg) {
 
       commit_ = msg.commit_index;
       assert(commit_ <= LastIndex());
+
+      // state machine apply
+      StateMachineApply(&tracer);
     }
 
     // reset election timer again

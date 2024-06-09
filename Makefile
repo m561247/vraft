@@ -60,6 +60,7 @@ TPL_TEST_SRCS := src/test/tpl_test.cc $(COMMON_SRCS)
 REMU_ELECT_TEST_SRCS := src/test/remu_elect_test.cc $(COMMON_SRCS)
 REMU_ELECT2_TEST_SRCS := src/test/remu_elect2_test.cc $(COMMON_SRCS)
 REMU_PROPOSE_TEST_SRCS := src/test/remu_propose_test.cc $(COMMON_SRCS)
+REMU_SM_TEST_SRCS := src/test/remu_sm_test.cc $(COMMON_SRCS)
 HOSTPORT_TEST_SRCS := src/test/hostport_test.cc $(COMMON_SRCS)
 BUFFER_TEST_SRCS := src/test/buffer_test.cc $(COMMON_SRCS)
 EVENTLOOP_TEST_SRCS := src/test/eventloop_test.cc $(COMMON_SRCS)
@@ -105,6 +106,7 @@ TPL_TEST_OBJECTS := $(TPL_TEST_SRCS:.cc=.o)
 REMU_ELECT_TEST_OBJECTS := $(REMU_ELECT_TEST_SRCS:.cc=.o)
 REMU_ELECT2_TEST_OBJECTS := $(REMU_ELECT2_TEST_SRCS:.cc=.o)
 REMU_PROPOSE_TEST_OBJECTS := $(REMU_PROPOSE_TEST_SRCS:.cc=.o)
+REMU_SM_TEST_OBJECTS := $(REMU_SM_TEST_SRCS:.cc=.o)
 HOSTPORT_TEST_OBJECTS := $(HOSTPORT_TEST_SRCS:.cc=.o)
 BUFFER_TEST_OBJECTS := $(BUFFER_TEST_SRCS:.cc=.o)
 EVENTLOOP_TEST_OBJECTS := $(EVENTLOOP_TEST_SRCS:.cc=.o)
@@ -140,6 +142,7 @@ TEST += raft_test
 TEST += remu_elect_test
 TEST += remu_elect2_test
 TEST += remu_propose_test 
+TEST += remu_sm_test 
 TEST += hostport_test
 TEST += buffer_test
 TEST += eventloop_test
@@ -242,6 +245,9 @@ remu_elect2_test: $(REMU_ELECT2_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 remu_propose_test: $(REMU_PROPOSE_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+remu_sm_test: $(REMU_SM_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 hostport_test: $(HOSTPORT_TEST_OBJECTS)

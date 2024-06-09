@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "config.h"
+#include "state_machine.h"
 
 namespace vraft {
 
@@ -16,7 +17,9 @@ struct Remu {
   std::vector<vraft::Config> configs;
   std::vector<vraft::RaftServerSPtr> raft_servers;
   std::vector<vraft::StateMachineSPtr> state_machines;
+
   TracerCb tracer_cb;
+  CreateSMFunc create_sm;
 
   void Create();
   void Start();

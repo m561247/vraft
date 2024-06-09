@@ -71,11 +71,13 @@ int32_t Raft::Start() {
   tracer.PrepareState0();
   tracer.PrepareEvent(kEventStart, "raft start");
 
+  // create sm
   if (create_sm_) {
     sm_ = create_sm_(sm_path_);
     assert(sm_);
   }
 
+  // state machine restore
   if (sm_) {
     sm_->Restore();
     last_apply_ = sm_->LastIndex();
