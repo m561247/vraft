@@ -81,13 +81,15 @@ class TestSM : public vraft::StateMachine {
     {
       char buf[sizeof(uint32_t)];
       vraft::EncodeFixed32(buf, entry->index);
-      batch.Put(leveldb::Slice(last_index_key), std::string(buf));
+      batch.Put(leveldb::Slice(last_index_key),
+                leveldb::Slice(buf, sizeof(uint32_t)));
     }
 
     {
       char buf[sizeof(uint64_t)];
       vraft::EncodeFixed64(buf, entry->append_entry.term);
-      batch.Put(leveldb::Slice(last_term_key), std::string(buf));
+      batch.Put(leveldb::Slice(last_term_key),
+                leveldb::Slice(buf, sizeof(uint64_t)));
     }
 
     std::vector<std::string> kv;
@@ -108,6 +110,7 @@ class TestSM : public vraft::StateMachine {
     std::string value;
     s = db->Get(ro, leveldb::Slice(last_index_key), &value);
     if (s.ok()) {
+      assert(value.size() == sizeof(uint32_t));
       uint32_t u32 = vraft::DecodeFixed32(value.c_str());
       return u32;
     } else {
@@ -121,6 +124,7 @@ class TestSM : public vraft::StateMachine {
     std::string value;
     s = db->Get(ro, leveldb::Slice(last_term_key), &value);
     if (s.ok()) {
+      assert(value.size() == sizeof(uint64_t));
       uint64_t u64 = vraft::DecodeFixed64(value.c_str());
       return u64;
     } else {
@@ -162,7 +166,8 @@ void RemuTick(vraft::Timer *timer) {
         auto sptr = rs->raft();
         if (sptr && sptr->state() == vraft::LEADER) {
           char value_buf[128];
-          snprintf(value_buf, sizeof(value_buf), "key_%d:value_%d", value_num,value_num);
+          snprintf(value_buf, sizeof(value_buf), "key_%d:value_%d", value_num,
+                   value_num);
           int32_t rv = sptr->Propose(std::string(value_buf), nullptr);
           if (rv == 0) {
             printf("%s propose value: %s\n", sptr->Me().ToString().c_str(),
@@ -193,8 +198,7 @@ void RemuTick(vraft::Timer *timer) {
         std::cout << "------------------------------------" << std::endl;
         std::cout << "LastIndex: " << ptr->raft()->sm()->LastIndex()
                   << std::endl;
-        std::cout << "LastTerm: " << ptr->raft()->sm()->LastTerm()
-                  << std::endl;
+        std::cout << "LastTerm: " << ptr->raft()->sm()->LastTerm() << std::endl;
         for (int i = 0; i < 10; ++i) {
           char key[32];
           snprintf(key, sizeof(key), "key_%d", i);
