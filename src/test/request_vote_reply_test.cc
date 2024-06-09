@@ -19,6 +19,7 @@ TEST(RequestVoteReply, test) {
   msg.src = src;
   msg.dest = dest;
   msg.term = 77;
+  msg.uid = vraft::UniqId(&msg);
   msg.granted = true;
 
   std::string msg_str;
@@ -41,10 +42,11 @@ TEST(RequestVoteReply, test) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  EXPECT_EQ(msg.term, msg2.term);
-  EXPECT_EQ(msg.granted, msg2.granted);
+  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
+  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
+  ASSERT_EQ(msg.term, msg2.term);
+  ASSERT_EQ(msg.uid, msg2.uid);
+  ASSERT_EQ(msg.granted, msg2.granted);
 }
 
 int main(int argc, char **argv) {
