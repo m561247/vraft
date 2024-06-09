@@ -75,6 +75,11 @@ using RaftSPtr = std::shared_ptr<Raft>;
 using RaftUPtr = std::unique_ptr<Raft>;
 using RaftWPtr = std::weak_ptr<Raft>;
 
+class StateMachine;
+using StateMachineSPtr = std::shared_ptr<StateMachine>;
+using StateMachineUPtr = std::unique_ptr<StateMachine>;
+using StateMachineWPtr = std::weak_ptr<StateMachine>;
+
 }  // namespace vraft
 
 #endif

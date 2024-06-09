@@ -88,7 +88,7 @@ class TimerManager final {
 inline TimerManager::TimerManager(const std::vector<RaftAddr> &peers)
     : data_(nullptr),
       tick_ms_(1000),
-      election_ms_(1500),
+      election_ms_(2000),
       request_vote_ms_(1000),
       heartbeat_ms_(500),
       random_election_ms_(election_ms_, 2 * election_ms_),

@@ -9,8 +9,6 @@
 namespace vraft {
 
 class LogEntry;
-class StateMachine;
-using StateMachineUPtr = std::unique_ptr<StateMachine>;
 
 class StateMachine final {
  public:
