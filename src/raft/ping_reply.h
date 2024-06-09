@@ -15,6 +15,7 @@ namespace vraft {
 struct PingReply {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
+  uint32_t uid;
   std::string msg;
 
   int32_t MaxBytes();
@@ -29,7 +30,8 @@ struct PingReply {
 };
 
 inline int32_t PingReply::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + 2 * sizeof(int32_t) + msg.size();
+  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(int32_t) +
+         2 * sizeof(int32_t) + msg.size();
 }
 
 inline int32_t PingReply::ToString(std::string &s) {
@@ -57,6 +59,10 @@ inline int32_t PingReply::ToString(const char *ptr, int32_t len) {
   p += sizeof(u64);
   size += sizeof(u64);
 
+  EncodeFixed32(p, uid);
+  p += sizeof(uid);
+  size += sizeof(uid);
+
   Slice sls(msg.c_str(), msg.size());
   char *p2 = EncodeString2(p, len - size, sls);
   size += (p2 - p);
@@ -81,6 +87,9 @@ inline bool PingReply::FromString(const char *ptr, int32_t len) {
   dest.FromU64(u64);
   p += sizeof(u64);
 
+  uid = DecodeFixed32(p);
+  p += sizeof(uid);
+
   Slice result;
   Slice input(p, len - 2 * sizeof(uint64_t));
   bool b = DecodeString(&input, &result);
@@ -93,10 +102,10 @@ inline bool PingReply::FromString(const char *ptr, int32_t len) {
 
 inline nlohmann::json PingReply::ToJson() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dest"] = dest.ToString();
-  j["msg"] = msg;
-  j["this"] = PointerToHexStr(this);
+  j[0]["src"] = src.ToString();
+  j[0]["dest"] = dest.ToString();
+  j[0]["uid"] = U32ToHexStr(uid);
+  j[1]["msg"] = msg;
   return j;
 }
 
@@ -104,8 +113,8 @@ inline nlohmann::json PingReply::ToJsonTiny() {
   nlohmann::json j;
   j[0] = src.ToString();
   j[1] = dest.ToString();
-  j[2] = msg;
-  j[3] = PointerToHexStr(this);
+  j[2] = U32ToHexStr(uid);
+  j[3] = msg;
   return j;
 }
 
