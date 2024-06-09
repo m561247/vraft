@@ -290,7 +290,11 @@ int32_t Raft::OnAppendEntriesReply(struct AppendEntriesReply &msg) {
 
     } else {
       assert(msg.term == meta_.term());
-      assert(state_ == LEADER);
+      if (state_ != LEADER) {
+        tracer.PrepareState1();
+        tracer.Finish();
+        assert(0);
+      }
 
       if (msg.success) {  // follower return match
         if (index_mgr_.GetMatch(msg.src) >
