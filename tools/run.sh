@@ -12,6 +12,14 @@ i=0
 while [ $i -lt $number_of_times ]; do
     echo "Running $program for the $((i+1))-th time..."
     $program
+    ret=$?
+    echo "Running $program for the $((i+1))-th time finish, return ${ret}"
+
+    if [ ${ret} -ne 0 ]; then
+        echo "exit, return ${ret}"
+        exit 1
+    fi
+
     i=$((i+1))
 done
 
