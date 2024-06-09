@@ -19,6 +19,7 @@ TEST(AppendEntries, test) {
   msg.src = src;
   msg.dest = dest;
   msg.term = 77;
+  msg.uid = vraft::UniqId(&msg);
   msg.pre_log_index = 88;
   msg.pre_log_term = 99;
   msg.commit_index = 100;
@@ -55,17 +56,18 @@ TEST(AppendEntries, test) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  EXPECT_EQ(msg.term, msg2.term);
-  EXPECT_EQ(msg.pre_log_index, msg2.pre_log_index);
-  EXPECT_EQ(msg.pre_log_term, msg2.pre_log_term);
-  EXPECT_EQ(msg.commit_index, msg2.commit_index);
+  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
+  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
+  ASSERT_EQ(msg.term, msg2.term);
+  ASSERT_EQ(msg.uid, msg2.uid);
+  ASSERT_EQ(msg.pre_log_index, msg2.pre_log_index);
+  ASSERT_EQ(msg.pre_log_term, msg2.pre_log_term);
+  ASSERT_EQ(msg.commit_index, msg2.commit_index);
   for (size_t i = 0; i < msg.entries.size(); ++i) {
-    EXPECT_EQ(msg.entries[i].index, msg2.entries[i].index);
-    EXPECT_EQ(msg.entries[i].append_entry.term,
+    ASSERT_EQ(msg.entries[i].index, msg2.entries[i].index);
+    ASSERT_EQ(msg.entries[i].append_entry.term,
               msg2.entries[i].append_entry.term);
-    EXPECT_EQ(msg.entries[i].append_entry.value,
+    ASSERT_EQ(msg.entries[i].append_entry.value,
               msg2.entries[i].append_entry.value);
   }
 }
@@ -82,6 +84,7 @@ TEST(AppendEntries, test2) {
   msg.src = src;
   msg.dest = dest;
   msg.term = 77;
+  msg.uid = vraft::UniqId(&msg);
   msg.pre_log_index = 88;
   msg.pre_log_term = 99;
   msg.commit_index = 100;
@@ -106,14 +109,15 @@ TEST(AppendEntries, test2) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  EXPECT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  EXPECT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  EXPECT_EQ(msg.term, msg2.term);
-  EXPECT_EQ(msg.pre_log_index, msg2.pre_log_index);
-  EXPECT_EQ(msg.pre_log_term, msg2.pre_log_term);
-  EXPECT_EQ(msg.commit_index, msg2.commit_index);
-  EXPECT_EQ(msg.entries.size(), static_cast<size_t>(0));
-  EXPECT_EQ(msg2.entries.size(), static_cast<size_t>(0));
+  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
+  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
+  ASSERT_EQ(msg.term, msg2.term);
+  ASSERT_EQ(msg.uid, msg2.uid);
+  ASSERT_EQ(msg.pre_log_index, msg2.pre_log_index);
+  ASSERT_EQ(msg.pre_log_term, msg2.pre_log_term);
+  ASSERT_EQ(msg.commit_index, msg2.commit_index);
+  ASSERT_EQ(msg.entries.size(), static_cast<size_t>(0));
+  ASSERT_EQ(msg2.entries.size(), static_cast<size_t>(0));
 }
 
 int main(int argc, char **argv) {

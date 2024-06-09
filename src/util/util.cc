@@ -157,7 +157,7 @@ std::string PointerToHexStr(void *p) {
 }
 
 std::string U32ToHexStr(uint32_t x) {
-  char buf[32];
+  char buf[32] = {0};
   snprintf(buf, sizeof(buf), "0x%X", x);
   return std::string(buf);
 }

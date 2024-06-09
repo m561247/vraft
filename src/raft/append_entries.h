@@ -18,6 +18,7 @@ struct AppendEntries {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
   RaftTerm term;
+  uint32_t uid;
 
   RaftIndex pre_log_index;
   RaftTerm pre_log_term;
@@ -37,7 +38,7 @@ struct AppendEntries {
 
 inline int32_t AppendEntries::MaxBytes() {
   int32_t size = sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) +
-                 sizeof(pre_log_index) + sizeof(pre_log_term) +
+                 sizeof(uid) + sizeof(pre_log_index) + sizeof(pre_log_term) +
                  sizeof(commit_index) + 2 * sizeof(int32_t);
   for (auto &e : entries) {
     size += sizeof(e.index);
@@ -80,6 +81,10 @@ inline int32_t AppendEntries::ToString(const char *ptr, int32_t len) {
   EncodeFixed64(p, term);
   p += sizeof(term);
   size += sizeof(term);
+
+  EncodeFixed32(p, uid);
+  p += sizeof(uid);
+  size += sizeof(uid);
 
   EncodeFixed32(p, pre_log_index);
   p += sizeof(pre_log_index);
@@ -136,6 +141,11 @@ inline int32_t AppendEntries::FromString(const char *ptr, int32_t len) {
   size += sizeof(term);
   len2 -= sizeof(term);
 
+  uid = DecodeFixed32(p);
+  p += sizeof(uid);
+  size += sizeof(uid);
+  len2 -= sizeof(uid);
+
   pre_log_index = DecodeFixed32(p);
   p += sizeof(pre_log_index);
   size += sizeof(pre_log_index);
@@ -172,33 +182,33 @@ inline int32_t AppendEntries::FromString(const char *ptr, int32_t len) {
 
 inline nlohmann::json AppendEntries::ToJson() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dest"] = dest.ToString();
-  j["term"] = term;
-  j["pre_log_index"] = pre_log_index;
-  j["pre_log_term"] = pre_log_term;
-  j["commit_index"] = commit_index;
-  j["entry_count"] = entries.size();
+  j[0]["src"] = src.ToString();
+  j[0]["dest"] = dest.ToString();
+  j[0]["term"] = term;
+  j[0]["uid"] = U32ToHexStr(uid);
+  j[1]["pre"] = pre_log_index;
+  j[1]["pre-term"] = pre_log_term;
+  j[1]["commit"] = commit_index;
+  j[1]["entry_count"] = entries.size();
   for (size_t i = 0; i < entries.size(); ++i) {
-    j["entries"][i] = entries[i].ToJson();
+    j[2]["entries"][i] = entries[i].ToJson();
   }
-  j["this"] = PointerToHexStr(this);
   return j;
 }
 
 inline nlohmann::json AppendEntries::ToJsonTiny() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dst"] = dest.ToString();
-  j["tm"] = term;
-  j["pidx"] = pre_log_index;
-  j["ptm"] = pre_log_term;
-  j["cmt"] = commit_index;
-  j["cnt"] = entries.size();
+  j[0]["src"] = src.ToString();
+  j[0]["dst"] = dest.ToString();
+  j[0]["tm"] = term;
+  j[0]["uid"] = U32ToHexStr(uid);
+  j[1]["pre"] = pre_log_index;
+  j[1]["pre-tm"] = pre_log_term;
+  j[1]["cmt"] = commit_index;
+  j[1]["cnt"] = entries.size();
   for (size_t i = 0; i < entries.size(); ++i) {
-    j["etr"][i] = entries[i].ToJsonTiny();
+    j[2]["etr"][i] = entries[i].ToJsonTiny();
   }
-  j["ts"] = PointerToHexStr(this);
   return j;
 }
 
