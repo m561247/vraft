@@ -223,7 +223,6 @@ rl.on('line', (line) => {
         writeStream.write("\t</tr>\n");
 
     } else {
-        writeStream.write("</table>\n");
         state = "finish";
 
         last_json_objs = temp_json_objs;
@@ -236,6 +235,9 @@ rl.on('line', (line) => {
 
 rl.on('close', () => {
   //console.log('File reading and writing completed.');
+
+  writeStream.write("</table>\n");
+  
   writeStream.end();  // 关闭写入流
 });
 
