@@ -14,9 +14,7 @@ const rl = readline.createInterface({
 });
 
 var state = "finish";
-var temp_json_objs = new Object();
-var last_json_objs = new Object();
-var last_ready = false;
+var begin_json_obj = {}
 
 const td_str = "\t\t<td>";
 const td_change_str = "\t\t<td class=\"change\">";
@@ -67,11 +65,13 @@ rl.on('line', (line) => {
             writeStream.write(raftid)
             writeStream.write(td_end_str);
 
-            // save last one
-            temp_json_objs[raftid] = json_obj[raftid];
+            // when begin, save
+            if (event_name == "state_begin") {
+                begin_json_obj = json_obj;
+            }
 
             var raft_state = json_obj[raftid][0];
-            if (last_ready && raft_state != last_json_objs[raftid][0]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && raft_state != begin_json_obj[raftid][0]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -90,7 +90,7 @@ rl.on('line', (line) => {
             writeStream.write("\t<tr>\n");
 
             var term = json_obj[raftid][1][0][0]["term"];
-            if (last_ready && term != last_json_objs[raftid][1][0][0]["term"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && term != begin_json_obj[raftid][1][0][0]["term"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -99,7 +99,7 @@ rl.on('line', (line) => {
             writeStream.write(td_end_str);
 
             var vote = json_obj[raftid][1][0][0]["vote"];
-            if (last_ready && vote != last_json_objs[raftid][1][0][0]["vote"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && vote != begin_json_obj[raftid][1][0][0]["vote"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -108,7 +108,7 @@ rl.on('line', (line) => {
             writeStream.write(td_end_str);
 
             var log = json_obj[raftid][1][0][1]["log"];
-            if (last_ready && JSON.stringify(log) != JSON.stringify(last_json_objs[raftid][1][0][1]["log"])) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && JSON.stringify(log) != JSON.stringify(begin_json_obj[raftid][1][0][1]["log"])) {
                 writeStream.write(td3_change_str);
             } else {
                 writeStream.write(td3_str);
@@ -122,7 +122,7 @@ rl.on('line', (line) => {
             writeStream.write("\t<tr>\n");
 
             var apply = json_obj[raftid][1][0][2]["apply"];
-            if (last_ready && apply != last_json_objs[raftid][1][0][2]["apply"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && apply != begin_json_obj[raftid][1][0][2]["apply"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -131,7 +131,7 @@ rl.on('line', (line) => {
             writeStream.write(td_end_str);
 
             var cmt = json_obj[raftid][1][0][2]["cmt"];
-            if (last_ready && cmt != last_json_objs[raftid][1][0][2]["cmt"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && cmt != begin_json_obj[raftid][1][0][2]["cmt"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -141,7 +141,7 @@ rl.on('line', (line) => {
 
             var elect_ms = json_obj[raftid][1][0][2]["elect_ms"];
     /*        
-            if (last_ready && elect_ms != last_json_objs[raftid][1][0][2]["elect_ms"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && elect_ms != begin_json_obj[raftid][1][0][2]["elect_ms"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -152,7 +152,7 @@ rl.on('line', (line) => {
             writeStream.write(td_end_str);
 
             var leader = json_obj[raftid][1][0][2]["leader"];
-            if (last_ready && leader != last_json_objs[raftid][1][0][2]["leader"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && leader != begin_json_obj[raftid][1][0][2]["leader"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -161,7 +161,7 @@ rl.on('line', (line) => {
             writeStream.write(td_end_str);
 
             var run = json_obj[raftid][1][0][2]["run"];
-            if (last_ready && run != last_json_objs[raftid][1][0][2]["run"]) {
+            if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && run != begin_json_obj[raftid][1][0][2]["run"]) {
                 writeStream.write(td_change_str);
             } else {
                 writeStream.write(td_str);
@@ -182,7 +182,7 @@ rl.on('line', (line) => {
                 writeStream.write(td_end_str);
 
                 var match = json_obj[raftid][1][0][3][peer][0]["match"];
-                if (last_ready && match != last_json_objs[raftid][1][0][3][peer][0]["match"]) {
+                if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && match != begin_json_obj[raftid][1][0][3][peer][0]["match"]) {
                     writeStream.write(td_change_str);
                 } else {
                     writeStream.write(td_str);
@@ -191,7 +191,7 @@ rl.on('line', (line) => {
                 writeStream.write(td_end_str);
 
                 var next = json_obj[raftid][1][0][3][peer][0]["next"];
-                if (last_ready && next != last_json_objs[raftid][1][0][3][peer][0]["next"]) {
+                if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && next != begin_json_obj[raftid][1][0][3][peer][0]["next"]) {
                     writeStream.write(td_change_str);
                 } else {
                     writeStream.write(td_str);
@@ -200,7 +200,7 @@ rl.on('line', (line) => {
                 writeStream.write(td_end_str);
 
                 var done = json_obj[raftid][1][0][3][peer][1]["done"];
-                if (last_ready && done != last_json_objs[raftid][1][0][3][peer][1]["done"]) {
+                if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && done != begin_json_obj[raftid][1][0][3][peer][1]["done"]) {
                     writeStream.write(td_change_str);
                 } else {
                     writeStream.write(td_str);
@@ -209,7 +209,7 @@ rl.on('line', (line) => {
                 writeStream.write(td_end_str);
 
                 var grant = json_obj[raftid][1][0][3][peer][1]["grant"];
-                if (last_ready && grant != last_json_objs[raftid][1][0][3][peer][1]["grant"]) {
+                if ((event_name == "state_end") && (Object.keys(begin_json_obj).length != 0) && grant != begin_json_obj[raftid][1][0][3][peer][1]["grant"]) {
                     writeStream.write(td_change_str);
                 } else {
                     writeStream.write(td_str);
@@ -237,11 +237,6 @@ rl.on('line', (line) => {
 
     } else {
         state = "finish";
-
-        last_json_objs = temp_json_objs;
-        //last_ready = true;
-
-        temp_json_objs = {};
     }
   } 
 });
