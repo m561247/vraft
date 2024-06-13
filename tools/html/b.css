@@ -21,6 +21,9 @@ th, td {
 .node {
   background-color: rgb(166, 255, 0);
 }
+.nodes {
+  background-color: rgb(166, 255, 0);
+}
 .begin_end {
   background-color: rgb(241, 238, 9);
 }

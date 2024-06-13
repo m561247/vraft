@@ -5,7 +5,7 @@ const readline = require('readline');
 const readStream = fs.createReadStream('./remu.log.global');
 
 // 创建写入流
-const writeStream = fs.createWriteStream('./output.html', { flags: 'w+' });
+const writeStream = fs.createWriteStream('./html/global.html.body', { flags: 'w+' });
 
 // 使用 readline 处理逐行读取
 const rl = readline.createInterface({

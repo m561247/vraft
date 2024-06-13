@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>(REMU)Raft Emulator</title>
+<title>(REMU)Raft Emulator - Node State</title>
 <link rel="stylesheet" href="b.css">
 </head>
 <body>
@@ -10,6 +10,15 @@
 <table>
     <tr>
       <td class="banner">(REMU)Raft Emulator - Node State</td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+      <td class="nodes">Nodes:</td>
+      <td class="nodes">127.0.0.1:9000#0</td>
+      <td class="nodes">127.0.0.1:9001#0</td>
+      <td class="nodes">127.0.0.1:9002#0</td>
     </tr>
 </table>
 
