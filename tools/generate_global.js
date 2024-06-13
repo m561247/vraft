@@ -86,17 +86,29 @@ rl.on('line', (line) => {
         writeStream.write("\t<tr>\n");
 
         var term = json_obj[raftid][1][0][0]["term"];
-        writeStream.write(td_str);
+        if (last_ready && term != last_json_objs[raftid][1][0][0]["term"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write("\"term\":" + term);
         writeStream.write(td_end_str);
 
-        writeStream.write(td_str);
         var vote = json_obj[raftid][1][0][0]["vote"];
+        if (last_ready && vote != last_json_objs[raftid][1][0][0]["vote"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write("\"vote\":" + vote);
         writeStream.write(td_end_str);
 
-        writeStream.write(td3_str);
         var log = json_obj[raftid][1][0][1]["log"];
+        if (last_ready && JSON.stringify(log) != JSON.stringify(last_json_objs[raftid][1][0][1]["log"])) {
+            writeStream.write(td3_change_str);
+        } else {
+            writeStream.write(td3_str);
+        }
         writeStream.write("\"log\":" + JSON.stringify(log));
         writeStream.write(td_end_str);
 
@@ -105,28 +117,51 @@ rl.on('line', (line) => {
         // line 3
         writeStream.write("\t<tr>\n");
 
-        writeStream.write(td_str);
         var apply = json_obj[raftid][1][0][2]["apply"];
+        if (last_ready && apply != last_json_objs[raftid][1][0][2]["apply"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write("\"apply\":" + apply);
         writeStream.write(td_end_str);
 
-        writeStream.write(td_str);
         var cmt = json_obj[raftid][1][0][2]["cmt"];
+        if (last_ready && cmt != last_json_objs[raftid][1][0][2]["cmt"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write("\"cmt\":" + cmt);
         writeStream.write(td_end_str);
 
-        writeStream.write(td_str);
         var elect_ms = json_obj[raftid][1][0][2]["elect_ms"];
+/*        
+        if (last_ready && elect_ms != last_json_objs[raftid][1][0][2]["elect_ms"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
+*/
+        writeStream.write(td_str);
         writeStream.write("\"elect_ms\":" + JSON.stringify(elect_ms));
         writeStream.write(td_end_str);
 
-        writeStream.write(td_str);
         var leader = json_obj[raftid][1][0][2]["leader"];
+        if (last_ready && leader != last_json_objs[raftid][1][0][2]["leader"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write("\"leader\":" + leader);
         writeStream.write(td_end_str);
 
-        writeStream.write(td_str);
         var run = json_obj[raftid][1][0][2]["run"];
+        if (last_ready && run != last_json_objs[raftid][1][0][2]["run"]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write("\"run\":" + run);
         writeStream.write(td_end_str);
 
@@ -142,23 +177,39 @@ rl.on('line', (line) => {
             writeStream.write(peer);
             writeStream.write(td_end_str);
 
-            writeStream.write(td_str);
             var match = json_obj[raftid][1][0][3][peer][0]["match"];
+            if (last_ready && match != last_json_objs[raftid][1][0][3][peer][0]["match"]) {
+                writeStream.write(td_change_str);
+            } else {
+                writeStream.write(td_str);
+            }
             writeStream.write("\"match\":" + match);
             writeStream.write(td_end_str);
 
-            writeStream.write(td_str);
             var next = json_obj[raftid][1][0][3][peer][0]["next"];
+            if (last_ready && next != last_json_objs[raftid][1][0][3][peer][0]["next"]) {
+                writeStream.write(td_change_str);
+            } else {
+                writeStream.write(td_str);
+            }
             writeStream.write("\"next\":" + next);
             writeStream.write(td_end_str);
 
-            writeStream.write(td_str);
             var done = json_obj[raftid][1][0][3][peer][1]["done"];
+            if (last_ready && done != last_json_objs[raftid][1][0][3][peer][1]["done"]) {
+                writeStream.write(td_change_str);
+            } else {
+                writeStream.write(td_str);
+            }
             writeStream.write("\"done\":" + done);
             writeStream.write(td_end_str);
 
-            writeStream.write(td_str);
             var grant = json_obj[raftid][1][0][3][peer][1]["grant"];
+            if (last_ready && grant != last_json_objs[raftid][1][0][3][peer][1]["grant"]) {
+                writeStream.write(td_change_str);
+            } else {
+                writeStream.write(td_str);
+            }
             writeStream.write("\"grant\":" + grant);
             writeStream.write(td_end_str);
 
