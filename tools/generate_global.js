@@ -14,7 +14,15 @@ const rl = readline.createInterface({
 });
 
 var state = "finish";
-var last_line = "";
+var temp_json_objs = new Object();
+var last_json_objs = new Object();
+var last_ready = false;
+
+const td_str = "\t\t<td>";
+const td_change_str = "\t\t<td class=\"change\">";
+const td3_str = "\t\t<td colspan=\"3\">"
+const td3_change_str = "\t\t<td class=\"change\" colspan=\"3\">"
+const td_end_str = "</td>\n";
 
 rl.on('line', (line) => {
   // console.log(line);  // 在控制台打印每一行
@@ -44,7 +52,6 @@ rl.on('line', (line) => {
         var unique_id = parts[0];
         var json_str = parts[2];
         var json_obj = JSON.parse(json_str);
-        //console.log(json_obj);
 
         // generate one node
         // line 1
@@ -54,67 +61,74 @@ rl.on('line', (line) => {
         var keys = Object.keys(json_obj);
         raftid = keys[0];
         writeStream.write(raftid)
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td>");
-        var raft_state = json_obj[raftid][0]
+        // save last one
+        temp_json_objs[raftid] = json_obj[raftid];
+
+        var raft_state = json_obj[raftid][0];
+        if (last_ready && raft_state != last_json_objs[raftid][0]) {
+            writeStream.write(td_change_str);
+        } else {
+            writeStream.write(td_str);
+        }
         writeStream.write(raft_state)
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td colspan=\"3\">");
+        writeStream.write(td3_str);
         var raft_ptr = json_obj[raftid][1][1];
         writeStream.write(raft_ptr);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
         writeStream.write("\t</tr>\n");
 
         // line 2
         writeStream.write("\t<tr>\n");
 
-        writeStream.write("\t\t<td>");
         var term = json_obj[raftid][1][0][0]["term"];
+        writeStream.write(td_str);
         writeStream.write("\"term\":" + term);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td>");
+        writeStream.write(td_str);
         var vote = json_obj[raftid][1][0][0]["vote"];
         writeStream.write("\"vote\":" + vote);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td colspan=\"3\">");
+        writeStream.write(td3_str);
         var log = json_obj[raftid][1][0][1]["log"];
         writeStream.write("\"log\":" + JSON.stringify(log));
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
         writeStream.write("\t</tr>\n");
 
         // line 3
         writeStream.write("\t<tr>\n");
 
-        writeStream.write("\t\t<td>");
+        writeStream.write(td_str);
         var apply = json_obj[raftid][1][0][2]["apply"];
         writeStream.write("\"apply\":" + apply);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td>");
+        writeStream.write(td_str);
         var cmt = json_obj[raftid][1][0][2]["cmt"];
         writeStream.write("\"cmt\":" + cmt);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td>");
+        writeStream.write(td_str);
         var elect_ms = json_obj[raftid][1][0][2]["elect_ms"];
         writeStream.write("\"elect_ms\":" + JSON.stringify(elect_ms));
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td>");
+        writeStream.write(td_str);
         var leader = json_obj[raftid][1][0][2]["leader"];
         writeStream.write("\"leader\":" + leader);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
-        writeStream.write("\t\t<td>");
+        writeStream.write(td_str);
         var run = json_obj[raftid][1][0][2]["run"];
         writeStream.write("\"run\":" + run);
-        writeStream.write("</td>\n");
+        writeStream.write(td_end_str);
 
         writeStream.write("\t</tr>\n");
 
@@ -124,29 +138,29 @@ rl.on('line', (line) => {
             var peer = peers[i];
             writeStream.write("\t<tr>\n");
 
-            writeStream.write("\t\t<td>");
+            writeStream.write(td_str);
             writeStream.write(peer);
-            writeStream.write("</td>\n");
+            writeStream.write(td_end_str);
 
-            writeStream.write("\t\t<td>");
+            writeStream.write(td_str);
             var match = json_obj[raftid][1][0][3][peer][0]["match"];
             writeStream.write("\"match\":" + match);
-            writeStream.write("</td>\n");
+            writeStream.write(td_end_str);
 
-            writeStream.write("\t\t<td>");
+            writeStream.write(td_str);
             var next = json_obj[raftid][1][0][3][peer][0]["next"];
             writeStream.write("\"next\":" + next);
-            writeStream.write("</td>\n");
+            writeStream.write(td_end_str);
 
-            writeStream.write("\t\t<td>");
+            writeStream.write(td_str);
             var done = json_obj[raftid][1][0][3][peer][1]["done"];
             writeStream.write("\"done\":" + done);
-            writeStream.write("</td>\n");
+            writeStream.write(td_end_str);
 
-            writeStream.write("\t\t<td>");
+            writeStream.write(td_str);
             var grant = json_obj[raftid][1][0][3][peer][1]["grant"];
             writeStream.write("\"grant\":" + grant);
-            writeStream.write("</td>\n");
+            writeStream.write(td_end_str);
 
             writeStream.write("\t</tr>\n");
         }
@@ -160,10 +174,13 @@ rl.on('line', (line) => {
     } else {
         writeStream.write("</table>\n");
         state = "finish";
+
+        last_json_objs = temp_json_objs;
+        last_ready = true;
+
+        temp_json_objs = {};
     }
   } 
-
-  last_line = line;
 });
 
 rl.on('close', () => {
