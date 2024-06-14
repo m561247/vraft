@@ -2,7 +2,20 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const directoryPath = path.join(__dirname, 'remu_web');
+// 获取命令行参数（除去前两个元素）
+const args = process.argv.slice(2);
+
+// 检查参数数量
+if (args.length !== 1) {
+    console.error("Usage: " + process.argv[0] + " " + process.argv[1] + " ./web_dir");
+    process.exit(1);
+}
+
+// 解构赋值来获取 input 和 output 文件路径
+const [web_dir] = args;
+
+//const directoryPath = path.join(__dirname, 'remu_web');
+const directoryPath = web_dir;
 
 http.createServer((req, res) => {
     if (req.url === '/') {
@@ -21,12 +34,12 @@ http.createServer((req, res) => {
             res.write('<table><tr><td class="banner">(REMU)Raft Emulator</td></tr></table>');
             res.write('<div class="html-files"><h2>Generated Files</h2><ul>');
             htmlFiles.forEach(file => {
-                res.write(`<li><a href="/files/${encodeURIComponent(file.name)}">${file.name}</a></li>`);
+                res.write(`<li><a target="_blank" href="/files/${encodeURIComponent(file.name)}">${file.name}</a></li>`);
             });
             res.write('</ul></div>');
             res.write('<div class="other-files"><h2>Original Files</h2><ul>');
             otherFiles.forEach(file => {
-                res.write(`<li><a href="/files/${encodeURIComponent(file.name)}">${file.name}</a></li>`);
+                res.write(`<li><a target="_blank" href="/files/${encodeURIComponent(file.name)}">${file.name}</a></li>`);
             });
             res.write('</ul></div>');
             res.write('</body></html>');
