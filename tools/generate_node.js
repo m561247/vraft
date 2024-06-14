@@ -1,11 +1,24 @@
 const fs = require('fs');
 const readline = require('readline');
 
+
+// 获取命令行参数（除去前两个元素）
+const args = process.argv.slice(2);
+
+// 检查参数数量
+if (args.length !== 2) {
+    console.error("Usage: " + process.argv[0] + " " + process.argv[1] + " ./remu.log.sm ./html/node.html.body");
+    process.exit(1);
+}
+
+// 解构赋值来获取 input 和 output 文件路径
+const [inputFile, outputFile] = args;
+
 // 创建读取流
-const readStream = fs.createReadStream('./remu.log.sm');
+const readStream = fs.createReadStream(inputFile);
 
 // 创建写入流
-const writeStream = fs.createWriteStream('./html/node.html.body', { flags: 'w+' });
+const writeStream = fs.createWriteStream(outputFile, { flags: 'w+' });
 
 // 使用 readline 处理逐行读取
 const rl = readline.createInterface({
@@ -52,7 +65,7 @@ rl.on('close', () => {
   var keys = Object.keys(node_names);
   for (var element of keys) {
     writeStream.write("\t\t<td class=\"nodes\">")
-    console.log("+++" + element + "----")
+    //console.log("+++" + element + "----")
     writeStream.write(element);
     writeStream.write(td_end_str);
   }
