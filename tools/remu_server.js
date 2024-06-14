@@ -27,7 +27,7 @@ http.createServer((req, res) => {
             }
 
             const htmlFiles = files.filter(file => file.name.endsWith('.html'));
-            const otherFiles = files.filter(file => !file.name.endsWith('.html'));
+            const otherFiles = files.filter(file => !file.name.endsWith('.html') && !file.name.endsWith('.css'));
 
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.write('<html><head><title>Directory Contents</title><link rel="stylesheet" href="/remu_web.css"></head><body>');
