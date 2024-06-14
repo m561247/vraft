@@ -26,3 +26,26 @@ for file in `ls ${dir}/temp/keys.*`; do
     cat ${file}.sm.tmp | awk '{if (last != $1) {if (NR != 1) print ""; last = $1} print}' > ${file}.sm
     cp ${file}.sm ${dir}
 done
+
+
+# 定义文件路径
+file_path="${dir}/temp/ids"
+
+# 检查文件是否存在
+if [ ! -f "$file_path" ]; then
+    echo "文件不存在: $file_path"
+    exit 1
+fi
+
+# 读取文件中的每一行，构造所有可能的两行组合
+# 由于不能使用数组，我们将使用嵌套循环并再次读取文件
+while IFS= read -r line1; do
+    # 引入这个变量令文件内部循环从头开始
+    while IFS= read -r line2; do
+        # 仅当两行不同的时候打印组合，防止打印重复的行
+        if [ "$line1" != "$line2" ]; then
+            echo "processing $line1 - $line2 ..."
+            sh extract.sh $line1 $line2
+        fi
+    done < "$file_path"
+done < "$file_path"
