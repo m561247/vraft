@@ -30,7 +30,7 @@ http.createServer((req, res) => {
             const otherFiles = files.filter(file => !file.name.endsWith('.html') && !file.name.endsWith('.css'));
 
             res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.write('<html><head><title>Directory Contents</title><link rel="stylesheet" href="/remu_web.css"></head><body>');
+            res.write('<html><head><title>(REMU)Raft Emulator</title><link rel="stylesheet" href="/remu_web.css"></head><body>');
             res.write('<table><tr><td class="banner">(REMU)Raft Emulator</td></tr></table>');
             res.write('<div class="html-files"><h2>Generated Files</h2><ul>');
             htmlFiles.forEach(file => {
