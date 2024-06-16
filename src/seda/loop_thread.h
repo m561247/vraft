@@ -23,6 +23,9 @@ class LoopThread final {
   void RunFunctor(Functor func);
   void AddTimer(TimerParam &param);
 
+  // call in this thread
+  EventLoopSPtr loop();
+
  private:
   void Run();
 
@@ -31,6 +34,8 @@ class LoopThread final {
   std::thread thread_;
   EventLoopSPtr loop_;
 };
+
+inline EventLoopSPtr LoopThread::loop() { return loop_; }
 
 class LoopThreadPool final {
  public:
