@@ -5,7 +5,6 @@
 #include <thread>
 
 #include "common.h"
-#include "workloop.h"
 
 namespace vraft {
 
@@ -31,7 +30,6 @@ class LoopThread final {
   void ThreadFunc();
 
  private:
-  WorkLoop loop_;
   std::thread thread_;
 };
 

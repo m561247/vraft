@@ -8,6 +8,8 @@
 
 namespace vraft {
 
+#define MAX_QUEUE_SIZE (4096)
+
 #define JSON_TAB 2
 
 using RaftIndex = uint32_t;

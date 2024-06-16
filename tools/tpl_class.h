@@ -5,7 +5,7 @@ namespace vraft {
 
 class Tpl final {
 public:
-  Tpl();
+  explicit Tpl();
   ~Tpl();
   Tpl(const Tpl &t) = delete;
   Tpl &operator=(const Tpl &t) = delete;
