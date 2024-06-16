@@ -44,17 +44,34 @@ class WorkThreadTestClass : public ::testing::Test {
   void TearDown() override { std::cout << "tearing down test...\n"; }
 };
 
-void Print(int32_t i) { std::cout << "---" << i << std::endl; }
+int32_t num = 0;
+void Print(int32_t i) {
+  num++;
+  // std::cout << "---" << i << std::endl;
+}
+
+#define PUSH_CNT 1000000
 void Push() {
-  for (int32_t i = 0; i < 100; ++i) {
+  for (int32_t i = 0; i < PUSH_CNT; ++i) {
     wt.Push(std::bind(&Print, i));
   }
 }
 
+#define THREAD_CNT 10
 TEST_F(WorkThreadTestClass, test) {
-  std::thread t(Push);
-  t.join();
+  std::vector<std::thread> threads;
+  for (int32_t i = 0; i < 20; ++i) {
+    std::thread t(Push);
+    threads.push_back(std::move(t));
+  }
+
+  for (auto &t : threads) {
+    t.join();
+  }
+  threads.clear();
+
   wt.Stop();
+  ASSERT_EQ(num, THREAD_CNT * PUSH_CNT);
 }
 
 int main(int argc, char **argv) {
