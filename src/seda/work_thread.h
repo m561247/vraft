@@ -12,6 +12,8 @@
 #include <deque>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
 #include "common.h"
 
@@ -28,6 +30,8 @@ class WorkThread final {
   int32_t Start();
   void Stop();
   void Push(Functor func);
+
+  int32_t max_queue_size();
 
  private:
   void Run();
@@ -54,17 +58,39 @@ inline WorkThread::WorkThread(const std::string &name)
 
 inline WorkThread::~WorkThread() { functors_.clear(); }
 
+inline int32_t WorkThread::max_queue_size() { return max_queue_size_; }
+
 class WorkThreadPool final {
  public:
-  explicit WorkThreadPool();
+  explicit WorkThreadPool(const std::string &name, int32_t thread_num,
+                          int32_t max_queue_size = MAX_QUEUE_SIZE);
   ~WorkThreadPool();
   WorkThreadPool(const WorkThreadPool &t) = delete;
   WorkThreadPool &operator=(const WorkThreadPool &t) = delete;
 
+  int32_t Start();
+  void Stop();
+  void Push(uint64_t id, Functor func);
+  WorkThreadSPtr GetThread(uint64_t partition_id);
+  uint64_t PartitionId(uint64_t id);
+
  private:
+  std::string name_;
+  int32_t thread_num_;
+  std::unordered_map<uint64_t, WorkThreadSPtr> threads_;  // partition_id
 };
 
-inline WorkThreadPool::WorkThreadPool() {}
+inline WorkThreadPool::WorkThreadPool(const std::string &name,
+                                      int32_t thread_num,
+                                      int32_t max_queue_size)
+    : name_(name), thread_num_(thread_num) {
+  for (int32_t i = 0; i < thread_num; ++i) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%s_%d", name_.c_str(), i);
+    WorkThreadSPtr sptr = std::make_shared<WorkThread>(buf, max_queue_size);
+    threads_[static_cast<uint64_t>(i)] = sptr;
+  }
+}
 
 inline WorkThreadPool::~WorkThreadPool() {}
 

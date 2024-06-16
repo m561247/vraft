@@ -9,6 +9,7 @@
 #include "test_suite.h"
 #include "timer.h"
 #include "util.h"
+#include <atomic>
 
 //--------------------------------
 // EXPECT_TRUE  true
@@ -44,9 +45,9 @@ class WorkThreadTestClass : public ::testing::Test {
   void TearDown() override { std::cout << "tearing down test...\n"; }
 };
 
-int32_t num = 0;
+std::atomic<int32_t> num(0);
 void Print(int32_t i) {
-  num++;
+  num.fetch_add(1);
   // std::cout << "---" << i << std::endl;
 }
 
@@ -60,7 +61,8 @@ void Push() {
 #define THREAD_CNT 10
 TEST_F(WorkThreadTestClass, test) {
   std::vector<std::thread> threads;
-  for (int32_t i = 0; i < 20; ++i) {
+  for (int32_t i = 0; i < THREAD_CNT; ++i) {
+    std::cout << "start thread " << i << " ..." << std::endl;
     std::thread t(Push);
     threads.push_back(std::move(t));
   }
@@ -71,7 +73,34 @@ TEST_F(WorkThreadTestClass, test) {
   threads.clear();
 
   wt.Stop();
-  ASSERT_EQ(num, THREAD_CNT * PUSH_CNT);
+  ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
+}
+
+vraft::WorkThreadPool pool("pool", 5);
+void PoolPush() {
+  for (int32_t i = 0; i < PUSH_CNT; ++i) {
+    pool.Push(i, std::bind(&Print, i));
+  }
+}
+
+TEST(WorkThreadPool, test) {
+  num.store(0);
+  pool.Start();
+
+  std::vector<std::thread> threads;
+  for (int32_t i = 0; i < THREAD_CNT; ++i) {
+    std::cout << "start thread " << i << " ..." << std::endl;
+    std::thread t(PoolPush);
+    threads.push_back(std::move(t));
+  }
+
+  for (auto &t : threads) {
+    t.join();
+  }
+  threads.clear();
+
+  pool.Stop();
+  ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
 }
 
 int main(int argc, char **argv) {

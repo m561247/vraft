@@ -71,4 +71,38 @@ void WorkThread::Run() {
   }
 }
 
+int32_t WorkThreadPool::Start() {
+  for (auto& item : threads_) {
+    int32_t rv = item.second->Start();
+    assert(rv == 0);
+  }
+  return 0;
+}
+
+void WorkThreadPool::Stop() {
+  for (auto& item : threads_) {
+    item.second->Stop();
+  }
+}
+
+void WorkThreadPool::Push(uint64_t id, Functor func) {
+  uint64_t partition_id = PartitionId(id);
+  auto sptr = GetThread(partition_id);
+  assert(sptr);
+  sptr->Push(func);
+}
+
+WorkThreadSPtr WorkThreadPool::GetThread(uint64_t partition_id) {
+  auto it = threads_.find(partition_id);
+  if (it == threads_.end()) {
+    return nullptr;
+  } else {
+    return it->second;
+  }
+}
+
+uint64_t WorkThreadPool::PartitionId(uint64_t id) {
+  return id % threads_.size();
+}
+
 }  // namespace vraft

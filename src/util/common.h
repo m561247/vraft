@@ -82,6 +82,16 @@ using StateMachineSPtr = std::shared_ptr<StateMachine>;
 using StateMachineUPtr = std::unique_ptr<StateMachine>;
 using StateMachineWPtr = std::weak_ptr<StateMachine>;
 
+class WorkThread;
+using WorkThreadSPtr = std::shared_ptr<WorkThread>;
+using WorkThreadUPtr = std::unique_ptr<WorkThread>;
+using WorkThreadWPtr = std::weak_ptr<WorkThread>;
+
+class WorkThreadPool;
+using WorkThreadPoolSPtr = std::shared_ptr<WorkThreadPool>;
+using WorkThreadPoolUPtr = std::unique_ptr<WorkThreadPool>;
+using WorkThreadPoolWPtr = std::weak_ptr<WorkThreadPool>;
+
 }  // namespace vraft
 
 #endif
