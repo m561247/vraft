@@ -27,10 +27,12 @@ class WorkThread final {
   WorkThread(const WorkThread &t) = delete;
   WorkThread &operator=(const WorkThread &t) = delete;
 
+  // call in any thread
   int32_t Start();
   void Stop();
   void Push(Functor func);
 
+  // call in this thread
   int32_t max_queue_size();
 
  private:

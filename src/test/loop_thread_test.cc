@@ -1,8 +1,7 @@
-#include "work_thread.h"
+#include "loop_thread.h"
 
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <csignal>
 #include <iostream>
 
@@ -33,17 +32,7 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-vraft::WorkThread wt("test-work-thread");
-
-class WorkThreadTestClass : public ::testing::Test {
- protected:
-  void SetUp() override {
-    std::cout << "setting up test...\n";
-    wt.Start();
-  }
-
-  void TearDown() override { std::cout << "tearing down test...\n"; }
-};
+vraft::LoopThread lt("test-loop-thread");
 
 std::atomic<int32_t> num(0);
 void Print(int32_t i) {
@@ -54,12 +43,26 @@ void Print(int32_t i) {
 #define PUSH_CNT 1000000
 void Push() {
   for (int32_t i = 0; i < PUSH_CNT; ++i) {
-    wt.Push(std::bind(&Print, i));
+    lt.RunFunctor(std::bind(&Print, i));
   }
 }
 
+void TimerCb(vraft::Timer *t) {
+  std::cout << "TimerCb " << t->repeat_counter() << "..." << std::endl;
+  t->RepeatDecr();
+}
+
 #define THREAD_CNT 10
-TEST_F(WorkThreadTestClass, test) {
+TEST(LoopThread, test) {
+  lt.Start();
+
+  vraft::TimerParam param;
+  param.cb = TimerCb;
+  param.timeout_ms = 0;
+  param.repeat_ms = 1000;
+  param.repeat_times = 1000000;
+  lt.AddTimer(param);
+
   std::vector<std::thread> threads;
   for (int32_t i = 0; i < THREAD_CNT; ++i) {
     std::cout << "start thread " << i << " ..." << std::endl;
@@ -72,18 +75,18 @@ TEST_F(WorkThreadTestClass, test) {
   }
   threads.clear();
 
-  wt.Stop();
+  lt.Stop();
   ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
 }
 
-vraft::WorkThreadPool pool("pool", 5);
+vraft::LoopThreadPool pool("pool", 5);
 void PoolPush() {
   for (int32_t i = 0; i < PUSH_CNT; ++i) {
-    pool.Push(i, std::bind(&Print, i));
+    pool.RunFunctor(i, std::bind(&Print, i));
   }
 }
 
-TEST(WorkThreadPool, test) {
+TEST(LoopThreadPool, test) {
   num.store(0);
   pool.Start();
 

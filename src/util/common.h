@@ -92,6 +92,11 @@ using WorkThreadPoolSPtr = std::shared_ptr<WorkThreadPool>;
 using WorkThreadPoolUPtr = std::unique_ptr<WorkThreadPool>;
 using WorkThreadPoolWPtr = std::weak_ptr<WorkThreadPool>;
 
+class LoopThread;
+using LoopThreadSPtr = std::shared_ptr<LoopThread>;
+using LoopThreadUPtr = std::unique_ptr<LoopThread>;
+using LoopThreadWPtr = std::weak_ptr<LoopThread>;
+
 }  // namespace vraft
 
 #endif
