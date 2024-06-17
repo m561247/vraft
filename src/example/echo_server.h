@@ -28,16 +28,16 @@ class EchoServer {
       snprintf(name_buf, sizeof(name_buf), "echo-server-%d", i);
 
       auto sptr = server_thread_.LoopPtr();
-      vraft::TcpServerSPtr tcp_server_ = std::make_shared<vraft::TcpServer>(
+      vraft::TcpServerSPtr tcp_server = std::make_shared<vraft::TcpServer>(
           sptr, name_buf,
           vraft::HostPort(listen_addr.host, listen_addr.port + i), options);
-      tcp_server_->set_on_connection_cb(
+      tcp_server->set_on_connection_cb(
           std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
-      tcp_server_->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
-                                               std::placeholders::_1,
-                                               std::placeholders::_2));
-      servers_.push_back(tcp_server_);
-      server_thread_.AddServer(tcp_server_);
+      tcp_server->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
+                                              std::placeholders::_1,
+                                              std::placeholders::_2));
+      servers_.push_back(tcp_server);
+      server_thread_.AddServer(tcp_server);
     }
   }
 
