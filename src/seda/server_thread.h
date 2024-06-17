@@ -19,7 +19,7 @@ class ServerThread final {
   int32_t Start();
   void Stop();
 
-  // call in this thread
+  // call before start
   void AddServer(TcpServerSPtr sptr);
   EventLoopSPtr LoopPtr();
 
