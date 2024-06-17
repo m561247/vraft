@@ -2,7 +2,8 @@
 
 namespace vraft {
 
-LoopThread::LoopThread(const std::string& name) : name_(name) {
+LoopThread::LoopThread(const std::string& name, bool detach)
+    : name_(name), detach_(detach) {
   loop_ = std::make_shared<EventLoop>(name_);
   loop_->Init();
 }
@@ -11,11 +12,18 @@ LoopThread::~LoopThread() {}
 
 int32_t LoopThread::Start() {
   thread_ = std::thread(std::bind(&LoopThread::Run, this));
-  thread_.detach();
+  if (detach_) {
+    thread_.detach();
+  }
   return 0;
 }
 
 void LoopThread::Stop() { loop_->Stop(); }
+
+void LoopThread::Join() {
+  assert(!detach_);
+  thread_.join();
+}
 
 void LoopThread::RunFunctor(Functor func) { loop_->RunFunctor(func); }
 

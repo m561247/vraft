@@ -2,8 +2,9 @@
 
 namespace vraft {
 
-ServerThread::ServerThread(const std::string &name) : name_(name) {
-  loop_thread_ = std::make_shared<LoopThread>(name_);
+ServerThread::ServerThread(const std::string &name, bool detach)
+    : name_(name), detach_(detach) {
+  loop_thread_ = std::make_shared<LoopThread>(name_, detach);
 }
 
 int32_t ServerThread::Start() {
@@ -30,6 +31,11 @@ void ServerThread::Stop() {
     }
   }
   loop_thread_->Stop();
+}
+
+void ServerThread::Join() {
+  assert(!detach_);
+  loop_thread_->Join();
 }
 
 void ServerThread::AddServer(TcpServerSPtr sptr) { servers_.push_back(sptr); }

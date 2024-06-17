@@ -10,7 +10,7 @@ namespace vraft {
 
 class ServerThread final {
  public:
-  ServerThread(const std::string &name);
+  ServerThread(const std::string &name, bool detach);
   ~ServerThread();
   ServerThread(const ServerThread &t) = delete;
   ServerThread &operator=(const ServerThread &t) = delete;
@@ -18,6 +18,7 @@ class ServerThread final {
   // call in any thread
   int32_t Start();
   void Stop();
+  void Join();
 
   // call before start
   void AddServer(TcpServerSPtr sptr);
@@ -25,6 +26,7 @@ class ServerThread final {
 
  private:
   std::string name_;
+  bool detach_;
 
  private:
   LoopThreadSPtr loop_thread_;

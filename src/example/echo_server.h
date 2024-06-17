@@ -3,11 +3,13 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include "config.h"
 #include "eventloop.h"
 #include "hostport.h"
 #include "logger.h"
+#include "server_thread.h"
 #include "tcp_connection.h"
 #include "tcp_server.h"
 #include "vraft_logger.h"
@@ -18,29 +20,30 @@ using EchoServerWPtr = std::weak_ptr<EchoServer>;
 
 class EchoServer {
  public:
-  EchoServer(const vraft::HostPort &listen_addr, vraft::TcpOptions &options) {
-    loop_ = std::make_shared<vraft::EventLoop>("echo-loop");
-    int32_t rv = loop_->Init();
-    assert(rv == 0);
+  EchoServer(vraft::HostPort listen_addr, vraft::TcpOptions &options,
+             int32_t server_num)
+      : server_thread_("echo-server-thread", false) {
+    for (int32_t i = 0; i < server_num; ++i) {
+      char name_buf[128];
+      snprintf(name_buf, sizeof(name_buf), "echo-server-%d", i);
 
-    tcp_server_ = std::make_shared<vraft::TcpServer>(loop_, "echo-server",
-                                                     listen_addr, options);
-    tcp_server_->set_on_connection_cb(
-        std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
-    tcp_server_->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
-                                             std::placeholders::_1,
-                                             std::placeholders::_2));
+      auto sptr = server_thread_.LoopPtr();
+      vraft::TcpServerSPtr tcp_server_ = std::make_shared<vraft::TcpServer>(
+          sptr, name_buf,
+          vraft::HostPort(listen_addr.host, listen_addr.port + i), options);
+      tcp_server_->set_on_connection_cb(
+          std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
+      tcp_server_->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
+                                               std::placeholders::_1,
+                                               std::placeholders::_2));
+      servers_.push_back(tcp_server_);
+      server_thread_.AddServer(tcp_server_);
+    }
   }
 
-  void Start() {
-    tcp_server_->Start();
-    loop_->Loop();
-  }
-
-  void Stop() {
-    tcp_server_->Stop();
-    loop_->Stop();
-  }
+  void Start() { server_thread_.Start(); }
+  void Join() { server_thread_.Join(); }
+  void Stop() { server_thread_.Stop(); }
 
  private:
   void OnConnection(const vraft::TcpConnectionSPtr &conn) {
@@ -60,12 +63,14 @@ class EchoServer {
       }
     }
 
-    vraft::vraft_logger.FInfo("echo-server OnMessage:[%s]", s.c_str());
-    std::cout << "echo-server recv " << s << std::endl;
+    vraft::vraft_logger.FInfo("connection:%s on-message:[%s]",
+                              conn->name().c_str(), s.c_str());
+    std::cout << "connection:" << conn->name() << " on-message: " << s
+              << std::endl;
   }
 
-  vraft::EventLoopSPtr loop_;
-  vraft::TcpServerSPtr tcp_server_;
+  std::vector<vraft::TcpServerSPtr> servers_;
+  vraft::ServerThread server_thread_;
 };
 
 #endif

@@ -34,6 +34,21 @@
 //--------------------------------
 
 vraft::WorkThread wt("test-work-thread");
+std::atomic<int32_t> num(0);
+#define PUSH_CNT 1000000
+#define THREAD_CNT 10
+vraft::WorkThreadPool pool("pool", 5);
+
+void Print(int32_t i) {
+  num.fetch_add(1);
+  // std::cout << "---" << i << std::endl;
+}
+
+void Push() {
+  for (int32_t i = 0; i < PUSH_CNT; ++i) {
+    wt.Push(std::bind(&Print, i));
+  }
+}
 
 class WorkThreadTestClass : public ::testing::Test {
  protected:
@@ -42,23 +57,12 @@ class WorkThreadTestClass : public ::testing::Test {
     wt.Start();
   }
 
-  void TearDown() override { std::cout << "tearing down test...\n"; }
+  void TearDown() override {
+    std::cout << "tearing down test...\n";
+    wt.Join();
+  }
 };
 
-std::atomic<int32_t> num(0);
-void Print(int32_t i) {
-  num.fetch_add(1);
-  // std::cout << "---" << i << std::endl;
-}
-
-#define PUSH_CNT 1000000
-void Push() {
-  for (int32_t i = 0; i < PUSH_CNT; ++i) {
-    wt.Push(std::bind(&Print, i));
-  }
-}
-
-#define THREAD_CNT 10
 TEST_F(WorkThreadTestClass, test) {
   std::vector<std::thread> threads;
   for (int32_t i = 0; i < THREAD_CNT; ++i) {
@@ -76,7 +80,6 @@ TEST_F(WorkThreadTestClass, test) {
   ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
 }
 
-vraft::WorkThreadPool pool("pool", 5);
 void PoolPush() {
   for (int32_t i = 0; i < PUSH_CNT; ++i) {
     pool.Push(i, std::bind(&Print, i));
@@ -100,11 +103,20 @@ TEST(WorkThreadPool, test) {
   threads.clear();
 
   pool.Stop();
+  pool.Join();
   ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
 }
 
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  int32_t rv;
+  try {
+    rv = RUN_ALL_TESTS();
+  } catch (std::exception &e) {
+    std::cerr << "execption caught: " << e.what() << std::endl << std::flush;
+  } catch (...) {
+    std::cerr << "execption ... caught" << std::endl << std::flush;
+  }
+  return rv;
 }

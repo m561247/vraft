@@ -20,7 +20,7 @@ void Started(Timer *timer) {
   if (sptr) {
     sptr->set_started(true);
     sptr->latch_.CountDown();
-    vraft_logger.FInfo("loop already started, %s", sptr->DebugString().c_str());
+    vraft_logger.FInfo("loop started, %s", sptr->DebugString().c_str());
   }
 }
 

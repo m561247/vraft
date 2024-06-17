@@ -21,7 +21,8 @@ namespace vraft {
 
 class WorkThread final {
  public:
-  explicit WorkThread(const std::string &name, int32_t max_queue_size);
+  explicit WorkThread(const std::string &name, int32_t max_queue_size,
+                      bool detach);
   explicit WorkThread(const std::string &name);
   ~WorkThread();
   WorkThread(const WorkThread &t) = delete;
@@ -30,6 +31,7 @@ class WorkThread final {
   // call in any thread
   int32_t Start();
   void Stop();
+  void Join();
   void Push(Functor func);
 
   // call in this thread
@@ -43,6 +45,7 @@ class WorkThread final {
   int32_t max_queue_size_;
   bool started_;
   int32_t tid_;
+  bool detach_;
 
   std::mutex mu_;
   std::condition_variable producer_cv_;
@@ -52,11 +55,20 @@ class WorkThread final {
   std::thread thread_;
 };
 
-inline WorkThread::WorkThread(const std::string &name, int32_t max_queue_size)
-    : name_(name), max_queue_size_(max_queue_size), started_(false), tid_(0) {}
+inline WorkThread::WorkThread(const std::string &name, int32_t max_queue_size,
+                              bool detach)
+    : name_(name),
+      max_queue_size_(max_queue_size),
+      started_(false),
+      tid_(0),
+      detach_(detach) {}
 
 inline WorkThread::WorkThread(const std::string &name)
-    : name_(name), max_queue_size_(MAX_QUEUE_SIZE), started_(false), tid_(0) {}
+    : name_(name),
+      max_queue_size_(MAX_QUEUE_SIZE),
+      started_(false),
+      tid_(0),
+      detach_(false) {}
 
 inline WorkThread::~WorkThread() { functors_.clear(); }
 
@@ -72,6 +84,7 @@ class WorkThreadPool final {
 
   int32_t Start();
   void Stop();
+  void Join();
   void Push(uint64_t id, Functor func);
   WorkThreadSPtr GetThread(uint64_t partition_id);
   uint64_t PartitionId(uint64_t id);
@@ -89,7 +102,8 @@ inline WorkThreadPool::WorkThreadPool(const std::string &name,
   for (int32_t i = 0; i < thread_num; ++i) {
     char buf[128];
     snprintf(buf, sizeof(buf), "%s_%d", name_.c_str(), i);
-    WorkThreadSPtr sptr = std::make_shared<WorkThread>(buf, max_queue_size);
+    WorkThreadSPtr sptr =
+        std::make_shared<WorkThread>(buf, max_queue_size, false);
     threads_[static_cast<uint64_t>(i)] = sptr;
   }
 }

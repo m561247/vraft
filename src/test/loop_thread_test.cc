@@ -32,7 +32,7 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-vraft::LoopThread lt("test-loop-thread");
+vraft::LoopThread lt("test-loop-thread", true);
 
 std::atomic<int32_t> num(0);
 void Print(int32_t i) {

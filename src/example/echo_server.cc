@@ -22,14 +22,20 @@ int main(int argc, char **argv) {
 
   vraft::TcpOptions opt = {true};
   vraft::HostPort listen_addr("127.0.0.1", 9988);
-  EchoServerSPtr server = std::make_shared<EchoServer>(listen_addr, opt);
 
-  std::cout << "echo-server start, listening on " << listen_addr.ToString()
-            << " ..." << std::endl;
-
-  std::thread t([server] { server->Start(); });
+  int32_t server_num = 5;
+  EchoServerSPtr server =
+      std::make_shared<EchoServer>(listen_addr, opt, server_num);
   weak_server = server;
-  t.join();
+
+  for (int32_t i = 0; i < server_num; ++i) {
+    vraft::HostPort addr(listen_addr.host, listen_addr.port + i);
+    std::cout << "echo-server start, listening on " << addr.ToString() << " ..."
+              << std::endl;
+  }
+
+  server->Start();
+  server->Join();
 
   std::cout << "echo-server stop ..." << std::endl;
   vraft::Logger::ShutDown();

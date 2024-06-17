@@ -8,13 +8,20 @@ namespace vraft {
 int32_t WorkThread::Start() {
   started_ = true;
   thread_ = std::thread(std::bind(&WorkThread::Run, this));
-  thread_.detach();
+  if (detach_) {
+    thread_.detach();
+  }
   return 0;
 }
 
 void WorkThread::Stop() {
   bool* started = &started_;
   Push([started] { *started = false; });
+}
+
+void WorkThread::Join() {
+  assert(!detach_);
+  thread_.join();
 }
 
 void WorkThread::Push(Functor func) {
@@ -82,6 +89,12 @@ int32_t WorkThreadPool::Start() {
 void WorkThreadPool::Stop() {
   for (auto& item : threads_) {
     item.second->Stop();
+  }
+}
+
+void WorkThreadPool::Join() {
+  for (auto& item : threads_) {
+    item.second->Join();
   }
 }
 

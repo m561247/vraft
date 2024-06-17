@@ -12,7 +12,7 @@ namespace vraft {
 
 class LoopThread final {
  public:
-  explicit LoopThread(const std::string &name);
+  explicit LoopThread(const std::string &name, bool detach);
   ~LoopThread();
   LoopThread(const LoopThread &lt) = delete;
   LoopThread &operator=(const LoopThread &lt) = delete;
@@ -20,6 +20,7 @@ class LoopThread final {
   // call in any thread
   int32_t Start();
   void Stop();
+  void Join();
   void RunFunctor(Functor func);
   void AddTimer(TimerParam &param);
 
@@ -31,6 +32,7 @@ class LoopThread final {
 
  private:
   std::string name_;
+  bool detach_;
   std::thread thread_;
   EventLoopSPtr loop_;
 };
@@ -64,7 +66,7 @@ inline LoopThreadPool::LoopThreadPool(const std::string &name,
   for (int32_t i = 0; i < thread_num; ++i) {
     char buf[128];
     snprintf(buf, sizeof(buf), "%s_%d", name_.c_str(), i);
-    LoopThreadSPtr sptr = std::make_shared<LoopThread>(buf);
+    LoopThreadSPtr sptr = std::make_shared<LoopThread>(buf, true);
     threads_[static_cast<uint64_t>(i)] = sptr;
   }
 }
