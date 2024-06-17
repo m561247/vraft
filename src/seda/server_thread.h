@@ -10,16 +10,25 @@ namespace vraft {
 
 class ServerThread final {
  public:
-  ServerThread(int32_t server_num);
+  ServerThread(const std::string &name);
   ~ServerThread();
   ServerThread(const ServerThread &t) = delete;
   ServerThread &operator=(const ServerThread &t) = delete;
 
- private:
-  int32_t server_num_;
+  // call in any thread
+  int32_t Start();
+  void Stop();
 
+  // call in this thread
+  void AddServer(TcpServerSPtr sptr);
+  EventLoopSPtr LoopPtr();
+
+ private:
+  std::string name_;
+
+ private:
   LoopThreadSPtr loop_thread_;
-  std::vector<TcpServerSPtr> servers_;
+  std::vector<TcpServerWPtr> servers_;
 };
 
 inline ServerThread::~ServerThread() {}

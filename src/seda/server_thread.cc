@@ -2,6 +2,38 @@
 
 namespace vraft {
 
-ServerThread::ServerThread(int32_t server_num) : server_num_(server_num) {}
+ServerThread::ServerThread(const std::string &name) : name_(name) {
+  loop_thread_ = std::make_shared<LoopThread>(name_);
+}
+
+int32_t ServerThread::Start() {
+  int32_t rv = 0;
+  for (auto &wptr : servers_) {
+    auto sptr = wptr.lock();
+    if (sptr) {
+      rv = sptr->Start();
+      assert(rv == 0);
+    }
+  }
+
+  rv = loop_thread_->Start();
+  assert(rv == 0);
+
+  return 0;
+}
+
+void ServerThread::Stop() {
+  for (auto &wptr : servers_) {
+    auto sptr = wptr.lock();
+    if (sptr) {
+      sptr->Stop();
+    }
+  }
+  loop_thread_->Stop();
+}
+
+void ServerThread::AddServer(TcpServerSPtr sptr) { servers_.push_back(sptr); }
+
+EventLoopSPtr ServerThread::LoopPtr() { return loop_thread_->loop(); }
 
 }  // namespace vraft
