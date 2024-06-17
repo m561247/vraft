@@ -63,6 +63,7 @@ std::string TcpServer::DebugString() const {
 int32_t TcpServer::Start() {
   AssertInLoopThread();
   vraft_logger.FInfo("tcp-server start, %s", DebugString().c_str());
+  acceptor_.set_close_cb(close_cb_);
   int32_t rv = acceptor_.Start();
   assert(rv == 0);
   return rv;

@@ -17,6 +17,9 @@ int32_t ServerThread::Start() {
     }
   }
 
+  stop_ =
+      std::make_unique<CountDownLatch>(static_cast<int32_t>(servers_.size()));
+
   rv = loop_thread_->Start();
   assert(rv == 0);
 
@@ -31,9 +34,7 @@ void ServerThread::Stop() {
     }
   }
 
-  // bad code, use count-down latch !!
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
+  WaitServerClose();
   loop_thread_->Stop();
 }
 
@@ -45,5 +46,9 @@ void ServerThread::Join() {
 void ServerThread::AddServer(TcpServerSPtr sptr) { servers_.push_back(sptr); }
 
 EventLoopSPtr ServerThread::LoopPtr() { return loop_thread_->loop(); }
+
+void ServerThread::ServerCloseCountDown() { stop_->CountDown(); }
+
+void ServerThread::WaitServerClose() { stop_->Wait(); }
 
 }  // namespace vraft

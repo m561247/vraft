@@ -40,6 +40,7 @@ class TcpServer final {
   void set_on_connection_cb(const OnConnectionCallback &cb);
   void set_write_complete_cb(const WriteCompleteCallback &cb);
   void set_on_message_cb(const OnMessageCallback &cb);
+  void set_close_cb(const Functor &cb);
   const std::string &name() const;
 
  private:
@@ -57,6 +58,7 @@ class TcpServer final {
   OnMessageCallback on_message_cb_;
   OnConnectionCallback on_connection_cb_;
   WriteCompleteCallback write_complete_cb_;
+  Functor close_cb_;
 };
 
 // call in loop thread
@@ -73,6 +75,8 @@ inline void TcpServer::set_write_complete_cb(const WriteCompleteCallback &cb) {
 inline void TcpServer::set_on_message_cb(const OnMessageCallback &cb) {
   on_message_cb_ = cb;
 }
+
+inline void TcpServer::set_close_cb(const Functor &cb) { close_cb_ = cb; }
 
 inline const std::string &TcpServer::name() const { return name_; }
 

@@ -37,6 +37,7 @@ class Acceptor final {
   const HostPort &addr() const;
   const TcpOptions &options() const;
   void set_new_conn_func(const AcceptorNewConnFunc &new_conn_func);
+  void set_close_cb(const Functor &close_cb);
 
  private:
   void Init();
@@ -47,6 +48,7 @@ class Acceptor final {
   const HostPort addr_;
   const TcpOptions options_;
   AcceptorNewConnFunc new_conn_func_;
+  Functor close_cb_;
 
   UvTcp server_;
   EventLoopWPtr loop_;
@@ -62,6 +64,10 @@ inline const TcpOptions &Acceptor::options() const { return options_; }
 inline void Acceptor::set_new_conn_func(
     const AcceptorNewConnFunc &new_conn_func) {
   new_conn_func_ = new_conn_func;
+}
+
+inline void Acceptor::set_close_cb(const Functor &close_cb) {
+  close_cb_ = close_cb;
 }
 
 }  // namespace vraft

@@ -97,6 +97,11 @@ using LoopThreadSPtr = std::shared_ptr<LoopThread>;
 using LoopThreadUPtr = std::unique_ptr<LoopThread>;
 using LoopThreadWPtr = std::weak_ptr<LoopThread>;
 
+class CountDownLatch;
+using CountDownLatchSPtr = std::shared_ptr<CountDownLatch>;
+using CountDownLatchUPtr = std::unique_ptr<CountDownLatch>;
+using CountDownLatchWPtr = std::weak_ptr<CountDownLatch>;
+
 }  // namespace vraft
 
 #endif

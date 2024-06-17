@@ -36,6 +36,8 @@ class EchoServer {
       tcp_server->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
                                               std::placeholders::_1,
                                               std::placeholders::_2));
+      tcp_server->set_close_cb(std::bind(
+          &vraft::ServerThread::ServerCloseCountDown, &server_thread_));
       servers_.push_back(tcp_server);
       server_thread_.AddServer(tcp_server);
     }

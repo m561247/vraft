@@ -10,6 +10,12 @@
 namespace vraft {
 
 void AcceptorCloseCb(UvHandle *handle) {
+  assert(handle != nullptr);
+  Acceptor *acceptor = reinterpret_cast<Acceptor *>(handle->data);
+  if (acceptor->close_cb_) {
+    acceptor->close_cb_();
+  }
+
   vraft_logger.FInfo("acceptor:%p close finish", handle);
 }
 
