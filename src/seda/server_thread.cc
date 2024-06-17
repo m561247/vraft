@@ -30,6 +30,10 @@ void ServerThread::Stop() {
       sptr->Stop();
     }
   }
+
+  // bad code, use count-down latch !!
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
   loop_thread_->Stop();
 }
 
