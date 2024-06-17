@@ -45,6 +45,12 @@ void LoopThreadPool::Stop() {
   }
 }
 
+void LoopThreadPool::Join() {
+  for (auto& item : threads_) {
+    item.second->Join();
+  }
+}
+
 void LoopThreadPool::RunFunctor(uint64_t id, Functor func) {
   uint64_t partition_id = PartitionId(id);
   auto sptr = GetThread(partition_id);

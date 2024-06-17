@@ -49,6 +49,7 @@ class LoopThreadPool final {
 
   int32_t Start();
   void Stop();
+  void Join();
   void RunFunctor(uint64_t id, Functor func);
   LoopThreadSPtr GetThread(uint64_t partition_id);
   uint64_t PartitionId(uint64_t id);
@@ -66,7 +67,7 @@ inline LoopThreadPool::LoopThreadPool(const std::string &name,
   for (int32_t i = 0; i < thread_num; ++i) {
     char buf[128];
     snprintf(buf, sizeof(buf), "%s_%d", name_.c_str(), i);
-    LoopThreadSPtr sptr = std::make_shared<LoopThread>(buf, true);
+    LoopThreadSPtr sptr = std::make_shared<LoopThread>(buf, false);
     threads_[static_cast<uint64_t>(i)] = sptr;
   }
 }

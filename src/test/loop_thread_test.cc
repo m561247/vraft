@@ -32,7 +32,7 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-vraft::LoopThread lt("test-loop-thread", true);
+vraft::LoopThread lt("test-loop-thread", false);
 
 std::atomic<int32_t> num(0);
 void Print(int32_t i) {
@@ -76,6 +76,7 @@ TEST(LoopThread, test) {
   threads.clear();
 
   lt.Stop();
+  lt.Join();
   ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
 }
 
@@ -103,6 +104,7 @@ TEST(LoopThreadPool, test) {
   threads.clear();
 
   pool.Stop();
+  pool.Join();
   ASSERT_EQ(num.load(), THREAD_CNT * PUSH_CNT);
 }
 
