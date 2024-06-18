@@ -49,6 +49,7 @@ class TcpClient final {
   void set_on_connection_cb(const OnConnectionCallback &cb);
   void set_write_complete_cb(const WriteCompleteCallback &cb);
   void set_connection_close_cb(const ConnectionCloseCallback &cb);
+  void set_close_cb(const Functor &cb);
 
  private:
   void Init();
@@ -66,6 +67,7 @@ class TcpClient final {
   OnConnectionCallback on_connection_cb_;
   WriteCompleteCallback write_complete_cb_;
   ConnectionCloseCallback connection_close_cb_;
+  Functor close_cb_;
 };
 
 inline void TcpClient::set_on_message_cb(const OnMessageCallback &cb) {
@@ -84,6 +86,8 @@ inline void TcpClient::set_connection_close_cb(
     const ConnectionCloseCallback &cb) {
   connection_close_cb_ = cb;
 }
+
+inline void TcpClient::set_close_cb(const Functor &cb) { close_cb_ = cb; }
 
 inline const std::string &TcpClient::name() const { return name_; }
 

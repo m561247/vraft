@@ -36,6 +36,7 @@ class Connector final {
 
   // set/get
   void set_new_conn_func(const ConnectorNewConnFunc &new_conn_func);
+  void set_close_cb(const Functor &close_cb);
   const HostPort &dest_addr();
 
  private:
@@ -50,13 +51,19 @@ class Connector final {
   UvConnect connect_req_;
   TimerSPtr retry_timer_;
   ConnectorNewConnFunc new_conn_func_;
+  Functor close_cb_;
 
   friend void ConnectFinish(UvConnect *req, int32_t status);
+  friend void ConnectorCloseCb(UvHandle *handle);
 };
 
 inline void Connector::set_new_conn_func(
     const ConnectorNewConnFunc &new_conn_func) {
   new_conn_func_ = new_conn_func;
+}
+
+inline void Connector::set_close_cb(const Functor &close_cb) {
+  close_cb_ = close_cb;
 }
 
 inline const HostPort &Connector::dest_addr() { return dest_addr_; }

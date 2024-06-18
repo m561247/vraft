@@ -62,16 +62,19 @@ std::string TcpClient::ToString() const {
 
 int32_t TcpClient::TimerConnect(int64_t retry_times) {
   AssertInLoopThread();
+  connector_.set_close_cb(close_cb_);
   return connector_.TimerConnect(retry_times);
 }
 
 int32_t TcpClient::Connect(int64_t retry_times) {
   AssertInLoopThread();
+  connector_.set_close_cb(close_cb_);
   return connector_.Connect(retry_times);
 }
 
 int32_t TcpClient::Connect() {
   AssertInLoopThread();
+  connector_.set_close_cb(close_cb_);
   return connector_.Connect();
 }
 

@@ -62,6 +62,12 @@ void TimerConnectCb(Timer *timer) {
 }
 
 void ConnectorCloseCb(UvHandle *handle) {
+  assert(handle != nullptr);
+  Connector *connector = reinterpret_cast<Connector *>(handle->data);
+  if (connector->close_cb_) {
+    connector->close_cb_();
+  }
+
   vraft_logger.FInfo("connector:%p close finish", handle);
 }
 
