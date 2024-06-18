@@ -9,9 +9,22 @@
 
 namespace vraft {
 
+struct ServerThreadParam {
+  std::string name = "default-server-thread";
+  int32_t server_num = 1;
+  bool detach = false;
+  std::string host = "127.0.0.1";
+  uint16_t start_port = 9000;
+  TcpOptions options;
+
+  OnMessageCallback on_message_cb;
+  OnConnectionCallback on_connection_cb;
+  WriteCompleteCallback write_complete_cb;
+};
+
 class ServerThread final {
  public:
-  ServerThread(const std::string &name, bool detach);
+  ServerThread(const ServerThreadParam &param);
   ~ServerThread();
   ServerThread(const ServerThread &t) = delete;
   ServerThread &operator=(const ServerThread &t) = delete;
@@ -21,11 +34,8 @@ class ServerThread final {
   void Stop();
   void Join();
 
-  // call before start
-  void AddServer(TcpServerSPtr sptr);
+  // call in this thread
   EventLoopSPtr LoopPtr();
-
-  // for tcp-server close-cb
   void ServerCloseCountDown();
 
  private:
@@ -33,11 +43,19 @@ class ServerThread final {
 
  private:
   std::string name_;
+  int32_t server_num_;
   bool detach_;
+  std::string host_;
+  uint16_t start_port_;
+
+  OnMessageCallback on_message_cb_;
+  OnConnectionCallback on_connection_cb_;
+  WriteCompleteCallback write_complete_cb_;
+  Functor close_cb_;
 
  private:
   LoopThreadSPtr loop_thread_;
-  std::vector<TcpServerWPtr> servers_;
+  std::vector<TcpServerSPtr> servers_;
 
   CountDownLatchUPtr stop_;
 };

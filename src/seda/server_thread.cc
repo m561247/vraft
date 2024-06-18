@@ -2,23 +2,39 @@
 
 namespace vraft {
 
-ServerThread::ServerThread(const std::string &name, bool detach)
-    : name_(name), detach_(detach) {
-  loop_thread_ = std::make_shared<LoopThread>(name_, detach);
-}
+ServerThread::ServerThread(const ServerThreadParam &param)
+    : name_(param.name),
+      server_num_(param.server_num),
+      detach_(param.detach),
+      host_(param.host),
+      start_port_(param.start_port) {
+  loop_thread_ = std::make_shared<LoopThread>(name_, detach_);
 
-int32_t ServerThread::Start() {
-  int32_t rv = 0;
-  for (auto &wptr : servers_) {
-    auto sptr = wptr.lock();
-    if (sptr) {
-      rv = sptr->Start();
-      assert(rv == 0);
-    }
+  for (int32_t i = 0; i < server_num_; ++i) {
+    char name_buf[128];
+    snprintf(name_buf, sizeof(name_buf), "%s-%d", name_.c_str(), i);
+
+    auto sptr = loop_thread_->loop();
+    TcpServerSPtr tcp_server = std::make_shared<vraft::TcpServer>(
+        sptr, name_buf, vraft::HostPort(host_, start_port_ + i), param.options);
+    tcp_server->set_on_connection_cb(param.on_connection_cb);
+    tcp_server->set_on_message_cb(param.on_message_cb);
+    tcp_server->set_close_cb(
+        std::bind(&ServerThread::ServerCloseCountDown, this));
+
+    servers_.push_back(tcp_server);
   }
 
   stop_ =
       std::make_unique<CountDownLatch>(static_cast<int32_t>(servers_.size()));
+}
+
+int32_t ServerThread::Start() {
+  int32_t rv = 0;
+  for (auto &sptr : servers_) {
+    rv = sptr->Start();
+    assert(rv == 0);
+  }
 
   rv = loop_thread_->Start();
   assert(rv == 0);
@@ -27,11 +43,8 @@ int32_t ServerThread::Start() {
 }
 
 void ServerThread::Stop() {
-  for (auto &wptr : servers_) {
-    auto sptr = wptr.lock();
-    if (sptr) {
-      sptr->Stop();
-    }
+  for (auto &sptr : servers_) {
+    sptr->Stop();
   }
 
   WaitServerClose();
@@ -42,8 +55,6 @@ void ServerThread::Join() {
   assert(!detach_);
   loop_thread_->Join();
 }
-
-void ServerThread::AddServer(TcpServerSPtr sptr) { servers_.push_back(sptr); }
 
 EventLoopSPtr ServerThread::LoopPtr() { return loop_thread_->loop(); }
 

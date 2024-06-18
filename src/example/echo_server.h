@@ -22,26 +22,13 @@ class EchoServer {
  public:
   EchoServer(vraft::HostPort listen_addr, vraft::TcpOptions &options,
              int32_t server_num)
-      : server_thread_("echo-server-thread", false) {
-    for (int32_t i = 0; i < server_num; ++i) {
-      char name_buf[128];
-      snprintf(name_buf, sizeof(name_buf), "echo-server-%d", i);
-
-      auto sptr = server_thread_.LoopPtr();
-      vraft::TcpServerSPtr tcp_server = std::make_shared<vraft::TcpServer>(
-          sptr, name_buf,
-          vraft::HostPort(listen_addr.host, listen_addr.port + i), options);
-      tcp_server->set_on_connection_cb(
-          std::bind(&EchoServer::OnConnection, this, std::placeholders::_1));
-      tcp_server->set_on_message_cb(std::bind(&EchoServer::OnMessage, this,
-                                              std::placeholders::_1,
-                                              std::placeholders::_2));
-      tcp_server->set_close_cb(std::bind(
-          &vraft::ServerThread::ServerCloseCountDown, &server_thread_));
-      servers_.push_back(tcp_server);
-      server_thread_.AddServer(tcp_server);
-    }
-  }
+      : server_thread_(vraft::ServerThreadParam{
+            "echo-server-thread", server_num, false, listen_addr.host,
+            listen_addr.port, options,
+            std::bind(&EchoServer::OnMessage, this, std::placeholders::_1,
+                      std::placeholders::_2),
+            std::bind(&EchoServer::OnConnection, this, std::placeholders::_1),
+            nullptr}) {}
 
   void Start() { server_thread_.Start(); }
   void Join() { server_thread_.Join(); }
@@ -49,7 +36,7 @@ class EchoServer {
 
  private:
   void OnConnection(const vraft::TcpConnectionSPtr &conn) {
-    vraft::vraft_logger.FInfo("echo-server OnConnection, %s",
+    vraft::vraft_logger.FInfo("echo-server on-connection, %s",
                               conn->DebugString().c_str());
   }
 
