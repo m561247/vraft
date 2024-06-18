@@ -63,17 +63,16 @@ void TimerConnectCb(Timer *timer) {
 
 void ConnectorCloseCb(UvHandle *handle) {
   assert(handle != nullptr);
-  Connector *connector = reinterpret_cast<Connector *>(handle->data);
-  if (connector->close_cb_) {
-    connector->close_cb_();
-  }
-
   vraft_logger.FInfo("connector:%p close finish", handle);
 }
 
 Connector::Connector(EventLoopSPtr &loop, const HostPort &dest_addr,
                      const TcpOptions &options)
-    : dest_addr_(dest_addr), options_(options), loop_(loop) {
+    : dest_addr_(dest_addr),
+      options_(options),
+      loop_(loop),
+      new_conn_func_(nullptr),
+      close_cb_(nullptr) {
   Init();
   vraft_logger.FInfo("connector construct, %s", DebugString().c_str());
 }
@@ -151,10 +150,11 @@ int32_t Connector::Close() {
   if (conn_) {
     UvClose(reinterpret_cast<UvHandle *>(conn_.get()), ConnectorCloseCb);
   } else {
-    if (close_cb_) {
-      close_cb_();
-    }
     vraft_logger.FInfo("connector close finish");
+  }
+
+  if (close_cb_) {
+    close_cb_();
   }
 
   return 0;
