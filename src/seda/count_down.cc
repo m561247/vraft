@@ -8,6 +8,11 @@ void CountDownLatch::Wait() {
   assert(count_ == 0);
 }
 
+void CountDownLatch::Reset() {
+  std::unique_lock<std::mutex> ulk(mu_);
+  count_ = count_imm_;
+}
+
 void CountDownLatch::CountDown() {
   std::unique_lock<std::mutex> ulk(mu_);
   --count_;

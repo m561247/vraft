@@ -16,6 +16,7 @@ class CountDownLatch final {
   CountDownLatch &operator=(const CountDownLatch &t) = delete;
 
   void Wait();
+  void Reset();
   void CountDown();
 
   int32_t count() const;
@@ -25,9 +26,11 @@ class CountDownLatch final {
   std::condition_variable cond_var_;
 
   int32_t count_;
+  int32_t count_imm_;
 };
 
-inline CountDownLatch::CountDownLatch(int32_t count) : count_(count) {
+inline CountDownLatch::CountDownLatch(int32_t count)
+    : count_(count), count_imm_(count) {
   assert(count >= 0);
 }
 

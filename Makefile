@@ -40,6 +40,7 @@ REMU_SRCS := src/main/remu_main.cc $(COMMON_SRCS)
 # example src
 ECHO_SERVER_SRCS := src/example/echo_server.cc $(COMMON_SRCS)
 ECHO_CLIENT_SRCS := src/example/echo_client.cc $(COMMON_SRCS)
+ECHO_CONSOLE_SRCS := src/example/echo_console.cc $(COMMON_SRCS)
 
 # test src
 LOGGER_TEST_SRCS := src/test/logger_test.cc $(COMMON_SRCS)
@@ -92,6 +93,7 @@ REMU_OBJECTS := $(REMU_SRCS:.cc=.o)
 # example
 ECHO_SERVER_OBJECTS := $(ECHO_SERVER_SRCS:.cc=.o)
 ECHO_CLIENT_OBJECTS := $(ECHO_CLIENT_SRCS:.cc=.o)
+ECHO_CONSOLE_OBJECTS := $(ECHO_CONSOLE_SRCS:.cc=.o)
 
 # test
 LOGGER_TEST_OBJECTS := $(LOGGER_TEST_SRCS:.cc=.o)
@@ -133,7 +135,7 @@ CLIENT_THREAD_TEST_OBJECTS := $(CLIENT_THREAD_TEST_SRCS:.cc=.o)
 
 # generate exe
 MAIN := vraft_server rlog_tool meta_tool db_tool remu 
-EXAMPLE := echo_server echo_client 
+EXAMPLE := echo_server echo_client echo_console
 
 TEST := tpl_test
 TEST += logger_test 
@@ -206,6 +208,9 @@ echo_server: $(ECHO_SERVER_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
 
 echo_client: $(ECHO_CLIENT_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
+
+echo_console: $(ECHO_CONSOLE_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
 
 # test
