@@ -62,6 +62,25 @@ class ServerThread final {
 
 inline ServerThread::~ServerThread() {}
 
+class ServerThreadPool final {
+ public:
+  explicit ServerThreadPool(int32_t thread_num, ServerThreadParam param);
+  ~ServerThreadPool();
+  ServerThreadPool(const ServerThreadPool &t) = delete;
+  ServerThreadPool &operator=(const ServerThreadPool &t) = delete;
+
+  int32_t Start();
+  void Stop();
+  void Join();
+  ServerThreadSPtr GetThread(uint64_t partition_id);
+  uint64_t PartitionId(uint64_t id);
+
+ private:
+  std::string name_;
+  int32_t thread_num_;
+  std::unordered_map<uint64_t, ServerThreadSPtr> threads_;  // partition_id
+};
+
 }  // namespace vraft
 
 #endif

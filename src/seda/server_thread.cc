@@ -62,4 +62,51 @@ void ServerThread::ServerCloseCountDown() { stop_->CountDown(); }
 
 void ServerThread::WaitServerClose() { stop_->Wait(); }
 
+ServerThreadPool::ServerThreadPool(int32_t thread_num, ServerThreadParam param)
+    : name_(param.name), thread_num_(thread_num) {
+  for (int32_t i = 0; i < thread_num_; ++i) {
+    char name_buf[128];
+    snprintf(name_buf, sizeof(name_buf), "%s_%d", name_.c_str(), i);
+    param.name = name_buf;
+    ServerThreadSPtr sptr = std::make_shared<ServerThread>(param);
+    threads_[static_cast<uint64_t>(i)] = sptr;
+    param.start_port += param.server_num;
+  }
+}
+
+ServerThreadPool::~ServerThreadPool() {}
+
+int32_t ServerThreadPool::Start() {
+  for (auto &item : threads_) {
+    int32_t rv = item.second->Start();
+    assert(rv == 0);
+  }
+  return 0;
+}
+
+void ServerThreadPool::Stop() {
+  for (auto &item : threads_) {
+    item.second->Stop();
+  }
+}
+
+void ServerThreadPool::Join() {
+  for (auto &item : threads_) {
+    item.second->Join();
+  }
+}
+
+ServerThreadSPtr ServerThreadPool::GetThread(uint64_t partition_id) {
+  auto it = threads_.find(partition_id);
+  if (it == threads_.end()) {
+    return nullptr;
+  } else {
+    return it->second;
+  }
+}
+
+uint64_t ServerThreadPool::PartitionId(uint64_t id) {
+  return id % threads_.size();
+}
+
 }  // namespace vraft

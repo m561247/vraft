@@ -21,17 +21,20 @@ int main(int argc, char **argv) {
   std::signal(SIGINT, SignalHandler);
 
   vraft::TcpOptions opt = {true};
-  vraft::HostPort listen_addr("127.0.0.1", 9988);
+  vraft::HostPort listen_addr("127.0.0.1", 9000);
 
-  int32_t server_num = 5;
+  int32_t server_num = 4;
+  int32_t thread_num = 3;
   EchoServerSPtr server =
-      std::make_shared<EchoServer>(listen_addr, opt, server_num);
+      std::make_shared<EchoServer>(listen_addr, opt, server_num, thread_num);
   weak_server = server;
 
-  for (int32_t i = 0; i < server_num; ++i) {
-    vraft::HostPort addr(listen_addr.host, listen_addr.port + i);
-    std::cout << "echo-server start, listening on " << addr.ToString() << " ..."
-              << std::endl;
+  for (int32_t i = 0; i < thread_num; ++i) {
+    for (int32_t j = 0; j < server_num; ++j) {
+      vraft::HostPort addr(listen_addr.host, listen_addr.port++);
+      std::cout << "echo-server listening on " << addr.ToString() << " ... "
+                << std::endl;
+    }
   }
 
   server->Start();

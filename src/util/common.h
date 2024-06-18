@@ -97,6 +97,11 @@ using LoopThreadSPtr = std::shared_ptr<LoopThread>;
 using LoopThreadUPtr = std::unique_ptr<LoopThread>;
 using LoopThreadWPtr = std::weak_ptr<LoopThread>;
 
+class ServerThread;
+using ServerThreadSPtr = std::shared_ptr<ServerThread>;
+using ServerThreadUPtr = std::unique_ptr<ServerThread>;
+using ServerThreadWPtr = std::weak_ptr<ServerThread>;
+
 class CountDownLatch;
 using CountDownLatchSPtr = std::shared_ptr<CountDownLatch>;
 using CountDownLatchUPtr = std::unique_ptr<CountDownLatch>;

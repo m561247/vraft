@@ -41,8 +41,7 @@ inline EventLoopSPtr LoopThread::loop() { return loop_; }
 
 class LoopThreadPool final {
  public:
-  explicit LoopThreadPool(const std::string &name, int32_t thread_num,
-                          int32_t max_queue_size = MAX_QUEUE_SIZE);
+  explicit LoopThreadPool(const std::string &name, int32_t thread_num);
   ~LoopThreadPool();
   LoopThreadPool(const LoopThreadPool &t) = delete;
   LoopThreadPool &operator=(const LoopThreadPool &t) = delete;
@@ -61,8 +60,7 @@ class LoopThreadPool final {
 };
 
 inline LoopThreadPool::LoopThreadPool(const std::string &name,
-                                      int32_t thread_num,
-                                      int32_t max_queue_size)
+                                      int32_t thread_num)
     : name_(name), thread_num_(thread_num) {
   for (int32_t i = 0; i < thread_num; ++i) {
     char buf[128];

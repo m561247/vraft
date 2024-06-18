@@ -21,18 +21,21 @@ using EchoServerWPtr = std::weak_ptr<EchoServer>;
 class EchoServer {
  public:
   EchoServer(vraft::HostPort listen_addr, vraft::TcpOptions &options,
-             int32_t server_num)
-      : server_thread_(vraft::ServerThreadParam{
-            "echo-server-thread", server_num, false, listen_addr.host,
-            listen_addr.port, options,
-            std::bind(&EchoServer::OnMessage, this, std::placeholders::_1,
-                      std::placeholders::_2),
-            std::bind(&EchoServer::OnConnection, this, std::placeholders::_1),
-            nullptr}) {}
+             int32_t server_num, int32_t thread_num)
+      : thread_pool_(
+            thread_num,
+            vraft::ServerThreadParam{
+                "echo-server-thread", server_num, false, listen_addr.host,
+                listen_addr.port, options,
+                std::bind(&EchoServer::OnMessage, this, std::placeholders::_1,
+                          std::placeholders::_2),
+                std::bind(&EchoServer::OnConnection, this,
+                          std::placeholders::_1),
+                nullptr}) {}
 
-  void Start() { server_thread_.Start(); }
-  void Join() { server_thread_.Join(); }
-  void Stop() { server_thread_.Stop(); }
+  void Start() { thread_pool_.Start(); }
+  void Join() { thread_pool_.Join(); }
+  void Stop() { thread_pool_.Stop(); }
 
  private:
   void OnConnection(const vraft::TcpConnectionSPtr &conn) {
@@ -58,8 +61,7 @@ class EchoServer {
               << std::endl;
   }
 
-  std::vector<vraft::TcpServerSPtr> servers_;
-  vraft::ServerThread server_thread_;
+  vraft::ServerThreadPool thread_pool_;
 };
 
 #endif
