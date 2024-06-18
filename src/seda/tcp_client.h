@@ -45,6 +45,7 @@ class TcpClient final {
 
   // set/get
   const std::string &name() const;
+  const HostPort dest_addr() const;
   void set_on_message_cb(const OnMessageCallback &cb);
   void set_on_connection_cb(const OnConnectionCallback &cb);
   void set_write_complete_cb(const WriteCompleteCallback &cb);
@@ -58,6 +59,7 @@ class TcpClient final {
 
  private:
   const std::string name_;
+  HostPort dest_addr_;
   EventLoopWPtr loop_;
 
   Connector connector_;
@@ -90,6 +92,8 @@ inline void TcpClient::set_connection_close_cb(
 inline void TcpClient::set_close_cb(const Functor &cb) { close_cb_ = cb; }
 
 inline const std::string &TcpClient::name() const { return name_; }
+
+inline const HostPort TcpClient::dest_addr() const { return dest_addr_; }
 
 }  // namespace vraft
 

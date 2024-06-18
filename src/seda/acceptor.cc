@@ -64,7 +64,7 @@ int32_t Acceptor::Start() {
 
 int32_t Acceptor::Close() {
   AssertInLoopThread();
-  vraft_logger.FInfo("acceptor stop, %s", DebugString().c_str());
+  vraft_logger.FInfo("acceptor close, %s", DebugString().c_str());
 
   if (!UvIsClosing(reinterpret_cast<UvHandle *>(&server_))) {
     UvClose(reinterpret_cast<UvHandle *>(&server_), AcceptorCloseCb);

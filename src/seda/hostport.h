@@ -70,6 +70,7 @@ class HostPort final {
   HostPort &operator=(const HostPort &t) = default;
 
   const std::string ToString() const;
+  uint64_t ToU64() const;
 
  public:
   std::string host;

@@ -1,8 +1,14 @@
 #include "hostport.h"
 
+#include "raft_addr.h"
 #include "util.h"
 
 namespace vraft {
+
+uint64_t HostPort::ToU64() const {
+  RaftAddr addr(host, port, 0);
+  return addr.ToU64();
+}
 
 bool ConvertHostPortToSockaddr(const std::string &host, int32_t port,
                                sockaddr &out_sockaddr) {

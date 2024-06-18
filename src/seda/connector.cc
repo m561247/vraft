@@ -144,10 +144,19 @@ int32_t Connector::Connect() {
 
 int32_t Connector::Close() {
   AssertInLoopThread();
+  vraft_logger.FInfo("connector close, %s", DebugString().c_str());
+
+  retry_timer_->Close();
+
   if (conn_) {
     UvClose(reinterpret_cast<UvHandle *>(conn_.get()), ConnectorCloseCb);
+  } else {
+    if (close_cb_) {
+      close_cb_();
+    }
+    vraft_logger.FInfo("connector close finish");
   }
-  retry_timer_->Close();
+
   return 0;
 }
 

@@ -4,7 +4,10 @@ namespace vraft {
 
 TcpClient::TcpClient(EventLoopSPtr &loop, const std::string name,
                      const HostPort &dest_addr, const TcpOptions &options)
-    : name_(name), loop_(loop), connector_(loop, dest_addr, options) {
+    : name_(name),
+      dest_addr_(dest_addr),
+      loop_(loop),
+      connector_(loop, dest_addr, options) {
   vraft_logger.FInfo("tcp-client construct, %s", DebugString().c_str());
   Init();
 }

@@ -11,7 +11,7 @@ namespace vraft {
 
 class ClientThread final {
  public:
-  ClientThread();
+  ClientThread(std::string name, bool detach);
   ~ClientThread();
   ClientThread(const ClientThread &t) = delete;
   ClientThread &operator=(const ClientThread &t) = delete;
@@ -22,10 +22,12 @@ class ClientThread final {
   void Join();
 
   void AddClient(TcpClientSPtr client);
-  TcpClientSPtr GetClient(uint64_t dest_addr);
+  TcpClientSPtr GetClient(uint64_t dest);
+  TcpClientSPtr GetClient(const HostPort &dest);
 
   // for tcp-client
   void ServerCloseCountDown();
+  EventLoopSPtr LoopPtr();
 
  private:
   void WaitServerClose();
@@ -41,7 +43,10 @@ class ClientThread final {
   CountDownLatchUPtr stop_;
 };
 
-inline ClientThread::ClientThread() {}
+inline ClientThread::ClientThread(std::string name, bool detach)
+    : name_(name), detach_(detach) {
+  loop_thread_ = std::make_shared<LoopThread>(name_, detach_);
+}
 
 inline ClientThread::~ClientThread() {}
 

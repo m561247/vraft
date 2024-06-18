@@ -75,6 +75,9 @@ RAFT_SERVER_TEST_SRCS := src/test/raft_server_test.cc $(COMMON_SRCS)
 COUNT_DOWN_TEST_SRCS := src/test/count_down_test.cc $(COMMON_SRCS)
 WORK_THREAD_TEST_SRCS := src/test/work_thread_test.cc $(COMMON_SRCS)
 LOOP_THREAD_TEST_SRCS := src/test/loop_thread_test.cc $(COMMON_SRCS)
+SERVER_THREAD_TEST_SRCS := src/test/server_thread_test.cc $(COMMON_SRCS)
+CLIENT_THREAD_TEST_SRCS := src/test/client_thread_test.cc $(COMMON_SRCS)
+
 
 # remu test src
 
@@ -124,6 +127,8 @@ RAFT_SERVER_TEST_OBJECTS := $(RAFT_SERVER_TEST_SRCS:.cc=.o)
 COUNT_DOWN_TEST_OBJECTS := $(COUNT_DOWN_TEST_SRCS:.cc=.o)
 WORK_THREAD_TEST_OBJECTS := $(WORK_THREAD_TEST_SRCS:.cc=.o)
 LOOP_THREAD_TEST_OBJECTS := $(LOOP_THREAD_TEST_SRCS:.cc=.o)
+SERVER_THREAD_TEST_OBJECTS := $(SERVER_THREAD_TEST_SRCS:.cc=.o)
+CLIENT_THREAD_TEST_OBJECTS := $(CLIENT_THREAD_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -163,6 +168,8 @@ TEST += raft_server_test
 TEST += count_down_test
 TEST += work_thread_test
 TEST += loop_thread_test
+TEST += server_thread_test
+TEST += client_thread_test
 
 
 # compile
@@ -301,6 +308,11 @@ work_thread_test: $(WORK_THREAD_TEST_OBJECTS)
 loop_thread_test: $(LOOP_THREAD_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
+server_thread_test: $(SERVER_THREAD_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+client_thread_test: $(CLIENT_THREAD_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 # clean
 clean:

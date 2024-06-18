@@ -1,5 +1,7 @@
 #include "client_thread.h"
 
+#include "raft_addr.h"
+
 namespace vraft {
 
 int32_t ClientThread::Start() {
@@ -32,11 +34,30 @@ void ClientThread::Join() {
   loop_thread_->Join();
 }
 
-void ClientThread::AddClient(TcpClientSPtr client) {}
+void ClientThread::AddClient(TcpClientSPtr client) {
+  std::unique_lock<std::mutex> ulk(mu_);
+  clients_[client->dest_addr().ToU64()] = client;
+}
 
-TcpClientSPtr ClientThread::GetClient(uint64_t dest_addr) {}
+TcpClientSPtr ClientThread::GetClient(uint64_t dest) {
+  TcpClientSPtr sptr;
+  {
+    std::unique_lock<std::mutex> ulk(mu_);
+    auto it = clients_.find(dest);
+    if (it != clients_.end()) {
+      sptr = it->second;
+    }
+  }
+  return sptr;
+}
+
+TcpClientSPtr ClientThread::GetClient(const HostPort &dest) {
+  return GetClient(dest.ToU64());
+}
 
 void ClientThread::ServerCloseCountDown() { stop_->CountDown(); }
+
+EventLoopSPtr ClientThread::LoopPtr() { return loop_thread_->loop(); }
 
 void ClientThread::WaitServerClose() { stop_->Wait(); }
 
