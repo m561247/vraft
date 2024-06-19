@@ -1,8 +1,10 @@
 #ifndef VRAFT_CONSOLE_H_
 #define VRAFT_CONSOLE_H_
 
+#include <atomic>
 #include <string>
 
+#include "buffer.h"
 #include "common.h"
 #include "count_down.h"
 #include "hostport.h"
@@ -30,8 +32,11 @@ class Console {
  private:
   virtual int32_t Parse(const std::string &cmd_line) = 0;
   virtual int32_t Execute() = 0;
+  virtual void OnMessage(const TcpConnectionSPtr &conn, Buffer *buf) = 0;
 
  private:
+  std::atomic<bool> start;
+
   std::string name_;
   std::string prompt_;
   std::string cmd_line_;

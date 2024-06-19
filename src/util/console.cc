@@ -7,15 +7,30 @@
 namespace vraft {
 
 Console::Console(const std::string &name)
-    : name_(name), prompt_("(" + name + ")> "), wait_result_(1) {}
+    : start(false), name_(name), prompt_("(" + name + ")> "), wait_result_(1) {}
 
 Console::Console(const std::string &name, const HostPort &dest)
-    : name_(name), prompt_("(" + name + ")> "), wait_result_(1) {
+    : start(false), name_(name), prompt_("(" + name + ")> "), wait_result_(1) {
   client_thread_ = std::make_shared<ClientThread>(name_, false);
+  EventLoopSPtr loop = client_thread_->LoopPtr();
+
+  TcpOptions to;
+  TcpClientSPtr tcp_client =
+      std::make_shared<vraft::TcpClient>(loop, name_, dest, to);
+  tcp_client->set_close_cb(std::bind(&vraft::ClientThread::ServerCloseCountDown,
+                                     client_thread_.get()));
+  tcp_client->set_on_message_cb(std::bind(
+      &Console::OnMessage, this, std::placeholders::_1, std::placeholders::_2));
+  client_thread_->AddClient(tcp_client);
 }
 
 int32_t Console::Run() {
-  while (true) {
+  if (client_thread_) {
+    client_thread_->Start();
+  }
+
+  start.store(true);
+  while (start.load()) {
     // reset
     Reset();
 
@@ -23,6 +38,7 @@ int32_t Console::Run() {
     std::cout << prompt_;
     if (!std::getline(std::cin, cmd_line_)) {
       // EOF or error input
+      std::cout << "error input or eof ..." << std::endl;
       break;
     }
 
@@ -47,7 +63,13 @@ int32_t Console::Run() {
   return 0;
 }
 
-void Console::Stop() {}
+void Console::Stop() {
+  start.store(false);
+  if (client_thread_) {
+    client_thread_->Stop();
+    client_thread_->Join();
+  }
+}
 
 void Console::Reset() {
   result_.clear();

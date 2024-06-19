@@ -20,6 +20,9 @@ class EchoConsole : public vraft::Console {
     ResultReady();
     return 0;
   }
+
+  void OnMessage(const vraft::TcpConnectionSPtr &conn,
+                 vraft::Buffer *buf) override {}
 };
 
 #endif
