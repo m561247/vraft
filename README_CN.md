@@ -7,10 +7,10 @@
 
 ## VRaft-SEDA-Implementation
 * VRaft中有4种不同功能的线程。
-  * Server Thread
-  * Client Thread
-  * Loop Thread
-  * Work Thread 
+  * Server Thread: 实现TcpServer，用来接收网络消息。
+  * Client Thread: 实现TcpClient，用来发送网络消息。
+  * Loop Thread: EventLoop，用来对各种事件（Raft消息，定时器事件等）进行响应。
+  * Work Thread: 生产者消费者模型，用来顺序处理消息。
 * 每种线程有对应的线程池，线程池中线程的个数根据实际情况进行配置。
 * 每个Raft Group拥有唯一的64位RaftId。Raft消息中包含这个RaftId。
 * 消息在线程池之间传递，完成完整的Raft协议流程。
