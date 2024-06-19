@@ -3,19 +3,19 @@ raft
 
 # REMU (Raft Emulator)
 
-## Architecture
+## 1 - Architecture
 
 
-## Web Interface
+## 2 - Web Interface
 
-### global state
+### 2.1 global state
 ![](images/remu-web2.png)
 
-### node state
+### 2.2 node state
 ![](images/remu-web3.png)
 
-### index page
+### 2.3 index page
 ![](images/remu-web.png)
 
-### log
+### 2.4 log
 ![](images/remu-web4.png)
