@@ -1,5 +1,12 @@
 # vraft
-raft
+
+# Architecture
+## SEDA (Staged Event-Driven Architecture)
+> vraft实现了一种SEDA架构
+> SEDA架构参考论文：https://www.cs.princeton.edu/courses/archive/fall15/cos518/studpres/seda.pdf
+
+## VRaft-SEDA
+
 
 # REMU (Raft Emulator)
 
