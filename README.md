@@ -8,14 +8,14 @@ raft
 
 ## Web Interface
 
-* global state
+### global state
 ![](images/remu-web2.png)
 
-* node state
+### node state
 ![](images/remu-web3.png)
 
-* index page
+### index page
 ![](images/remu-web.png)
 
-* log
+### log
 ![](images/remu-web4.png)
