@@ -2,7 +2,8 @@
 
 # Architecture
 ## SEDA (Staged Event-Driven Architecture)
-> vraft implements a SEDA architecture. 
+> vraft implements a SEDA architecture.
+> 
 > The reference paper for the SEDA architecture is as follows：https://www.cs.princeton.edu/courses/archive/fall15/cos518/studpres/seda.pdf
 
 ## VRaft-SEDA
