@@ -140,8 +140,8 @@ CLIENT_THREAD_TEST_OBJECTS := $(CLIENT_THREAD_TEST_SRCS:.cc=.o)
 
 
 # generate exe
-MAIN := vraft_server rlog_tool meta_tool db_tool remu vectordb-server vectordb-cli
-EXAMPLE := echo_server echo_client echo_console
+MAIN := vraft-server rlog-tool meta-tool db-tool remu vectordb-server vectordb-cli
+EXAMPLE := echo-server echo-client echo-console
 
 TEST := tpl_test
 TEST += logger_test 
@@ -194,16 +194,16 @@ test: $(TEST)
 
 # exe rules
 # main
-vraft_server: $(VRAFT_SERVER_OBJECTS)
+vraft-server: $(VRAFT_SERVER_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
-rlog_tool: $(RLOG_TOOL_OBJECTS)
+rlog-tool: $(RLOG_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
-meta_tool: $(META_TOOL_OBJECTS)
+meta-tool: $(META_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
-db_tool: $(DB_TOOL_OBJECTS)
+db-tool: $(DB_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 remu: $(REMU_OBJECTS)
@@ -216,13 +216,13 @@ vectordb-cli: $(VECTORDB_CLI_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 # example
-echo_server: $(ECHO_SERVER_OBJECTS)
+echo-server: $(ECHO_SERVER_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
 
-echo_client: $(ECHO_CLIENT_OBJECTS)
+echo-client: $(ECHO_CLIENT_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
 
-echo_console: $(ECHO_CONSOLE_OBJECTS)
+echo-console: $(ECHO_CONSOLE_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
 
 # test
