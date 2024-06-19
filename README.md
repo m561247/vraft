@@ -1,4 +1,3 @@
-# vraft
 
 # 1 - Architecture
 ## 1.1 SEDA (Staged Event-Driven Architecture)
