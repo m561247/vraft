@@ -26,6 +26,9 @@ vraft有如下特点：
 * 相同RaftId的消息永远被相同的线程处理。
 ![](images/seda_vraft.png)
 
+## VRaft Inner Component
+![](images/raft_component.png)
+
 # 2 - REMU (Raft Emulator)
 
 ## Remu-Architecture
