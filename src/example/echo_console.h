@@ -11,8 +11,15 @@ class EchoConsole : public vraft::Console {
   EchoConsole &operator=(const EchoConsole &t) = delete;
 
  private:
-  int32_t Parse(const std::string &cmd_line) override { return 0; }
-  int32_t Execute() override { return 0; }
+  int32_t Parse(const std::string &cmd_line) override {
+    set_result("cmd: " + cmd_line);
+    return 0;
+  }
+
+  int32_t Execute() override {
+    ResultReady();
+    return 0;
+  }
 };
 
 #endif
