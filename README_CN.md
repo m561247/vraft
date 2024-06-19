@@ -1,3 +1,9 @@
+# 0 - Introduction
+vraft是一个用C++编写的raft库，可以将它作为基础架构来实现各种底层软件，如分布式数据库等。
+vraft有如下特点：
+* Program with the help of TLA+ -- 采用TLA+ Specification进行辅助编码，从理论上保证系统的正确性
+* Remu(Raft Emulator) -- 内置一个Raft模拟器，可以进行分布式调试，分布式全局状态查看，分布式自动化测试。
+* Debug Everything -- 全栈源代码可调式  
 
 # 1 - Architecture
 ## SEDA (Staged Event-Driven Architecture)
