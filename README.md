@@ -5,6 +5,7 @@ raft
 
 ## 1 - Architecture
 
+![](images/remu_arch.png)
 
 ## 2 - Web Interface
 
