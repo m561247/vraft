@@ -107,6 +107,11 @@ using CountDownLatchSPtr = std::shared_ptr<CountDownLatch>;
 using CountDownLatchUPtr = std::unique_ptr<CountDownLatch>;
 using CountDownLatchWPtr = std::weak_ptr<CountDownLatch>;
 
+class ClientThread;
+using ClientThreadSPtr = std::shared_ptr<ClientThread>;
+using ClientThreadUPtr = std::unique_ptr<ClientThread>;
+using ClientThreadWPtr = std::weak_ptr<ClientThread>;
+
 }  // namespace vraft
 
 #endif

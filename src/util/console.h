@@ -3,30 +3,37 @@
 
 #include <string>
 
+#include "common.h"
 #include "count_down.h"
+#include "hostport.h"
 
 namespace vraft {
 
-class Console final {
+class Console {
  public:
-  explicit Console();
-  ~Console();
+  explicit Console(const std::string &name);
+  explicit Console(const std::string &name, const HostPort &dest);
+  virtual ~Console();
   Console(const Console &t) = delete;
   Console &operator=(const Console &t) = delete;
 
   int32_t Run();
+  void Stop();
 
  private:
-  int32_t Parse(const std::string &cmd_line);
-  int32_t Execute();
+  virtual int32_t Parse(const std::string &cmd_line) = 0;
+  virtual int32_t Execute() = 0;
+
   void WaitResult();
 
  private:
+  std::string name_;
+  std::string prompt_;
+
   std::string result_;
   CountDownLatch wait_result_;
+  ClientThreadSPtr client_thread_;
 };
-
-inline Console::Console() : wait_result_(1) {}
 
 inline Console::~Console() {}
 

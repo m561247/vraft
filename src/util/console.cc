@@ -1,6 +1,16 @@
 #include "console.h"
 
+#include "client_thread.h"
+
 namespace vraft {
+
+Console::Console(const std::string &name)
+    : name_(name), prompt_("(" + name + ")>"), wait_result_(1) {}
+
+Console::Console(const std::string &name, const HostPort &dest)
+    : name_(name), prompt_("(" + name + ")>"), wait_result_(1) {
+  client_thread_ = std::make_shared<ClientThread>(name_, false);
+}
 
 int32_t Console::Run() {
   while (true) {
@@ -19,9 +29,7 @@ int32_t Console::Run() {
   return 0;
 }
 
-int32_t Console::Parse(const std::string &cmd_line) { return 0; }
-
-int32_t Console::Execute() { return 0; }
+void Console::Stop() {}
 
 void Console::WaitResult() { wait_result_.Wait(); }
 
