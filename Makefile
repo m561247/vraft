@@ -12,6 +12,7 @@ CXXFLAGS := -g -Wall -std=c++14
 CXXFLAGS += $(SANITIZE_FLAGS)
 
 INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Isrc/example
+INCLUDES += -Isrc/vmeta -Isrc/vstore -Isrc/vpaxos -Isrc/vectordb
 INCLUDES += -Ithird_party/spdlog/include 
 INCLUDES += -Ithird_party/cxxopts/include 
 INCLUDES += -Ithird_party/googletest/googletest/include 
@@ -28,6 +29,7 @@ LDFLAGS += -pthread -ldl
 
 # common src
 SRC_DIRS := src/raft src/seda src/util
+SRC_DIRS += src/vmeta src/vstore src/vpaxos src/vectordb
 COMMON_SRCS := $(wildcard $(SRC_DIRS:=/*.cc))
 
 # main src
@@ -36,6 +38,8 @@ RLOG_TOOL_SRCS := src/main/rlog_tool.cc $(COMMON_SRCS)
 META_TOOL_SRCS := src/main/meta_tool.cc $(COMMON_SRCS)
 DB_TOOL_SRCS := src/main/db_tool.cc $(COMMON_SRCS)
 REMU_SRCS := src/main/remu_main.cc $(COMMON_SRCS)
+VECTORDB_SERVER_SRCS := src/main/vectordb_server.cc $(COMMON_SRCS)
+VECTORDB_CLI_SRCS := src/main/vectordb_cli.cc $(COMMON_SRCS)
 
 # example src
 ECHO_SERVER_SRCS := src/example/echo_server.cc $(COMMON_SRCS)
@@ -89,6 +93,8 @@ RLOG_TOOL_OBJECTS := $(RLOG_TOOL_SRCS:.cc=.o)
 META_TOOL_OBJECTS := $(META_TOOL_SRCS:.cc=.o)
 DB_TOOL_OBJECTS := $(DB_TOOL_SRCS:.cc=.o)
 REMU_OBJECTS := $(REMU_SRCS:.cc=.o)
+VECTORDB_SERVER_OBJECTS := $(VECTORDB_SERVER_SRCS:.cc=.o)
+VECTORDB_CLI_OBJECTS := $(VECTORDB_CLI_SRCS:.cc=.o)
 
 # example
 ECHO_SERVER_OBJECTS := $(ECHO_SERVER_SRCS:.cc=.o)
@@ -134,7 +140,7 @@ CLIENT_THREAD_TEST_OBJECTS := $(CLIENT_THREAD_TEST_SRCS:.cc=.o)
 
 
 # generate exe
-MAIN := vraft_server rlog_tool meta_tool db_tool remu 
+MAIN := vraft_server rlog_tool meta_tool db_tool remu vectordb-server vectordb-cli
 EXAMPLE := echo_server echo_client echo_console
 
 TEST := tpl_test
@@ -201,6 +207,12 @@ db_tool: $(DB_TOOL_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 remu: $(REMU_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
+
+vectordb-server: $(VECTORDB_SERVER_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
+
+vectordb-cli: $(VECTORDB_CLI_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 # example
@@ -318,6 +330,7 @@ server_thread_test: $(SERVER_THREAD_TEST_OBJECTS)
 
 client_thread_test: $(CLIENT_THREAD_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
 
 # clean
 clean:
