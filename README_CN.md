@@ -1,21 +1,29 @@
-# vraft
-raft
 
-# REMU (Raft Emulator)
+# 1 - Architecture
+## SEDA (Staged Event-Driven Architecture)
+* VRaft implements a SEDA architecture.
+* The reference paper for the SEDA architecture is as follows.
+  * https://www.cs.princeton.edu/courses/archive/fall15/cos518/studpres/seda.pdf
 
-## 1 - Architecture
+## VRaft-SEDA
 
 
-## 2 - Web Interface
+# 2 - REMU (Raft Emulator)
 
-### 2.1 global state
+## Remu-Architecture
+
+![](images/remu_arch.png)
+
+## Web Interface
+
+#### global state
 ![](images/remu-web2.png)
 
-### 2.2 node state
+#### node state
 ![](images/remu-web3.png)
 
-### 2.3 index page
+#### index page
 ![](images/remu-web.png)
 
-### 2.4 log
+#### log
 ![](images/remu-web4.png)
