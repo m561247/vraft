@@ -1,5 +1,5 @@
 # 0 - Introduction
-vraft是一个用C++编写的raft库，可以基于vraft来实现各种分布式软件，如分布式数据库等。
+vraft是一个用C++编写的raft库，可以基于vraft来实现各种分布式软件，如分布式数据库等。<br>
 vraft有如下特点：
 * **Program with TLA+ Specification** -- 采用TLA+形式化验证语言进行辅助编码，从理论上保证系统的正确性
   * TLA+: https://lamport.azurewebsites.net/tla/tla.html
