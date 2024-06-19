@@ -3,7 +3,7 @@ raft
 
 # REMU (Raft Emulator)
 
-## 1 - Architecture
+## 1 - Remu-Architecture
 
 ![](images/remu_arch.png)
 
