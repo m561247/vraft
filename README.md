@@ -23,6 +23,7 @@ vraft有如下特点：
 * 每个Raft Group拥有唯一的64位RaftId。Raft消息中包含这个RaftId。
 * 消息在线程池之间传递，完成完整的Raft协议流程。
 * 相同RaftId的消息永远被相同的线程处理。
+![](images/seda_vraft.png)
 
 # 2 - REMU (Raft Emulator)
 
