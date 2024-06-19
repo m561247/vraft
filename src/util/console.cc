@@ -7,10 +7,18 @@
 namespace vraft {
 
 Console::Console(const std::string &name)
-    : start(false), name_(name), prompt_("(" + name + ")> "), wait_result_(1) {}
+    : start(false),
+      name_(name),
+      prompt_("(" + name + ")> "),
+      wait_result_(1),
+      dest_(0) {}
 
 Console::Console(const std::string &name, const HostPort &dest)
-    : start(false), name_(name), prompt_("(" + name + ")> "), wait_result_(1) {
+    : start(false),
+      name_(name),
+      prompt_("(" + name + ")> "),
+      wait_result_(1),
+      dest_(dest) {
   client_thread_ = std::make_shared<ClientThread>(name_, false);
   EventLoopSPtr loop = client_thread_->LoopPtr();
 
@@ -79,8 +87,21 @@ void Console::Reset() {
 
 void Console::set_result(const std::string &result) { result_ = result; }
 
+std::string Console::cmd_line() const { return cmd_line_; }
+
 void Console::WaitResult() { wait_result_.Wait(); }
 
 void Console::ResultReady() { wait_result_.CountDown(); }
+
+void Console::Send(std::string &msg) {
+  if (client_thread_) {
+    TcpClientSPtr client = client_thread_->GetClient(dest_);
+    if (client) {
+      EventLoopSPtr loop = client_thread_->LoopPtr();
+      loop->RunFunctor(std::bind(&TcpClient::CopySend, client.get(),
+                                 msg.c_str(), msg.size()));
+    }
+  }
+}
 
 }  // namespace vraft

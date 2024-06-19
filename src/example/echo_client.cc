@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   assert(rv == 0);
 
   vraft::TcpOptions opt = {true};
-  vraft::HostPort dest_addr("127.0.0.1", 9988);
+  vraft::HostPort dest_addr("127.0.0.1", 9000);
   weak_loop = loop;
 
   vraft::TcpClientSPtr client =

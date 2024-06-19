@@ -25,7 +25,8 @@ int main(int argc, char **argv) {
 
   std::signal(SIGINT, SignalHandler);
 
-  EchoConsoleSPtr console = std::make_shared<EchoConsole>("echo");
+  EchoConsoleSPtr console =
+      std::make_shared<EchoConsole>("echo", "127.0.0.1:9000");
   console_ptr = console;
   console->Run();
 

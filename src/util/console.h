@@ -24,10 +24,12 @@ class Console {
   void Reset();
 
   void set_result(const std::string &result);
+  std::string cmd_line() const;
 
  protected:
   void WaitResult();
   void ResultReady();
+  void Send(std::string &msg);
 
  private:
   virtual int32_t Parse(const std::string &cmd_line) = 0;
@@ -43,6 +45,7 @@ class Console {
 
   std::string result_;
   CountDownLatch wait_result_;
+  HostPort dest_;
   ClientThreadSPtr client_thread_;
 };
 
