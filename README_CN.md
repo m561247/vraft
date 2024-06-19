@@ -5,7 +5,7 @@
 * The reference paper for the SEDA architecture is as follows.
   * https://www.cs.princeton.edu/courses/archive/fall15/cos518/studpres/seda.pdf
 
-## VRaft-SEDA
+## VRaft-SEDA-Implementation
 
 
 # 2 - REMU (Raft Emulator)
