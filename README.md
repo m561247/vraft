@@ -7,3 +7,5 @@ raft
 
 
 ## Web Interface
+
+![](images/remu-web2.png)
