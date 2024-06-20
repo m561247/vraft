@@ -5,7 +5,7 @@ vraft有如下特点：
   * TLA+: https://lamport.azurewebsites.net/tla/tla.html
 * **Remu(Raft Emulator)** -- 内置一个Raft模拟器，可以进行分布式调试，分布式全局状态查看，分布式自动化测试
 * **Debug Everything** -- 全栈源代码可调式
-* **Infrastructure Software Demo** -- 内置若干基础架构软件的实现Demo（分布式kv-store，分布式元数据管理，分布式SQL，向量数据库）
+* **Infrastructure Software Demo** -- 内置若干基础架构软件的实现Demo（分布式kv-store，分布式元数据管理，分布式SQL，向量数据库 ...）
 
 # 1 - Architecture
 ## SEDA (Staged Event-Driven Architecture)
