@@ -48,3 +48,7 @@ vraft有如下特点：
 
 #### log
 ![](images/remu-web4.png)
+
+# 3 Flame Graph
+持续优化
+![](images/perf.svg)
