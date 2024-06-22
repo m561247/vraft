@@ -1,3 +1,7 @@
 #include "vdb_config.h"
 
-namespace vectordb {}  // namespace vectordb
+namespace vectordb {
+
+VdbConfigSPtr ConfigSingleton::instance_ = nullptr;
+
+}  // namespace vectordb

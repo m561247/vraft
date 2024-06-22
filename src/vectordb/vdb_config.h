@@ -1,7 +1,9 @@
 #ifndef VECTORDB_VDB_CONFIG_H_
 #define VECTORDB_VDB_CONFIG_H_
 
+#include <iostream>
 #include <memory>
+#include <mutex>
 
 namespace vectordb {
 
@@ -23,6 +25,31 @@ class VdbConfig final {
 inline VdbConfig::VdbConfig() {}
 
 inline VdbConfig::~VdbConfig() {}
+
+class ConfigSingleton {
+ public:
+  ConfigSingleton(const ConfigSingleton &) = delete;
+  ConfigSingleton &operator=(const ConfigSingleton &) = delete;
+
+  static VdbConfigSPtr GetInstance() {
+    static std::once_flag init_flag;
+    std::call_once(init_flag, []() { instance_.reset(new VdbConfig); });
+
+    VdbConfigSPtr sptr;
+    {
+      std::unique_lock<std::mutex> ulk(mu_);
+      sptr = instance_;
+    }
+    return sptr;
+  }
+
+ private:
+  ConfigSingleton() {}
+  ~ConfigSingleton() {}
+
+  static std::mutex mu_;
+  static VdbConfigSPtr instance_;
+};
 
 }  // namespace vectordb
 
