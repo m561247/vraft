@@ -3,7 +3,9 @@
 
 #include <memory>
 
+#include "buffer.h"
 #include "common.h"
+#include "server_thread.h"
 #include "vdb_config.h"
 #include "vengine.h"
 
@@ -16,23 +18,25 @@ using VectorDBWPtr = std::weak_ptr<VectorDB>;
 
 class VectorDB {
  public:
-  explicit VectorDB(const std::string &path, VdbConfigSPtr config);
+  explicit VectorDB(VdbConfigSPtr config);
   ~VectorDB();
   VectorDB(const VectorDB &) = delete;
   VectorDB &operator=(const VectorDB &) = delete;
 
-  int32_t Start();
-  void Stop();
+  void Start() { thread_pool_.Start(); }
+  void Join() { thread_pool_.Join(); }
+  void Stop() { thread_pool_.Stop(); }
 
  private:
-  std::string path_;
-  VdbConfigSPtr config_;
-  VEngineSPtr vengine_;
-  vraft::ServerThreadSPtr server_thread_;
-};
+  void OnConnection(const vraft::TcpConnectionSPtr &conn);
+  void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf);
 
-inline VectorDB::VectorDB(const std::string &path, VdbConfigSPtr config)
-    : path_(path), config_(config) {}
+ private:
+  VdbConfigSPtr config_;
+  std::string path_;
+  VEngineSPtr vengine_;
+  vraft::ServerThreadPool thread_pool_;
+};
 
 inline VectorDB::~VectorDB() {}
 

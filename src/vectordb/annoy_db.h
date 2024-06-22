@@ -7,7 +7,7 @@ namespace vectordb {
 
 class AnnoyDB : public VEngine {
  public:
-  explicit AnnoyDB();
+  explicit AnnoyDB(const std::string &path);
   ~AnnoyDB();
   AnnoyDB(const AnnoyDB &t) = delete;
   AnnoyDB &operator=(const AnnoyDB &t) = delete;
@@ -15,7 +15,7 @@ class AnnoyDB : public VEngine {
  private:
 };
 
-inline AnnoyDB::AnnoyDB() {}
+inline AnnoyDB::AnnoyDB(const std::string &path) : VEngine(path) {}
 
 inline AnnoyDB::~AnnoyDB() {}
 

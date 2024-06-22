@@ -5,11 +5,14 @@
 #include "vdb_config.h"
 #include "vectordb.h"
 
-vectordb::VectorDBSPtr dbptr;
+vectordb::VectorDBWPtr wptr;
 
 void SignalHandler(int signal) {
   std::cout << "recv signal " << strsignal(signal) << ", quit ..." << std::endl;
-  dbptr->Stop();
+  auto sptr = wptr.lock();
+  if (sptr) {
+    sptr->Stop();
+  }
 }
 
 int main(int argc, char **argv) {
@@ -28,8 +31,20 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  vectordb::VectorDBSPtr vdb;
-  dbptr = vdb;
+  vraft::LoggerOptions logger_options{"vectordb", false, 1, 8192,
+                                      vraft::kLoggerTrace};
+  logger_options.level = vraft::U8ToLevel(config->log_level());
+  logger_options.enable_debug = config->enable_debug();
+
+  std::string log_file = config->path() + "/log/vraft.log";
+  vraft::vraft_logger.Init(log_file, logger_options);
+
+  vectordb::VectorDBSPtr vdb = std::make_shared<vectordb::VectorDB>(config);
+  wptr = vdb;
   vdb->Start();
+  vdb->Join();
+
+  std::cout << "vectordb-server stop ..." << std::endl;
+  vraft::Logger::ShutDown();
   return 0;
 }

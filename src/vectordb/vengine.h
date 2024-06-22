@@ -12,15 +12,16 @@ using VEngineWPtr = std::weak_ptr<VEngine>;
 
 class VEngine {
  public:
-  explicit VEngine();
+  explicit VEngine(const std::string &path);
   virtual ~VEngine();
   VEngine(const VEngine &) = delete;
   VEngine &operator=(const VEngine &) = delete;
 
  private:
+  std::string path_;
 };
 
-inline VEngine::VEngine() {}
+inline VEngine::VEngine(const std::string &path) : path_(path) {}
 
 inline VEngine::~VEngine() {}
 

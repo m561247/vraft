@@ -74,7 +74,16 @@ const std::string VdbConfig::UsageBanner(char *program_name) {
 
 const std::string VdbConfig::ProgramName() { return options_->program(); }
 
-const std::string VdbConfig::ToString() const {}
+const std::string VdbConfig::ToString() const {
+  std::string str;
+  char buf[512];
+  snprintf(buf, sizeof(buf), "addr: %s\n", addr_.ToString().c_str());
+  str.append(buf);
+  snprintf(buf, sizeof(buf), "path: %s\n", path_.c_str());
+  str.append(buf);
+
+  return str;
+}
 
 std::mutex ConfigSingleton::mu_;
 VdbConfigSPtr ConfigSingleton::instance_ = nullptr;
