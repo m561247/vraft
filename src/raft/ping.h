@@ -12,21 +12,21 @@
 
 namespace vraft {
 
-struct Ping {
+struct Ping : public Message {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
   uint32_t uid;
   std::string msg;
 
-  int32_t MaxBytes();
-  int32_t ToString(std::string &s);
-  int32_t ToString(const char *ptr, int32_t len);
-  bool FromString(std::string &s);
-  bool FromString(const char *ptr, int32_t len);
+  int32_t MaxBytes() override;
+  int32_t ToString(std::string &s) override;
+  int32_t ToString(const char *ptr, int32_t len) override;
+  int32_t FromString(std::string &s) override;
+  int32_t FromString(const char *ptr, int32_t len) override;
 
-  nlohmann::json ToJson();
-  nlohmann::json ToJsonTiny();
-  std::string ToJsonString(bool tiny, bool one_line);
+  nlohmann::json ToJson() override;
+  nlohmann::json ToJsonTiny() override;
+  std::string ToJsonString(bool tiny, bool one_line) override;
 };
 
 inline int32_t Ping::MaxBytes() {
@@ -71,33 +71,38 @@ inline int32_t Ping::ToString(const char *ptr, int32_t len) {
   return size;
 }
 
-inline bool Ping::FromString(std::string &s) {
+inline int32_t Ping::FromString(std::string &s) {
   return FromString(s.c_str(), s.size());
 }
 
-inline bool Ping::FromString(const char *ptr, int32_t len) {
+inline int32_t Ping::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   uint64_t u64 = 0;
+  int32_t size = 0;
 
   u64 = DecodeFixed64(p);
   src.FromU64(u64);
   p += sizeof(u64);
+  size += sizeof(u64);
 
   u64 = DecodeFixed64(p);
   dest.FromU64(u64);
   p += sizeof(u64);
+  size += sizeof(u64);
 
   uid = DecodeFixed32(p);
   p += sizeof(uid);
+  size += sizeof(uid);
 
   Slice result;
-  Slice input(p, len - 2 * sizeof(uint64_t));
-  bool b = DecodeString(&input, &result);
-  if (b) {
+  Slice input(p, len - size);
+  int32_t sz = DecodeString2(&input, &result);
+  if (sz > 0) {
     msg.clear();
     msg.append(result.data(), result.size());
+    size += sz;
   }
-  return b;
+  return size;
 }
 
 inline nlohmann::json Ping::ToJson() {
