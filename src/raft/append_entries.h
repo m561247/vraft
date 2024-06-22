@@ -7,6 +7,7 @@
 
 #include "allocator.h"
 #include "common.h"
+#include "message.h"
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
 #include "raft_log.h"
@@ -14,7 +15,7 @@
 
 namespace vraft {
 
-struct AppendEntries {
+struct AppendEntries : public Message {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
   RaftTerm term;
@@ -25,15 +26,15 @@ struct AppendEntries {
   RaftIndex commit_index;
   std::vector<LogEntry> entries;
 
-  int32_t MaxBytes();
-  int32_t ToString(std::string &s);
-  int32_t ToString(const char *ptr, int32_t len);
-  int32_t FromString(std::string &s);
-  int32_t FromString(const char *ptr, int32_t len);
+  int32_t MaxBytes() override;
+  int32_t ToString(std::string &s) override;
+  int32_t ToString(const char *ptr, int32_t len) override;
+  int32_t FromString(std::string &s) override;
+  int32_t FromString(const char *ptr, int32_t len) override;
 
-  nlohmann::json ToJson();
-  nlohmann::json ToJsonTiny();
-  std::string ToJsonString(bool tiny, bool one_line);
+  nlohmann::json ToJson() override;
+  nlohmann::json ToJsonTiny() override;
+  std::string ToJsonString(bool tiny, bool one_line) override;
 };
 
 inline int32_t AppendEntries::MaxBytes() {

@@ -6,6 +6,7 @@
 
 #include "allocator.h"
 #include "coding.h"
+#include "nlohmann/json.hpp"
 
 namespace vraft {
 
@@ -76,6 +77,18 @@ inline bool MsgHeader::FromString(const char *ptr, int32_t len) {
 
   return true;
 }
+
+struct Message {
+  virtual int32_t MaxBytes() = 0;
+  virtual int32_t ToString(std::string &s) = 0;
+  virtual int32_t ToString(const char *ptr, int32_t len) = 0;
+  virtual int32_t FromString(std::string &s) = 0;
+  virtual int32_t FromString(const char *ptr, int32_t len) = 0;
+
+  virtual nlohmann::json ToJson() = 0;
+  virtual nlohmann::json ToJsonTiny() = 0;
+  virtual std::string ToJsonString(bool tiny, bool one_line) = 0;
+};
 
 }  // namespace vraft
 

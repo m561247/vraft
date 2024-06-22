@@ -5,13 +5,14 @@
 
 #include "allocator.h"
 #include "common.h"
+#include "message.h"
 #include "nlohmann/json.hpp"
 #include "raft_addr.h"
 #include "util.h"
 
 namespace vraft {
 
-struct RequestVote {
+struct RequestVote : public Message {
   RaftAddr src;   // uint64_t
   RaftAddr dest;  // uint64_t
   RaftTerm term;
@@ -20,15 +21,15 @@ struct RequestVote {
   RaftIndex last_log_index;
   RaftTerm last_log_term;
 
-  int32_t MaxBytes();
-  int32_t ToString(std::string &s);
-  int32_t ToString(const char *ptr, int32_t len);
-  bool FromString(std::string &s);
-  bool FromString(const char *ptr, int32_t len);
+  int32_t MaxBytes() override;
+  int32_t ToString(std::string &s) override;
+  int32_t ToString(const char *ptr, int32_t len) override;
+  int32_t FromString(std::string &s) override;
+  int32_t FromString(const char *ptr, int32_t len) override;
 
-  nlohmann::json ToJson();
-  nlohmann::json ToJsonTiny();
-  std::string ToJsonString(bool tiny, bool one_line);
+  nlohmann::json ToJson() override;
+  nlohmann::json ToJsonTiny() override;
+  std::string ToJsonString(bool tiny, bool one_line) override;
 };
 
 inline int32_t RequestVote::MaxBytes() {
@@ -81,35 +82,42 @@ inline int32_t RequestVote::ToString(const char *ptr, int32_t len) {
   return size;
 }
 
-inline bool RequestVote::FromString(std::string &s) {
+inline int32_t RequestVote::FromString(std::string &s) {
   return FromString(s.c_str(), s.size());
 }
 
-inline bool RequestVote::FromString(const char *ptr, int32_t len) {
+inline int32_t RequestVote::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   uint64_t u64 = 0;
+  int32_t size = 0;
 
   u64 = DecodeFixed64(p);
   src.FromU64(u64);
   p += sizeof(u64);
+  size += sizeof(u64);
 
   u64 = DecodeFixed64(p);
   dest.FromU64(u64);
   p += sizeof(u64);
+  size += sizeof(u64);
 
   term = DecodeFixed64(p);
   p += sizeof(term);
+  size += sizeof(term);
 
   uid = DecodeFixed32(p);
   p += sizeof(uid);
+  size += sizeof(uid);
 
   last_log_index = DecodeFixed32(p);
   p += sizeof(last_log_index);
+  size += sizeof(last_log_index);
 
   last_log_term = DecodeFixed64(p);
   p += sizeof(last_log_term);
+  size += sizeof(last_log_term);
 
-  return true;
+  return size;
 }
 
 inline nlohmann::json RequestVote::ToJson() {
