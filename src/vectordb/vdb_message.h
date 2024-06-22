@@ -3,6 +3,13 @@
 
 #include "message.h"
 
-namespace vectordb {}  // namespace vectordb
+namespace vectordb {
+
+enum VdbMsgType {
+  kVersion = 100,
+  kVersionReply,
+};
+
+}  // namespace vectordb
 
 #endif
