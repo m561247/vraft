@@ -7,7 +7,7 @@ namespace vraft {
 Config default_config;
 Config &GetConfig() { return default_config; }
 
-void Config::Init(int32_t argc, char **argv) {
+void Config::Parse(int32_t argc, char **argv) {
   options_ = std::make_shared<cxxopts::Options>(std::string(argv[0]),
                                                 UsageBanner(argv[0]));
   options_->add_options()(

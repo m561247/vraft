@@ -25,7 +25,7 @@ class Config final {
   Config(const Config &c) = default;
   Config &operator=(const Config &c) = default;
 
-  void Init(int32_t argc, char **argv);
+  void Parse(int32_t argc, char **argv);
   const std::string Usage();
   const std::string UsageBanner(char *program_name);
   const std::string ProgramName();

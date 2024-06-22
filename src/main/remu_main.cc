@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
       return 0;
     }
 
-    vraft::GetConfig().Init(argc, argv);
+    vraft::GetConfig().Parse(argc, argv);
     if (vraft::GetConfig().result().count("h")) {
       std::cout << vraft::GetConfig().Usage() << std::endl;
       return 0;

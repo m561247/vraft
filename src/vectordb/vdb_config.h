@@ -4,6 +4,11 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <vector>
+
+#include "cxxopts.hpp"
+#include "hostport.h"
 
 namespace vectordb {
 
@@ -19,7 +24,26 @@ class VdbConfig final {
   VdbConfig(const VdbConfig &) = delete;
   VdbConfig &operator=(const VdbConfig &) = delete;
 
+  void Parse(int32_t argc, char **argv);
+  const std::string Usage();
+  const std::string UsageBanner(char *program_name);
+  const std::string ProgramName();
+  const cxxopts::ParseResult &result() const { return result_; }
+  const std::string ToString() const;
+
+  vraft::HostPort addr() { return addr_; }
+  uint8_t log_level() const { return log_level_; }
+  bool enable_debug() const { return enable_debug_; }
+  std::string path() { return path_; }
+
  private:
+  std::shared_ptr<cxxopts::Options> options_;
+  cxxopts::ParseResult result_;
+
+  vraft::HostPort addr_;
+  uint8_t log_level_;
+  bool enable_debug_;
+  std::string path_;
 };
 
 inline VdbConfig::VdbConfig() {}
