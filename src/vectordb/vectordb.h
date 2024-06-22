@@ -9,6 +9,11 @@
 
 namespace vectordb {
 
+class VectorDB;
+using VectorDBSPtr = std::shared_ptr<VectorDB>;
+using VectorDBUPtr = std::unique_ptr<VectorDB>;
+using VectorDBWPtr = std::weak_ptr<VectorDB>;
+
 class VectorDB {
  public:
   explicit VectorDB(const std::string &path, VdbConfigSPtr config);
