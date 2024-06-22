@@ -1,11 +1,11 @@
 #ifndef VECTORDB_ANNOY_DB_H_
 #define VECTORDB_ANNOY_DB_H_
 
-#include "vectordb.h"
+#include "vengine.h"
 
 namespace vectordb {
 
-class AnnoyDB : public VectorDB {
+class AnnoyDB : public VEngine {
  public:
   explicit AnnoyDB();
   ~AnnoyDB();

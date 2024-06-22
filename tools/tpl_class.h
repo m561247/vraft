@@ -7,8 +7,8 @@ class Tpl final {
 public:
   explicit Tpl();
   ~Tpl();
-  Tpl(const Tpl &t) = delete;
-  Tpl &operator=(const Tpl &t) = delete;
+  Tpl(const Tpl &) = delete;
+  Tpl &operator=(const Tpl &) = delete;
 
 private:
 };
