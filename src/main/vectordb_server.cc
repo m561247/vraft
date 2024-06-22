@@ -1,6 +1,7 @@
-#include "annoy_db.h"
+#include "vectordb.h"
 
 int main(int argc, char **argv) {
-  vectordb::AnnoyDB db;
+  vectordb::VectorDB db("", nullptr);
+  db.Start();
   return 0;
 }

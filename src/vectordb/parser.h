@@ -4,19 +4,19 @@
 namespace vectordb {
 
 class Parser final {
-public:
+ public:
   explicit Parser();
   ~Parser();
   Parser(const Parser &t) = delete;
   Parser &operator=(const Parser &t) = delete;
 
-private:
+ private:
 };
 
 inline Parser::Parser() {}
 
 inline Parser::~Parser() {}
 
-} // namespace vectordb
+}  // namespace vectordb
 
 #endif

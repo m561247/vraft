@@ -1,19 +1,33 @@
 #ifndef VECTORDB_VECTORDB_H_
 #define VECTORDB_VECTORDB_H_
 
+#include <memory>
+
+#include "common.h"
+#include "vdb_config.h"
+#include "vengine.h"
+
 namespace vectordb {
 
 class VectorDB {
  public:
-  explicit VectorDB();
+  explicit VectorDB(const std::string &path, VdbConfigSPtr config);
   ~VectorDB();
-  VectorDB(const VectorDB &t) = delete;
-  VectorDB &operator=(const VectorDB &t) = delete;
+  VectorDB(const VectorDB &) = delete;
+  VectorDB &operator=(const VectorDB &) = delete;
+
+  int32_t Start();
+  void Stop();
 
  private:
+  std::string path_;
+  VdbConfigSPtr config_;
+  VEngineSPtr vengine_;
+  vraft::ServerThreadSPtr server_thread_;
 };
 
-inline VectorDB::VectorDB() {}
+inline VectorDB::VectorDB(const std::string &path, VdbConfigSPtr config)
+    : path_(path), config_(config) {}
 
 inline VectorDB::~VectorDB() {}
 
