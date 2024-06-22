@@ -37,7 +37,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
         "raft-server recv msg, readable-bytes:%d, body_bytes:%d",
         buf->ReadableBytes(), body_bytes);
 
-    if (buf->ReadableBytes() >
+    if (buf->ReadableBytes() >=
         static_cast<int32_t>(sizeof(MsgHeader)) + body_bytes) {
       // parse header
       MsgHeader header;

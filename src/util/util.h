@@ -63,6 +63,9 @@ bool TidValid(std::thread::id);
 
 uint32_t UniqId(void *ptr);
 
+void ConvertStringToArgcArgv(const std::string &s, int *argc, char ***argv);
+void FreeArgv(int argc, char **argv);
+
 }  // namespace vraft
 
 #endif

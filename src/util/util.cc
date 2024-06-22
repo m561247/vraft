@@ -258,4 +258,35 @@ uint32_t UniqId(void *ptr) {
   return crc32;
 }
 
+void ConvertStringToArgcArgv(const std::string &s, int *argc, char ***argv) {
+  std::istringstream stream(s);
+  std::vector<std::string> tokens;
+  std::string token;
+
+  // Tokenize input string using space as delimiter.
+  while (stream >> token) {
+    tokens.push_back(token);
+  }
+
+  *argc = tokens.size();
+
+  // Allocate memory for argv.
+  *argv = new char *[*argc + 1];
+
+  for (int i = 0; i < *argc; ++i) {
+    (*argv)[i] = new char[tokens[i].length() + 1];
+    std::strcpy((*argv)[i], tokens[i].c_str());
+  }
+
+  // Set last element of argv to NULL to emulate normal `argv` behavior.
+  (*argv)[*argc] = nullptr;
+}
+
+void FreeArgv(int argc, char **argv) {
+  for (int i = 0; i < argc; ++i) {
+    delete[] argv[i];
+  }
+  delete[] argv;
+}
+
 }  // namespace vraft

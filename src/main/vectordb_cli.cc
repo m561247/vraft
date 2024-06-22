@@ -1,11 +1,16 @@
+#include <csignal>
+
 #include "vdb_console.h"
 #include "vraft_logger.h"
 
-vectordb::VdbConsoleSPtr gptr;
+vectordb::VdbConsoleWPtr wptr;
 
 void SignalHandler(int signal) {
   std::cout << "recv signal " << strsignal(signal) << std::endl;
-  gptr->Stop();
+  auto sptr = wptr.lock();
+  if (sptr) {
+    sptr->Stop();
+  }
 
   std::cout << "vectordb-console stop ..." << std::endl;
   vraft::Logger::ShutDown();
@@ -13,9 +18,16 @@ void SignalHandler(int signal) {
 }
 
 int main(int argc, char **argv) {
+  std::signal(SIGINT, SignalHandler);
+  vraft::CodingInit();
+
+  vraft::LoggerOptions logger_options{"vectordb",          false, 1, 8192,
+                                      vraft::kLoggerTrace, true};
+  vraft::vraft_logger.Init("/tmp/vectordb-cli.log", logger_options);
+
   vectordb::VdbConsoleSPtr console =
-      std::make_shared<vectordb::VdbConsole>("vectordb", "127.0.0.1:9000");
-  gptr = console;
+      std::make_shared<vectordb::VdbConsole>("vectordb-cli", "127.0.0.1:9000");
+  wptr = console;
   console->Run();
 
   return 0;

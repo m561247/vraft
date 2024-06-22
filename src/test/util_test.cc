@@ -76,6 +76,22 @@ TEST(UTIL, StrToHexStr) {
   std::cout << vraft::StrToHexStr(s.c_str(), s.size()) << std::endl;
 }
 
+TEST(UTIL, ConvertStringToArgcArgv) {
+  std::string input = "example command with multiple arguments";
+
+  int argc;
+  char **argv;
+  vraft::ConvertStringToArgcArgv(input, &argc, &argv);
+
+  // For testing: Print the arguments to verify correctness.
+  for (int i = 0; i < argc; ++i) {
+    std::cout << argv[i] << std::endl;
+  }
+
+  // Whenever done with argv, free the allocated memory.
+  vraft::FreeArgv(argc, argv);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
