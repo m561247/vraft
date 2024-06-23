@@ -80,8 +80,8 @@ void VdbConsole::Clear() {
 
 void VdbConsole::Help() {
   std::string help = "help\n";
-  help.append("version\n");
-  help.append("quit");
+  help.append("quit\n");
+  help.append("version");
   set_result(help);
 }
 
