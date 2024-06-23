@@ -43,7 +43,7 @@ class VEngine final {
   VEngine &operator=(const VEngine &) = delete;
 
   std::string path() const { return path_; }
-  int32_t dim() const { return dim_; }
+  int32_t Dim() const;
 
   int32_t Put(const std::string &key, const VecObj &vo) { return 0; }
   int32_t Get(const std::string &key, VecObj &vo) const { return 0; }
@@ -63,14 +63,18 @@ class VEngine final {
   }
 
  private:
+  void Init();
+
+ private:
   std::string path_;
-  int32_t dim_;
+  std::string meta_path_;
+  std::string data_path_;
+  std::string index_path_;
+
   leveldb::Options db_options_;
   std::shared_ptr<leveldb::DB> db_;
+  EngineMetaSPtr meta_;
 };
-
-inline VEngine::VEngine(const std::string &path, int32_t dim)
-    : path_(path), dim_(dim) {}
 
 inline VEngine::~VEngine() {}
 

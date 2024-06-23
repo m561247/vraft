@@ -59,7 +59,6 @@ TEST(EngineMeta, PersistDim) {
   }
 }
 
-
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);
