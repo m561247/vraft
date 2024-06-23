@@ -22,8 +22,12 @@ class EngineMeta final {
   EngineMeta(const EngineMeta &) = delete;
   EngineMeta &operator=(const EngineMeta &) = delete;
 
-  int32_t dim() const { return dim_; }
+  int32_t dim() const;
   void SetDim(int32_t dim);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 
  private:
   void Init();
@@ -38,6 +42,8 @@ class EngineMeta final {
 };
 
 inline EngineMeta::~EngineMeta() {}
+
+inline int32_t EngineMeta::dim() const { return dim_; }
 
 }  // namespace vectordb
 

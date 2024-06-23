@@ -17,8 +17,8 @@ class VindexManager final {
   VindexManager &operator=(const VindexManager &) = delete;
 
  private:
-  std::string path_;
   VEngineWPtr vengine_;
+  std::string path_;
 
   std::map<uint64_t, VindexSPtr> indices_by_time_;
   std::map<std::string, VindexSPtr> indices_by_name_;

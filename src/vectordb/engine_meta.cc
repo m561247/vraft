@@ -1,6 +1,7 @@
 #include "engine_meta.h"
 
 #include "coding.h"
+#include "common.h"
 #include "vraft_logger.h"
 
 namespace vectordb {
@@ -12,6 +13,33 @@ EngineMeta::EngineMeta(const std::string &path) : path_(path), dim_(0) {
 void EngineMeta::SetDim(int32_t dim) {
   dim_ = dim;
   PersistDim();
+}
+
+nlohmann::json EngineMeta::ToJson() {
+  nlohmann::json j;
+  j["dim"] = dim_;
+  return j;
+}
+
+nlohmann::json EngineMeta::ToJsonTiny() {
+  nlohmann::json j;
+  j["dim"] = dim_;
+  return j;
+}
+
+std::string EngineMeta::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["meta"] = ToJsonTiny();
+  } else {
+    j["meta"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
 }
 
 void EngineMeta::Init() {

@@ -44,17 +44,17 @@ TEST(EngineMeta, PersistDim) {
 
   {
     vectordb::EngineMeta meta("/tmp/engine_meta_test_dir");
-    std::cout << "dim: " << meta.dim() << std::endl;
+    std::cout << meta.ToJsonString(false, true) << std::endl;
     ASSERT_EQ(meta.dim(), 0);
 
     meta.SetDim(3);
-    std::cout << "dim: " << meta.dim() << std::endl;
+    std::cout << meta.ToJsonString(false, true) << std::endl;
     ASSERT_EQ(meta.dim(), 3);
   }
 
   {
     vectordb::EngineMeta meta("/tmp/engine_meta_test_dir");
-    std::cout << "dim: " << meta.dim() << std::endl;
+    std::cout << meta.ToJsonString(false, true) << std::endl;
     ASSERT_EQ(meta.dim(), 3);
   }
 }
