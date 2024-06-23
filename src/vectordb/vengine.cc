@@ -103,6 +103,125 @@ std::string Vec::ToJsonString(bool tiny, bool one_line) {
   }
 }
 
+int32_t VecObj::MaxBytes() {
+  int32_t sz = 0;
+  sz += 2 * sizeof(uint32_t);
+  sz += key.size();
+  sz += vec.MaxBytes();
+  sz += 2 * sizeof(uint32_t);
+  sz += attach_value.size();
+  return sz;
+}
+
+int32_t VecObj::ToString(std::string &s) {
+  s.clear();
+  int32_t max_bytes = MaxBytes();
+  char *ptr =
+      reinterpret_cast<char *>(vraft::DefaultAllocator().Malloc(max_bytes));
+  int32_t size = ToString(ptr, max_bytes);
+  s.append(ptr, size);
+  vraft::DefaultAllocator().Free(ptr);
+  return size;
+}
+
+int32_t VecObj::ToString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  {
+    vraft::Slice sls(key.c_str(), key.size());
+    char *p2 = vraft::EncodeString2(p, len - size, sls);
+    size += (p2 - p);
+    p = p2;
+  }
+
+  int32_t bytes = vec.ToString(p, len - size);
+  assert(bytes > 0);
+  p += bytes;
+  size += bytes;
+
+  {
+    vraft::Slice sls(attach_value.c_str(), attach_value.size());
+    char *p2 = vraft::EncodeString2(p, len - size, sls);
+    size += (p2 - p);
+    p = p2;
+  }
+
+  assert(size <= len);
+  return size;
+}
+
+int32_t VecObj::FromString(std::string &s) {
+  return FromString(s.c_str(), s.size());
+}
+
+int32_t VecObj::FromString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  {
+    key.clear();
+    vraft::Slice result;
+    vraft::Slice input(p, len - size);
+    int32_t sz = DecodeString2(&input, &result);
+    if (sz > 0) {
+      key.append(result.data(), result.size());
+      p += sz;
+      size += sz;
+    }
+  }
+
+  int32_t bytes = vec.FromString(p, len - size);
+  assert(bytes >= 0);
+  p += bytes;
+  size += bytes;
+
+  {
+    attach_value.clear();
+    vraft::Slice result;
+    vraft::Slice input(p, len - size);
+    int32_t sz = DecodeString2(&input, &result);
+    if (sz > 0) {
+      attach_value.append(result.data(), result.size());
+      p += sz;
+      size += sz;
+    }
+  }
+
+  return size;
+}
+
+nlohmann::json VecObj::ToJson() {
+  nlohmann::json j;
+  j["key"] = key;
+  j["vec"] = vec.ToJson();
+  j["attach_value"] = attach_value;
+  return j;
+}
+
+nlohmann::json VecObj::ToJsonTiny() {
+  nlohmann::json j;
+  j["key"] = key;
+  j["vec"] = vec.ToJsonTiny();
+  j["av"] = attach_value;
+  return j;
+}
+
+std::string VecObj::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["vo"] = ToJsonTiny();
+  } else {
+    j["vec-obj"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
 VEngine::VEngine(const std::string &path, int32_t dim)
     : path_(path),
       meta_path_(path + "/meta"),

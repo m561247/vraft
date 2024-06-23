@@ -66,6 +66,7 @@ inline int32_t PingReply::ToString(const char *ptr, int32_t len) {
   Slice sls(msg.c_str(), msg.size());
   char *p2 = EncodeString2(p, len - size, sls);
   size += (p2 - p);
+  p = p2;
 
   assert(size <= len);
   return size;

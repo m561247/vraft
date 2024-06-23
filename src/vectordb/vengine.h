@@ -25,10 +25,20 @@ struct Vec {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
-class VecObj {
+struct VecObj {
   std::string key;
   Vec vec;
   std::string attach_value;
+
+  int32_t MaxBytes();
+  int32_t ToString(std::string &s);
+  int32_t ToString(const char *ptr, int32_t len);
+  int32_t FromString(std::string &s);
+  int32_t FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
 
 class VEngine final {
