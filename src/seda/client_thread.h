@@ -32,7 +32,7 @@ class ClientThread final {
   EventLoopSPtr LoopPtr();
 
  private:
-  void WaitServerClose();
+  void WaitClientClose();
 
  private:
   std::string name_;

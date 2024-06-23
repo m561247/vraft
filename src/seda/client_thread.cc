@@ -25,7 +25,7 @@ void ClientThread::Stop() {
     item.second->Stop();
   }
 
-  WaitServerClose();
+  WaitClientClose();
   loop_thread_->Stop();
 }
 
@@ -63,6 +63,6 @@ void ClientThread::ServerCloseCountDown() { stop_->CountDown(); }
 
 EventLoopSPtr ClientThread::LoopPtr() { return loop_thread_->loop(); }
 
-void ClientThread::WaitServerClose() { stop_->Wait(); }
+void ClientThread::WaitClientClose() { stop_->Wait(); }
 
 }  // namespace vraft
