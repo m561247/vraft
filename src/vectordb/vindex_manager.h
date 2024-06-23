@@ -1,7 +1,10 @@
 #ifndef VECTORDB_VINDEX_MANAGER_H_
 #define VECTORDB_VINDEX_MANAGER_H_
 
+#include <map>
 #include <memory>
+
+#include "vindex.h"
 
 namespace vectordb {
 
@@ -18,6 +21,8 @@ class VindexManager final {
   VindexManager &operator=(const VindexManager &) = delete;
 
  private:
+  std::map<uint64_t, VindexSPtr> indices_by_time_;
+  std::map<std::string, VindexSPtr> indices_by_name_;
 };
 
 inline VindexManager::VindexManager() {}
