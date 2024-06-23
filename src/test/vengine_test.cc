@@ -88,6 +88,22 @@ TEST(VecObj, VecObj) {
   ASSERT_EQ(vo.attach_value, vo2.attach_value);
 }
 
+TEST(VEngine, VEngine) {
+  system("rm -rf /tmp/vengine_test_dir");
+
+  {
+    vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
+    std::cout << ve.ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve.Dim(), dim);
+  }
+
+  {
+    vectordb::VEngine ve("/tmp/vengine_test_dir", dim + 99);
+    std::cout << ve.ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve.Dim(), dim);
+  }
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

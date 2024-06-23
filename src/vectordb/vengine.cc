@@ -1,8 +1,11 @@
 #include "vengine.h"
 
+#include <cstdlib>
+
 #include "allocator.h"
 #include "coding.h"
 #include "common.h"
+#include "util.h"
 #include "vraft_logger.h"
 
 namespace vectordb {
@@ -227,14 +230,53 @@ VEngine::VEngine(const std::string &path, int32_t dim)
       meta_path_(path + "/meta"),
       data_path_(path + "/data"),
       index_path_(path + "/index") {
+  if (!vraft::IsDirExist(path_)) {
+    MkDir();
+
+    // init meta
+    auto meta = std::make_shared<EngineMeta>(meta_path_);
+    assert(meta);
+    meta->SetDim(dim);
+  }
+
   Init();
 }
 
 int32_t VEngine::Dim() const { return meta_->dim(); }
 
-int32_t VEngine::Put(const std::string &key, const VecObj &vo) { return 0; }
+int32_t VEngine::Put(const std::string &key, VecObj &vo) {
+  if (vo.vec.dim() != meta_->dim()) {
+    vraft::vraft_logger.FError("dim error, %d != %d", vo.vec.dim(),
+                               meta_->dim());
+    return -1;
+  }
 
-int32_t VEngine::Get(const std::string &key, VecObj &vo) const { return 0; }
+  std::string value;
+  vo.ToString(value);
+
+  leveldb::Status s;
+  leveldb::WriteOptions wo;
+  wo.sync = true;
+  s = db_->Put(wo, key, value);
+  assert(s.ok());
+  return 0;
+}
+
+int32_t VEngine::Get(const std::string &key, VecObj &vo) const {
+  leveldb::Status s;
+  std::string value;
+  s = db_->Get(leveldb::ReadOptions(), key, &value);
+  if (s.ok()) {
+    int32_t bytes = vo.FromString(value);
+    assert(bytes > 0);
+    return 0;
+  } else if (s.IsNotFound()) {
+    std::string hex_key = vraft::StrToHexStr(key.c_str(), key.size());
+    vraft::vraft_logger.FInfo("key:%s value not found", hex_key.c_str());
+    return -2;  // use Status instead!!
+  }
+  return -1;
+}
 
 int32_t VEngine::Delete(const std::string &key) { return 0; }
 
@@ -256,6 +298,33 @@ int32_t VEngine::GetKNN(const std::vector<float> &vec, int limit,
   return 0;
 }
 
+nlohmann::json VEngine::ToJson() {
+  nlohmann::json j;
+  j[0] = meta_->ToJson();
+  return j;
+}
+
+nlohmann::json VEngine::ToJsonTiny() {
+  nlohmann::json j;
+  j[0] = meta_->ToJson();
+  return j;
+}
+
+std::string VEngine::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["ve"] = ToJsonTiny();
+  } else {
+    j["vengine"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
 void VEngine::Init() {
   // init data
   db_options_.create_if_missing = true;
@@ -274,6 +343,18 @@ void VEngine::Init() {
   assert(meta_);
 
   // init index
+}
+
+void VEngine::MkDir() {
+  char cmd[256];
+  snprintf(cmd, sizeof(cmd), "mkdir -p %s", path_.c_str());
+  system(cmd);
+  // snprintf(cmd, sizeof(cmd), "mkdir -p %s", meta_path_.c_str());
+  // system(cmd);
+  // snprintf(cmd, sizeof(cmd), "mkdir -p %s", data_path_.c_str());
+  // system(cmd);
+  snprintf(cmd, sizeof(cmd), "mkdir -p %s", index_path_.c_str());
+  system(cmd);
 }
 
 }  // namespace vectordb

@@ -13,6 +13,7 @@ namespace vectordb {
 
 struct Vec {
   std::vector<float> data;
+  int32_t dim() const { return static_cast<int32_t>(data.size()); }
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -29,6 +30,8 @@ struct VecObj {
   std::string key;
   Vec vec;
   std::string attach_value;
+
+  int32_t dim() const { return vec.dim(); }
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -54,7 +57,7 @@ class VEngine final {
   std::string index_path() const;
   int32_t Dim() const;
 
-  int32_t Put(const std::string &key, const VecObj &vo);
+  int32_t Put(const std::string &key, VecObj &vo);
   int32_t Get(const std::string &key, VecObj &vo) const;
   int32_t Delete(const std::string &key);
   int32_t Load(const std::string &file_path);
@@ -68,8 +71,13 @@ class VEngine final {
                  std::vector<VecResult> &results,
                  const std::string &index_name);
 
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+
  private:
   void Init();
+  void MkDir();
 
  private:
   std::string path_;

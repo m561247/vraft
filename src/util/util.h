@@ -5,6 +5,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <cassert>
 #include <chrono>
@@ -69,6 +71,8 @@ void ConvertStringToArgcArgv(const std::string &s, int *argc, char ***argv);
 void FreeArgv(int argc, char **argv);
 
 float RandomFloat(float max);
+
+bool IsDirExist(const std::string &dir_path);
 
 }  // namespace vraft
 

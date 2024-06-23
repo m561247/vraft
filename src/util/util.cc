@@ -298,4 +298,19 @@ float RandomFloat(float max) {
   return dis(gen);
 }
 
+bool IsDirExist(const std::string &dir_path) {
+  struct stat info;
+
+  if (stat(dir_path.c_str(), &info) != 0) {
+    // Cannot access dir_path
+    return false;
+  } else if (info.st_mode & S_IFDIR) {
+    // dir_path is a directory
+    return true;
+  } else {
+    // dir_path is not a directory
+    return false;
+  }
+}
+
 }  // namespace vraft
