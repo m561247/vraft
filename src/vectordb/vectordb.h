@@ -30,8 +30,6 @@ class VectorDB {
   void Join();
   void Stop();
 
-  void set_send(vraft::SendFunc func);
-
  private:
   void OnConnection(const vraft::TcpConnectionSPtr &conn);
   void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf);
@@ -40,16 +38,14 @@ class VectorDB {
 
  private:
   std::atomic<bool> start_;
+  std::atomic<uint64_t> seqid_;
   VdbConfigSPtr config_;
   std::string path_;
   VEngineSPtr vengine_;
   vraft::ServerThreadPool thread_pool_;
-  vraft::SendFunc send_;
 };
 
 inline VectorDB::~VectorDB() {}
-
-inline void VectorDB::set_send(vraft::SendFunc func) { send_ = func; }
 
 }  // namespace vectordb
 

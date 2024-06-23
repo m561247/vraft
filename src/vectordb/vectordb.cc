@@ -14,6 +14,7 @@ namespace vectordb {
 
 VectorDB::VectorDB(VdbConfigSPtr config)
     : start_(false),
+      seqid_(0),
       config_(config),
       thread_pool_(
           1,
@@ -23,8 +24,7 @@ VectorDB::VectorDB(VdbConfigSPtr config)
               std::bind(&VectorDB::OnMessage, this, std::placeholders::_1,
                         std::placeholders::_2),
               std::bind(&VectorDB::OnConnection, this, std::placeholders::_1),
-              nullptr}),
-      send_(nullptr) {
+              nullptr}) {
   path_ = config_->path();
   vengine_ = std::make_shared<AnnoyDB>(path_);
   assert(vengine_);
@@ -74,6 +74,7 @@ void VectorDB::OnMessage(const vraft::TcpConnectionSPtr &conn,
           int32_t sz = msg.FromString(buf->BeginRead(), body_bytes);
           assert(sz > 0);
           buf->Retrieve(body_bytes);
+          msg.seqid = seqid_.fetch_add(1);
           OnMsgVersion(conn, msg);
           break;
         }
