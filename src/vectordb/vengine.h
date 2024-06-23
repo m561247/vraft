@@ -6,6 +6,7 @@
 #include "engine_meta.h"
 #include "leveldb/db.h"
 #include "nlohmann/json.hpp"
+#include "vindex.h"
 
 namespace vectordb {
 
@@ -19,21 +20,10 @@ class VecObj {
   std::string attach_value;
 };
 
-class VecResult {
-  std::string key;
-  std::string attach_value;
-  float distance;
-};
-
 class VEngine;
 using VEngineSPtr = std::shared_ptr<VEngine>;
 using VEngineUPtr = std::unique_ptr<VEngine>;
 using VEngineWPtr = std::weak_ptr<VEngine>;
-
-enum VIndexType {
-  kIndexAnnoy = 0,
-  kIndexNum,
-};
 
 class VEngine final {
  public:

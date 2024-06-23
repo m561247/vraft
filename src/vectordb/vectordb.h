@@ -12,8 +12,6 @@
 
 namespace vectordb {
 
-#define VECTORDB_VERSION "v0.11"
-
 class VectorDB;
 using VectorDBSPtr = std::shared_ptr<VectorDB>;
 using VectorDBUPtr = std::unique_ptr<VectorDB>;

@@ -8,6 +8,7 @@
 #include "server_thread.h"
 #include "vdb_message.h"
 #include "vengine.h"
+#include "version.h"
 #include "vraft_logger.h"
 
 namespace vectordb {
