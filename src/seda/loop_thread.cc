@@ -25,6 +25,8 @@ void LoopThread::Join() {
   thread_.join();
 }
 
+void LoopThread::WaitStarted() { loop_->WaitStarted(); }
+
 void LoopThread::RunFunctor(Functor func) { loop_->RunFunctor(func); }
 
 void LoopThread::AddTimer(TimerParam& param) { loop_->AddTimer(param); }

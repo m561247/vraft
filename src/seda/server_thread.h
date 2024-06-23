@@ -33,6 +33,7 @@ class ServerThread final {
   int32_t Start();
   void Stop();
   void Join();
+  void WaitStarted();
   void RunFunctor(Functor func);
 
   // call in this thread

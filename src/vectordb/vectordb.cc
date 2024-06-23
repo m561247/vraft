@@ -13,32 +13,34 @@
 namespace vectordb {
 
 VectorDB::VectorDB(VdbConfigSPtr config)
-    : start_(false),
-      seqid_(0),
-      config_(config),
-      thread_pool_(
-          1,
-          vraft::ServerThreadParam{
-              "vectordb", 1, false, config_->addr().host, config_->addr().port,
-              vraft::TcpOptions(),
-              std::bind(&VectorDB::OnMessage, this, std::placeholders::_1,
-                        std::placeholders::_2),
-              std::bind(&VectorDB::OnConnection, this, std::placeholders::_1),
-              nullptr}) {
+    : start_(false), seqid_(0), config_(config) {
   path_ = config_->path();
   vengine_ = std::make_shared<AnnoyDB>(path_);
   assert(vengine_);
+
+  vraft::ServerThreadParam param;
+  param.name = "vectordb";
+  param.server_num = 1;
+  param.detach = false;
+  param.host = config_->addr().host;
+  param.start_port = config_->addr().port;
+  param.options = vraft::TcpOptions();
+  param.on_message_cb = std::bind(&VectorDB::OnMessage, this,
+                                  std::placeholders::_1, std::placeholders::_2);
+  param.on_connection_cb =
+      std::bind(&VectorDB::OnConnection, this, std::placeholders::_1);
+  param.write_complete_cb = nullptr;
+  server_thread_ = std::make_shared<vraft::ServerThread>(param);
 }
 
 void VectorDB::Start() {
-  thread_pool_.Start();
-  // FIXME: use callback!!
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  server_thread_->Start();
+  server_thread_->WaitStarted();
   start_.store(true);
 }
-void VectorDB::Join() { thread_pool_.Join(); }
+void VectorDB::Join() { server_thread_->Join(); }
 
-void VectorDB::Stop() { thread_pool_.Stop(); }
+void VectorDB::Stop() { server_thread_->Stop(); }
 
 void VectorDB::OnConnection(const vraft::TcpConnectionSPtr &conn) {
   vraft::vraft_logger.FInfo("vectordb on-connection, %s",

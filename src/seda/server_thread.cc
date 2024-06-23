@@ -56,6 +56,8 @@ void ServerThread::Join() {
   loop_thread_->Join();
 }
 
+void ServerThread::WaitStarted() { loop_thread_->WaitStarted(); }
+
 void ServerThread::RunFunctor(Functor func) { loop_thread_->RunFunctor(func); }
 
 EventLoopSPtr ServerThread::LoopPtr() { return loop_thread_->loop(); }

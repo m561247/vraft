@@ -21,6 +21,7 @@ class LoopThread final {
   int32_t Start();
   void Stop();
   void Join();
+  void WaitStarted();
   void RunFunctor(Functor func);
   void AddTimer(TimerParam &param);
 

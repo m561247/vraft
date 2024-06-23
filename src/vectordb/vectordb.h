@@ -42,7 +42,7 @@ class VectorDB {
   VdbConfigSPtr config_;
   std::string path_;
   VEngineSPtr vengine_;
-  vraft::ServerThreadPool thread_pool_;
+  vraft::ServerThreadSPtr server_thread_;
 };
 
 inline VectorDB::~VectorDB() {}

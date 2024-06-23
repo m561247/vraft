@@ -34,6 +34,8 @@ void ClientThread::Join() {
   loop_thread_->Join();
 }
 
+void ClientThread::WaitStarted() { loop_thread_->WaitStarted(); }
+
 void ClientThread::RunFunctor(Functor func) { loop_thread_->RunFunctor(func); }
 
 void ClientThread::AddClient(TcpClientSPtr client) {
