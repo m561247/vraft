@@ -17,8 +17,7 @@ using MsgVersionUPtr = std::unique_ptr<MsgVersion>;
 using MsgVersionWPtr = std::weak_ptr<MsgVersion>;
 
 struct MsgVersion : public vraft::Message {
-  vraft::RaftAddr src;   // uint64_t
-  vraft::RaftAddr dest;  // uint64_t
+  uint64_t seqid;
 
   int32_t MaxBytes() override;
   int32_t ToString(std::string &s) override;

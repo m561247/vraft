@@ -3,7 +3,7 @@
 namespace vectordb {
 
 int32_t MsgVersionReply::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + 2 * sizeof(int32_t) +
+  return sizeof(seqid) + 2 * sizeof(int32_t) +
          version.size();
 }
 
@@ -21,17 +21,10 @@ int32_t MsgVersionReply::ToString(std::string &s) {
 int32_t MsgVersionReply::ToString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   int32_t size = 0;
-  uint64_t u64 = 0;
 
-  u64 = src.ToU64();
-  vraft::EncodeFixed64(p, u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
-
-  u64 = dest.ToU64();
-  vraft::EncodeFixed64(p, u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
+  vraft::EncodeFixed64(p, seqid);
+  p += sizeof(seqid);
+  size += sizeof(seqid);
 
   vraft::Slice sls(version.c_str(), version.size());
   char *p2 = vraft::EncodeString2(p, len - size, sls);
@@ -47,18 +40,11 @@ int32_t MsgVersionReply::FromString(std::string &s) {
 
 int32_t MsgVersionReply::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
-  uint64_t u64 = 0;
   int32_t size = 0;
 
-  u64 = vraft::DecodeFixed64(p);
-  src.FromU64(u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
-
-  u64 = vraft::DecodeFixed64(p);
-  dest.FromU64(u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
+  seqid = vraft::DecodeFixed64(p);
+  p += sizeof(seqid);
+  size += sizeof(seqid);
 
   vraft::Slice result;
   vraft::Slice input(p, len - size);
@@ -73,16 +59,14 @@ int32_t MsgVersionReply::FromString(const char *ptr, int32_t len) {
 
 nlohmann::json MsgVersionReply::ToJson() {
   nlohmann::json j;
-  j[0]["src"] = src.ToString();
-  j[0]["dest"] = dest.ToString();
-  j[0]["version"] = version;
+  j["seqid"] = seqid;
+  j["version"] = version;
   return j;
 }
 
 nlohmann::json MsgVersionReply::ToJsonTiny() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dst"] = dest.ToString();
+  j["seq"] = seqid;
   j["ver"] = version;
   return j;
 }
@@ -90,9 +74,9 @@ nlohmann::json MsgVersionReply::ToJsonTiny() {
 std::string MsgVersionReply::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["ver"] = ToJsonTiny();
+    j["ver-r"] = ToJsonTiny();
   } else {
-    j["version"] = ToJson();
+    j["version-reply"] = ToJson();
   }
 
   if (one_line) {

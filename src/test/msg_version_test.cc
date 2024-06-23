@@ -37,12 +37,8 @@ TEST(MsgVersion, test) {
   bool b = vraft::StringToIpU32("127.0.0.1", ip32);
   assert(b);
 
-  vraft::RaftAddr src(ip32, 1234, 55);
-  vraft::RaftAddr dest(ip32, 5678, 99);
-
   vectordb::MsgVersion msg;
-  msg.src = src;
-  msg.dest = dest;
+  msg.seqid = 100;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -64,9 +60,7 @@ TEST(MsgVersion, test) {
   std::cout << msg2.ToJsonString(false, true) << std::endl;
   std::cout << msg2.ToJsonString(false, false) << std::endl;
 
-  ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
-  ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  ASSERT_EQ(bytes, bytes2);
+  ASSERT_EQ(msg.seqid, msg2.seqid);
 }
 
 int main(int argc, char **argv) {

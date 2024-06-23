@@ -2,7 +2,7 @@
 
 namespace vectordb {
 
-int32_t MsgVersion::MaxBytes() { return sizeof(uint64_t) + sizeof(uint64_t); }
+int32_t MsgVersion::MaxBytes() { return sizeof(seqid); }
 
 int32_t MsgVersion::ToString(std::string &s) {
   s.clear();
@@ -18,17 +18,10 @@ int32_t MsgVersion::ToString(std::string &s) {
 int32_t MsgVersion::ToString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   int32_t size = 0;
-  uint64_t u64 = 0;
 
-  u64 = src.ToU64();
-  vraft::EncodeFixed64(p, u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
-
-  u64 = dest.ToU64();
-  vraft::EncodeFixed64(p, u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
+  vraft::EncodeFixed64(p, seqid);
+  p += sizeof(seqid);
+  size += sizeof(seqid);
 
   assert(size <= len);
   return size;
@@ -40,33 +33,24 @@ int32_t MsgVersion::FromString(std::string &s) {
 
 int32_t MsgVersion::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
-  uint64_t u64 = 0;
   int32_t size = 0;
 
-  u64 = vraft::DecodeFixed64(p);
-  src.FromU64(u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
-
-  u64 = vraft::DecodeFixed64(p);
-  dest.FromU64(u64);
-  p += sizeof(u64);
-  size += sizeof(u64);
+  seqid = vraft::DecodeFixed64(p);
+  p += sizeof(seqid);
+  size += sizeof(seqid);
 
   return size;
 }
 
 nlohmann::json MsgVersion::ToJson() {
   nlohmann::json j;
-  j[0]["src"] = src.ToString();
-  j[0]["dest"] = dest.ToString();
+  j["seqid"] = seqid;
   return j;
 }
 
 nlohmann::json MsgVersion::ToJsonTiny() {
   nlohmann::json j;
-  j["src"] = src.ToString();
-  j["dst"] = dest.ToString();
+  j["seq"] = seqid;
   return j;
 }
 
