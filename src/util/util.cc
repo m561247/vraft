@@ -289,4 +289,13 @@ void FreeArgv(int argc, char **argv) {
   delete[] argv;
 }
 
+float RandomFloat(float max) {
+  // Random number generator
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dis(0.0f, max);
+
+  return dis(gen);
+}
+
 }  // namespace vraft

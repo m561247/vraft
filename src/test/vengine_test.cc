@@ -1,3 +1,5 @@
+#include "vengine.h"
+
 #include <gtest/gtest.h>
 
 #include <csignal>
@@ -30,41 +32,31 @@
 // ASSERT_GE  >=
 //--------------------------------
 
-TEST(TPL, tpl) {
-  EXPECT_TRUE(true);
-  EXPECT_FALSE(false);
-  EXPECT_EQ(1, 1);
-  EXPECT_NE(1, 2);
-  EXPECT_NE(1, 2);
-  EXPECT_LE(2, 2);
-  EXPECT_GT(3, 1);
-  EXPECT_GE(3, 3);
+int32_t dim = 10;
 
-  ASSERT_TRUE(true);
-  ASSERT_FALSE(false);
-  ASSERT_EQ(1, 1);
-  ASSERT_NE(1, 2);
-  ASSERT_NE(1, 2);
-  ASSERT_LE(2, 2);
-  ASSERT_GT(3, 1);
-  ASSERT_GE(3, 3);
-}
+TEST(Vec, Vec) {
+  vectordb::Vec v;
+  for (int32_t i = 0; i < dim; ++i) {
+    float f32 = vraft::RandomFloat(1);
+    v.data.push_back(f32);
+  }
 
-class MyTestClass : public ::testing::Test {
- protected:
-  void SetUp() override { std::cout << "setting up test...\n"; }
+  std::string str;
+  int32_t bytes = v.ToString(str);
+  std::cout << "encoding bytes:" << bytes << std::endl;
+  std::cout << v.ToJsonString(false, true) << std::endl;
 
-  void TearDown() override { std::cout << "tearing down test...\n"; }
-};
+  vectordb::Vec v2;
+  int32_t bytes2 = v2.FromString(str);
+  assert(bytes2 > 0);
 
-TEST_F(MyTestClass, test) {
-  ASSERT_EQ(2 + 2, 4);
-  std::cout << "exec MyTestClass.test ..." << std::endl;
-}
+  std::cout << "decoding bytes:" << bytes2 << std::endl;
+  std::cout << v2.ToJsonString(false, true) << std::endl;
 
-TEST_F(MyTestClass, test2) {
-  ASSERT_TRUE(true);
-  std::cout << "exec MyTestClass.test2 ..." << std::endl;
+  ASSERT_EQ(v.data.size(), v2.data.size());
+  for (size_t i = 0; i < v.data.size(); ++i) {
+    ASSERT_EQ(v.data[i], v2.data[i]);
+  }
 }
 
 int main(int argc, char **argv) {
