@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "annoy_db.h"
+#include "vengine.h"
 #include "message.h"
 #include "msg_version.h"
 #include "msg_version_reply.h"
@@ -15,7 +15,7 @@ namespace vectordb {
 VectorDB::VectorDB(VdbConfigSPtr config)
     : start_(false), seqid_(0), config_(config) {
   path_ = config_->path();
-  vengine_ = std::make_shared<AnnoyDB>(path_);
+  vengine_ = std::make_shared<VEngine>(path_, 3);
   assert(vengine_);
 
   vraft::ServerThreadParam param;

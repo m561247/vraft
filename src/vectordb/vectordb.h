@@ -44,7 +44,8 @@ class VectorDB {
   VEngineSPtr vengine_;
   vraft::ServerThreadSPtr server_thread_;
   vraft::WorkThreadPoolSPtr worker_pool_;
-  std::unordered_map<uint64_t, vraft::TcpConnectionSPtr> requests_; // <seqid, connection>
+  std::unordered_map<uint64_t, vraft::TcpConnectionSPtr>
+      requests_;  // <seqid, connection>
 };
 
 inline VectorDB::~VectorDB() {}
