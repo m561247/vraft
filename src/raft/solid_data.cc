@@ -42,6 +42,7 @@ void SolidData::Init() {
       status = db_->Put(leveldb::WriteOptions(), sls_key, sls_value);
       assert(status.ok());
     } else {
+      assert(status.ok());
       assert(value.size() == sizeof(term_));
       term_ = DecodeFixed64(value.c_str());
     }

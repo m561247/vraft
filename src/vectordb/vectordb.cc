@@ -2,12 +2,12 @@
 
 #include <functional>
 
-#include "vengine.h"
 #include "message.h"
 #include "msg_version.h"
 #include "msg_version_reply.h"
 #include "server_thread.h"
 #include "vdb_message.h"
+#include "vengine.h"
 #include "vraft_logger.h"
 
 namespace vectordb {

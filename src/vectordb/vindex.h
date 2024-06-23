@@ -11,19 +11,19 @@ using VindexUPtr = std::unique_ptr<Vindex>;
 using VindexWPtr = std::weak_ptr<Vindex>;
 
 class Vindex final {
-public:
+ public:
   explicit Vindex();
   ~Vindex();
   Vindex(const Vindex &) = delete;
   Vindex &operator=(const Vindex &) = delete;
 
-private:
+ private:
 };
 
 inline Vindex::Vindex() {}
 
 inline Vindex::~Vindex() {}
 
-} // namespace vectordb
+}  // namespace vectordb
 
 #endif

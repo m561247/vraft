@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "engine_meta.h"
 #include "leveldb/db.h"
 #include "nlohmann/json.hpp"
 
@@ -29,6 +30,11 @@ using VEngineSPtr = std::shared_ptr<VEngine>;
 using VEngineUPtr = std::unique_ptr<VEngine>;
 using VEngineWPtr = std::weak_ptr<VEngine>;
 
+enum VIndexType {
+  kIndexAnnoy = 0,
+  kIndexNum,
+};
+
 class VEngine final {
  public:
   explicit VEngine(const std::string &path, int32_t dim);
@@ -44,7 +50,7 @@ class VEngine final {
   int32_t Delete(const std::string &key) { return 0; }
 
   bool HasIndex() const { return 0; }
-  int32_t AddIndex() { return 0; }
+  int32_t AddIndex(VIndexType type) { return 0; }
   int32_t GetKNN(const std::string &key, int limit,
                  std::vector<VecResult> &results,
                  const std::string &index_name) {

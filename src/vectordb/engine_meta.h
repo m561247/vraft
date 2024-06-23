@@ -3,6 +3,9 @@
 
 #include <memory>
 
+#include "leveldb/db.h"
+#include "nlohmann/json.hpp"
+
 namespace vectordb {
 
 class EngineMeta;
@@ -10,20 +13,32 @@ using EngineMetaSPtr = std::shared_ptr<EngineMeta>;
 using EngineMetaUPtr = std::unique_ptr<EngineMeta>;
 using EngineMetaWPtr = std::weak_ptr<EngineMeta>;
 
+#define ENGINE_META_KEY_DIM "dim"
+
 class EngineMeta final {
-public:
-  explicit EngineMeta();
+ public:
+  explicit EngineMeta(const std::string &path);
   ~EngineMeta();
   EngineMeta(const EngineMeta &) = delete;
   EngineMeta &operator=(const EngineMeta &) = delete;
 
-private:
-};
+  int32_t dim() const { return dim_; }
+  void SetDim(int32_t dim);
 
-inline EngineMeta::EngineMeta() {}
+ private:
+  void Init();
+  void PersistDim();
+
+ private:
+  std::string path_;
+  leveldb::Options db_options_;
+  std::shared_ptr<leveldb::DB> db_;
+
+  int32_t dim_;
+};
 
 inline EngineMeta::~EngineMeta() {}
 
-} // namespace vectordb
+}  // namespace vectordb
 
 #endif

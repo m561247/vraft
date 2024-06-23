@@ -84,6 +84,7 @@ SERVER_THREAD_TEST_SRCS := src/test/server_thread_test.cc $(COMMON_SRCS)
 CLIENT_THREAD_TEST_SRCS := src/test/client_thread_test.cc $(COMMON_SRCS)
 MSG_VERSION_TEST_SRCS := src/test/msg_version_test.cc $(COMMON_SRCS)
 MSG_VERSION_REPLY_TEST_SRCS := src/test/msg_version_reply_test.cc $(COMMON_SRCS)
+ENGINE_META_TEST_SRCS := src/test/engine_meta_test.cc $(COMMON_SRCS)
 
 
 # remu test src
@@ -141,6 +142,7 @@ SERVER_THREAD_TEST_OBJECTS := $(SERVER_THREAD_TEST_SRCS:.cc=.o)
 CLIENT_THREAD_TEST_OBJECTS := $(CLIENT_THREAD_TEST_SRCS:.cc=.o)
 MSG_VERSION_TEST_OBJECTS := $(MSG_VERSION_TEST_SRCS:.cc=.o)
 MSG_VERSION_REPLY_TEST_OBJECTS := $(MSG_VERSION_REPLY_TEST_SRCS:.cc=.o)
+ENGINE_META_TEST_OBJECTS := $(ENGINE_META_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -184,6 +186,7 @@ TEST += server_thread_test
 TEST += client_thread_test
 TEST += msg_version_test
 TEST += msg_version_reply_test
+TEST += engine_meta_test
 
 
 # compile
@@ -341,6 +344,9 @@ msg_version_test: $(MSG_VERSION_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 msg_version_reply_test: $(MSG_VERSION_REPLY_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+engine_meta_test: $(ENGINE_META_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 

@@ -11,19 +11,19 @@ using VindexManagerUPtr = std::unique_ptr<VindexManager>;
 using VindexManagerWPtr = std::weak_ptr<VindexManager>;
 
 class VindexManager final {
-public:
+ public:
   explicit VindexManager();
   ~VindexManager();
   VindexManager(const VindexManager &) = delete;
   VindexManager &operator=(const VindexManager &) = delete;
 
-private:
+ private:
 };
 
 inline VindexManager::VindexManager() {}
 
 inline VindexManager::~VindexManager() {}
 
-} // namespace vectordb
+}  // namespace vectordb
 
 #endif
