@@ -29,11 +29,15 @@ class VEngine final {
   VEngine &operator=(const VEngine &) = delete;
 
   std::string path() const { return path_; }
+  std::string meta_path() const { return meta_path_; }
+  std::string data_path() const { return data_path_; }
+  std::string index_path() const { return index_path_; }
   int32_t Dim() const;
 
   int32_t Put(const std::string &key, const VecObj &vo) { return 0; }
   int32_t Get(const std::string &key, VecObj &vo) const { return 0; }
   int32_t Delete(const std::string &key) { return 0; }
+  int32_t Load(const std::string &file_path) { return 0; }
 
   bool HasIndex() const { return 0; }
   int32_t AddIndex(VIndexType type) { return 0; }

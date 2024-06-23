@@ -11,17 +11,18 @@ namespace vectordb {
 
 class VindexManager final {
  public:
-  explicit VindexManager();
+  explicit VindexManager(VEngineSPtr v);
   ~VindexManager();
   VindexManager(const VindexManager &) = delete;
   VindexManager &operator=(const VindexManager &) = delete;
 
  private:
+  std::string path_;
+  VEngineWPtr vengine_;
+
   std::map<uint64_t, VindexSPtr> indices_by_time_;
   std::map<std::string, VindexSPtr> indices_by_name_;
 };
-
-inline VindexManager::VindexManager() {}
 
 inline VindexManager::~VindexManager() {}
 
