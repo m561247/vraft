@@ -31,7 +31,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
   vraft_logger.FDebug("recv buf data:%s",
                       StrToHexStr(buf->BeginRead(), print_bytes).c_str());
 
-  if (buf->ReadableBytes() > static_cast<int32_t>(sizeof(MsgHeader))) {
+  if (buf->ReadableBytes() >= static_cast<int32_t>(sizeof(MsgHeader))) {
     int32_t body_bytes = buf->PeekInt32();
     vraft_logger.FTrace(
         "raft-server recv msg, readable-bytes:%d, body_bytes:%d",

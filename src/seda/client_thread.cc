@@ -34,6 +34,8 @@ void ClientThread::Join() {
   loop_thread_->Join();
 }
 
+void ClientThread::RunFunctor(Functor func) { loop_thread_->RunFunctor(func); }
+
 void ClientThread::AddClient(TcpClientSPtr client) {
   std::unique_lock<std::mutex> ulk(mu_);
   clients_[client->dest_addr().ToU64()] = client;

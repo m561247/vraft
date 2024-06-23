@@ -54,7 +54,7 @@ void VectorDB::OnMessage(const vraft::TcpConnectionSPtr &conn,
       "recv buf data:%s",
       vraft::StrToHexStr(buf->BeginRead(), print_bytes).c_str());
 
-  if (buf->ReadableBytes() > static_cast<int32_t>(sizeof(vraft::MsgHeader))) {
+  if (buf->ReadableBytes() >= static_cast<int32_t>(sizeof(vraft::MsgHeader))) {
     int32_t body_bytes = buf->PeekInt32();
     vraft::vraft_logger.FTrace(
         "vectordb recv msg, readable-bytes:%d, body_bytes:%d",

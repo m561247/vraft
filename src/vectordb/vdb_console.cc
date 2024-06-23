@@ -39,7 +39,7 @@ int32_t VdbConsole::Execute() { return 0; }
 
 void VdbConsole::OnMessage(const vraft::TcpConnectionSPtr &conn,
                            vraft::Buffer *buf) {
-  if (buf->ReadableBytes() > static_cast<int32_t>(sizeof(vraft::MsgHeader))) {
+  if (buf->ReadableBytes() >= static_cast<int32_t>(sizeof(vraft::MsgHeader))) {
     int32_t body_bytes = buf->PeekInt32();
     if (buf->ReadableBytes() >=
         static_cast<int32_t>(sizeof(vraft::MsgHeader)) + body_bytes) {

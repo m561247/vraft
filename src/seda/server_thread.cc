@@ -56,6 +56,8 @@ void ServerThread::Join() {
   loop_thread_->Join();
 }
 
+void ServerThread::RunFunctor(Functor func) { loop_thread_->RunFunctor(func); }
+
 EventLoopSPtr ServerThread::LoopPtr() { return loop_thread_->loop(); }
 
 void ServerThread::ServerCloseCountDown() { stop_->CountDown(); }
