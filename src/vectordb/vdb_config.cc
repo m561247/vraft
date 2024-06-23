@@ -69,6 +69,10 @@ const std::string VdbConfig::UsageBanner(char *program_name) {
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9000 --path=/tmp/vectordb_dir\n", program_name);
   str.append(buf);
+  snprintf(buf, sizeof(buf),
+           "%s --addr=127.0.0.1:9000 --path=/tmp/vectordb_dir --debug\n",
+           program_name);
+  str.append(buf);
   return str;
 }
 

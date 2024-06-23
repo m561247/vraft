@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
   vraft::LoggerOptions logger_options{"vectordb",          false, 1, 8192,
                                       vraft::kLoggerTrace, true};
   vraft::vraft_logger.Init("/tmp/vectordb-cli.log", logger_options);
+  logger_options.enable_debug = true;
 
   vectordb::VdbConsoleSPtr console =
       std::make_shared<vectordb::VdbConsole>("vectordb-cli", "127.0.0.1:9000");

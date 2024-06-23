@@ -29,14 +29,6 @@ int32_t VdbConsole::Parse(const std::string &cmd_line) {
 
     header_str.append(std::move(msg_str));
     Send(header_str);
-
-    uint32_t u32 = vraft::Crc32(header_str.c_str(), header_str.size());
-
-    printf("check:%X\n", u32);
-    std::cout << " --- " << bytes << std::endl;
-    std::cout
-        << vraft::StrToHexStr(header_str.c_str(), header_str.size()).c_str()
-        << std::endl;
   }
 
   vraft::FreeArgv(argc, argv);
@@ -49,8 +41,7 @@ void VdbConsole::OnMessage(const vraft::TcpConnectionSPtr &conn,
                            vraft::Buffer *buf) {
   if (buf->ReadableBytes() > static_cast<int32_t>(sizeof(vraft::MsgHeader))) {
     int32_t body_bytes = buf->PeekInt32();
-
-    if (buf->ReadableBytes() >
+    if (buf->ReadableBytes() >=
         static_cast<int32_t>(sizeof(vraft::MsgHeader)) + body_bytes) {
       // parse header
       vraft::MsgHeader header;
