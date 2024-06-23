@@ -3,8 +3,7 @@
 namespace vectordb {
 
 int32_t MsgVersionReply::MaxBytes() {
-  return sizeof(seqid) + 2 * sizeof(int32_t) +
-         version.size();
+  return sizeof(seqid) + 2 * sizeof(int32_t) + version.size();
 }
 
 int32_t MsgVersionReply::ToString(std::string &s) {

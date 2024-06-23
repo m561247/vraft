@@ -4,6 +4,8 @@
 #include <memory>
 
 #include "console.h"
+#include "cxxopts.hpp"
+#include "msg_version_reply.h"
 
 namespace vectordb {
 
@@ -15,7 +17,11 @@ using VdbConsoleWPtr = std::weak_ptr<VdbConsole>;
 class VdbConsole : public vraft::Console {
  public:
   VdbConsole(const std::string &name, const std::string &addr)
-      : Console(name, vraft::HostPort(addr)) {}
+      : Console(name, vraft::HostPort(addr)),
+        argc_(0),
+        argv_(nullptr),
+        cmd_(""),
+        options_(nullptr) {}
   ~VdbConsole() {}
   VdbConsole(const VdbConsole &t) = delete;
   VdbConsole &operator=(const VdbConsole &t) = delete;
@@ -25,6 +31,21 @@ class VdbConsole : public vraft::Console {
   int32_t Execute() override;
   void OnMessage(const vraft::TcpConnectionSPtr &conn,
                  vraft::Buffer *buf) override;
+
+ private:
+  void OnVersionReply(const MsgVersionReply &msg);
+  void Clear();
+  void Help();
+  void Error();
+  void Version();
+
+ private:
+  // parse result
+  int argc_;
+  char **argv_;
+  std::string cmd_;
+  std::shared_ptr<cxxopts::Options> options_;
+  cxxopts::ParseResult parse_result_;
 };
 
 }  // namespace vectordb

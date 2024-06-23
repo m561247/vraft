@@ -8,34 +8,30 @@
 namespace vectordb {
 
 int32_t VdbConsole::Parse(const std::string &cmd_line) {
-  int argc;
-  char **argv;
-  vraft::ConvertStringToArgcArgv(cmd_line, &argc, &argv);
-
-  std::string cmd = argv[0];
-  vraft::ToLower(cmd);
-  if (cmd == "version") {
-    MsgVersion msg;
-    msg.src = 0;
-    msg.dest = 0;
-    std::string msg_str;
-    int32_t bytes = msg.ToString(msg_str);
-
-    vraft::MsgHeader header;
-    header.body_bytes = bytes;
-    header.type = kVersion;
-    std::string header_str;
-    header.ToString(header_str);
-
-    header_str.append(std::move(msg_str));
-    Send(header_str);
-  }
-
-  vraft::FreeArgv(argc, argv);
+  Clear();
+  vraft::ConvertStringToArgcArgv(cmd_line, &argc_, &argv_);
+  options_ = std::make_shared<cxxopts::Options>(std::string(argv_[0]));
+  parse_result_ = options_->parse(argc_, argv_);
+  cmd_ = argv_[0];
+  vraft::ToLower(cmd_);
   return 0;
 }
 
-int32_t VdbConsole::Execute() { return 0; }
+int32_t VdbConsole::Execute() {
+  if (cmd_ == "help") {
+    Help();
+    ResultReady();
+
+  } else if (cmd_ == "version") {
+    Version();
+
+  } else {
+    Error();
+    ResultReady();
+  }
+
+  return 0;
+}
 
 void VdbConsole::OnMessage(const vraft::TcpConnectionSPtr &conn,
                            vraft::Buffer *buf) {
@@ -55,7 +51,7 @@ void VdbConsole::OnMessage(const vraft::TcpConnectionSPtr &conn,
           int32_t sz = msg.FromString(buf->BeginRead(), body_bytes);
           assert(sz > 0);
           buf->Retrieve(body_bytes);
-          set_result(std::string(msg.version));
+          OnVersionReply(msg);
           break;
         }
 
@@ -66,6 +62,42 @@ void VdbConsole::OnMessage(const vraft::TcpConnectionSPtr &conn,
   }
 
   ResultReady();
+}
+
+void VdbConsole::OnVersionReply(const MsgVersionReply &msg) {
+  set_result(std::string(msg.version));
+}
+
+void VdbConsole::Clear() {
+  cmd_.clear();
+  options_.reset();
+  vraft::FreeArgv(argc_, argv_);
+}
+
+void VdbConsole::Help() {
+  std::string help = "help\n";
+  help.append("version");
+  set_result(help);
+}
+
+void VdbConsole::Error() {
+  std::string err = "error command";
+  set_result(err);
+}
+
+void VdbConsole::Version() {
+  MsgVersion msg;
+  std::string msg_str;
+  int32_t bytes = msg.ToString(msg_str);
+
+  vraft::MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kVersion;
+  std::string header_str;
+  header.ToString(header_str);
+
+  header_str.append(std::move(msg_str));
+  Send(header_str);
 }
 
 }  // namespace vectordb

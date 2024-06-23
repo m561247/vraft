@@ -89,8 +89,6 @@ void VectorDB::OnMsgVersion(const vraft::TcpConnectionSPtr &conn,
                             struct MsgVersion &msg) {
   if (start_.load()) {
     MsgVersionReply reply;
-    reply.src = msg.dest;
-    reply.dest = msg.src;
     reply.version = VECTORDB_VERSION;
     std::string reply_str;
     int32_t bytes = reply.ToString(reply_str);
