@@ -25,6 +25,10 @@ int32_t VdbConsole::Execute() {
   } else if (cmd_ == "version") {
     Version();
 
+  } else if (cmd_ == "quit") {
+    Quit();
+    ResultReady();
+
   } else {
     Error();
     ResultReady();
@@ -76,13 +80,19 @@ void VdbConsole::Clear() {
 
 void VdbConsole::Help() {
   std::string help = "help\n";
-  help.append("version");
+  help.append("version\n");
+  help.append("quit");
   set_result(help);
 }
 
 void VdbConsole::Error() {
   std::string err = "error command";
   set_result(err);
+}
+
+void VdbConsole::Quit() {
+  Clear();
+  Console::Stop();
 }
 
 void VdbConsole::Version() {

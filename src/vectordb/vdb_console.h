@@ -37,6 +37,7 @@ class VdbConsole : public vraft::Console {
   void Clear();
   void Help();
   void Error();
+  void Quit();
   void Version();
 
  private:
