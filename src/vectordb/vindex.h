@@ -5,12 +5,9 @@
 #include <string>
 #include <vector>
 
-namespace vectordb {
+#include "vdb_common.h"
 
-class Vindex;
-using VindexSPtr = std::shared_ptr<Vindex>;
-using VindexUPtr = std::unique_ptr<Vindex>;
-using VindexWPtr = std::weak_ptr<Vindex>;
+namespace vectordb {
 
 enum VIndexType {
   kIndexAnnoy = 0,

@@ -4,14 +4,10 @@
 #include <map>
 #include <memory>
 
+#include "vdb_common.h"
 #include "vindex.h"
 
 namespace vectordb {
-
-class VindexManager;
-using VindexManagerSPtr = std::shared_ptr<VindexManager>;
-using VindexManagerUPtr = std::unique_ptr<VindexManager>;
-using VindexManagerWPtr = std::weak_ptr<VindexManager>;
 
 class VindexManager final {
  public:
