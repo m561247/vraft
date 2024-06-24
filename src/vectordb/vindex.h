@@ -15,11 +15,14 @@ enum VIndexType {
 };
 
 enum DistanceType {
-
+  kCosine = 0,
+  kInnerProduct,
+  kEuclidean,
 };
 
 struct VIndexParam {
   std::string path;
+  uint64_t timestamp;
   int dim;
   VIndexType index_type;
   DistanceType distance_type;
@@ -31,10 +34,10 @@ class VecResult {
   float distance;
 };
 
-class Vindex final {
+class Vindex {
  public:
   explicit Vindex(const VIndexParam &param);
-  ~Vindex();
+  virtual ~Vindex();
   Vindex(const Vindex &) = delete;
   Vindex &operator=(const Vindex &) = delete;
 
@@ -44,6 +47,8 @@ class Vindex final {
                          std::vector<VecResult> &results) = 0;
   virtual int32_t GetKNN(const std::vector<float> &vec, int limit,
                          std::vector<VecResult> &results) = 0;
+  virtual int32_t Build() = 0;
+  virtual int32_t Load() = 0;
 
  private:
   VIndexParam param_;
@@ -52,6 +57,12 @@ class Vindex final {
 inline Vindex::Vindex(const VIndexParam &param) {}
 
 inline Vindex::~Vindex() {}
+
+class VIndexFactory {
+ public:
+  static VindexSPtr Create(VIndexType index_type, const std::string &path,
+                           VEngineSPtr v, VIndexParam &param);
+};
 
 }  // namespace vectordb
 

@@ -20,6 +20,21 @@ using VEngineSPtr = std::shared_ptr<VEngine>;
 using VEngineUPtr = std::unique_ptr<VEngine>;
 using VEngineWPtr = std::weak_ptr<VEngine>;
 
+class VindexAnnoy;
+using VindexAnnoySPtr = std::shared_ptr<VindexAnnoy>;
+using VindexAnnoyUPtr = std::unique_ptr<VindexAnnoy>;
+using VindexAnnoyWPtr = std::weak_ptr<VindexAnnoy>;
+
+class EngineMeta;
+using EngineMetaSPtr = std::shared_ptr<EngineMeta>;
+using EngineMetaUPtr = std::unique_ptr<EngineMeta>;
+using EngineMetaWPtr = std::weak_ptr<EngineMeta>;
+
+class KeyidMeta;
+using KeyidMetaSPtr = std::shared_ptr<KeyidMeta>;
+using KeyidMetaUPtr = std::unique_ptr<KeyidMeta>;
+using KeyidMetaWPtr = std::weak_ptr<KeyidMeta>;
+
 }  // namespace vectordb
 
 #endif

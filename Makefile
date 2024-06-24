@@ -19,6 +19,7 @@ INCLUDES += -Ithird_party/googletest/googletest/include
 INCLUDES += -Ithird_party/leveldb/include 
 INCLUDES += -Ithird_party/libuv/include 
 INCLUDES += -Ithird_party/nlohmann_json/single_include
+INCLUDES += -Ithird_party/annoy/src
 
 LDFLAGS := third_party/libuv/.libs/libuv.a 
 LDFLAGS += third_party/leveldb/build/libleveldb.a 

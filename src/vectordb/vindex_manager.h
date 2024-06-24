@@ -16,12 +16,17 @@ class VindexManager final {
   VindexManager(const VindexManager &) = delete;
   VindexManager &operator=(const VindexManager &) = delete;
 
+  bool HasIndex() const;
+  int32_t Add(VindexSPtr index);
+  int32_t Del(uint64_t timestamp);
+  VindexSPtr Get(uint64_t timestamp);
+  VindexSPtr GetNewest();
+
  private:
   VEngineWPtr vengine_;
   std::string path_;
 
-  std::map<uint64_t, VindexSPtr> indices_by_time_;
-  std::map<std::string, VindexSPtr> indices_by_name_;
+  std::map<uint64_t, VindexSPtr> indices_;
 };
 
 inline VindexManager::~VindexManager() {}

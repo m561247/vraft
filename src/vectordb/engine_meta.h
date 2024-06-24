@@ -8,11 +8,6 @@
 
 namespace vectordb {
 
-class EngineMeta;
-using EngineMetaSPtr = std::shared_ptr<EngineMeta>;
-using EngineMetaUPtr = std::unique_ptr<EngineMeta>;
-using EngineMetaWPtr = std::weak_ptr<EngineMeta>;
-
 #define ENGINE_META_KEY_DIM "dim"
 
 class EngineMeta final {

@@ -9,6 +9,7 @@
 #include "coding.h"
 #include "common.h"
 #include "util.h"
+#include "vindex_manager.h"
 #include "vraft_logger.h"
 
 namespace vectordb {
@@ -413,7 +414,7 @@ int32_t VEngine::Load(const std::string &file_path) {
   return 0;
 }
 
-bool VEngine::HasIndex() const { return 0; }
+bool VEngine::HasIndex() const { return index_manager_->HasIndex(); }
 
 int32_t VEngine::AddIndex(VIndexType type) { return 0; }
 
