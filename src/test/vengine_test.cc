@@ -131,6 +131,56 @@ TEST(VEngine, VEngine) {
   }
 }
 
+TEST(VEngine, OP) {
+  system("rm -rf /tmp/vengine_test_dir");
+  std::string key = "kkk";
+
+  {
+    vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
+    std::cout << ve.ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve.Dim(), dim);
+
+    vectordb::VecValue vv;
+    for (int32_t i = 0; i < dim; ++i) {
+      float f32 = vraft::RandomFloat(1);
+      vv.vec.data.push_back(f32);
+    }
+    vv.attach_value = "aaavvv";
+    int32_t rv = ve.Put(key, vv);
+    ASSERT_EQ(rv, 0);
+    std::cout << "put: " << vv.ToJsonString(false, true) << std::endl;
+
+    vectordb::VecObj vo;
+    rv = ve.Get(key, vo);
+    ASSERT_EQ(rv, 0);
+    std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+
+    ASSERT_EQ(vo.key, key);
+    ASSERT_EQ(vo.vv.vec.data.size(), vv.vec.data.size());
+    for (size_t i = 0; i < vo.vv.vec.data.size(); ++i) {
+      ASSERT_EQ(vo.vv.vec.data[i], vv.vec.data[i]);
+    }
+    ASSERT_EQ(vo.vv.attach_value, vv.attach_value);
+  }
+
+  {
+    vectordb::VEngine ve("/tmp/vengine_test_dir", dim + 99);
+    std::cout << ve.ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve.Dim(), dim);
+
+    vectordb::VecObj vo;
+    int32_t rv = ve.Get(key, vo);
+    ASSERT_EQ(rv, 0);
+    std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+
+    rv = ve.Delete(key);
+    ASSERT_EQ(rv, 0);
+
+    rv = ve.Get(key, vo);
+    ASSERT_EQ(rv, -2);
+  }
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

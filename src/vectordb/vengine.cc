@@ -357,7 +357,14 @@ int32_t VEngine::Get(const std::string &key, VecObj &vo) const {
   return -1;
 }
 
-int32_t VEngine::Delete(const std::string &key) { return 0; }
+int32_t VEngine::Delete(const std::string &key) {
+  leveldb::Slice sls(key);
+  leveldb::WriteOptions wo;
+  wo.sync = true;
+  auto s = db_->Delete(wo, sls);
+  assert(s.ok());
+  return 0;
+}
 
 int32_t VEngine::Load(const std::string &file_path) {
   std::ifstream file(file_path);
