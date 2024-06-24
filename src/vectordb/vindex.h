@@ -15,7 +15,7 @@ enum VIndexType {
   kIndexNum,
 };
 
-VIndexType U82VIndexType(uint8_t u8) {
+inline VIndexType U82VIndexType(uint8_t u8) {
   switch (u8) {
     case 0:
       return kIndexAnnoy;
@@ -40,7 +40,7 @@ enum DistanceType {
   kEuclidean,
 };
 
-DistanceType U82DistanceType(uint8_t u8) {
+inline DistanceType U82DistanceType(uint8_t u8) {
   switch (u8) {
     case 0:
       return kCosine;
@@ -105,11 +105,15 @@ class Vindex {
   virtual int32_t GetKNN(const std::vector<float> &vec, int limit,
                          std::vector<VecResult> &results) = 0;
 
+  virtual nlohmann::json ToJson() = 0;
+  virtual nlohmann::json ToJsonTiny() = 0;
+  virtual std::string ToJsonString(bool tiny, bool one_line) = 0;
+
  private:
   VIndexParam param_;
 };
 
-inline Vindex::Vindex(const VIndexParam &param) {}
+inline Vindex::Vindex(const VIndexParam &param) : param_(param) {}
 
 inline Vindex::~Vindex() {}
 

@@ -20,9 +20,13 @@ class VindexAnnoy : public Vindex {
   VindexAnnoy &operator=(const VindexAnnoy &) = delete;
 
   int32_t GetKNN(const std::string &key, int limit,
-                 std::vector<VecResult> &results);
+                 std::vector<VecResult> &results) override;
   int32_t GetKNN(const std::vector<float> &vec, int limit,
-                 std::vector<VecResult> &results);
+                 std::vector<VecResult> &results) override;
+
+  nlohmann::json ToJson() override;
+  nlohmann::json ToJsonTiny() override;
+  std::string ToJsonString(bool tiny, bool one_line) override;
 
  private:
   void Init();
@@ -30,11 +34,11 @@ class VindexAnnoy : public Vindex {
 
  private:
   std::string keyid_path_;
-  std::string annoy_path_;
   std::string meta_path_;
+  std::string annoy_path_;
 
   KeyidMetaSPtr keyid_;
-  EngineMetaSPtr meta_;
+  VindexMetaSPtr meta_;
   VEngineWPtr vengine_;
 };
 

@@ -44,7 +44,7 @@ TEST(VindexAnnoy, VindexAnnoy) {
     ASSERT_EQ(ve->Dim(), dim);
 
     vectordb::VIndexParam param;
-    param.path = "/tmp/vindex_annoy_test_dir/index/annoy";
+    param.path = "/tmp/vindex_annoy_test_dir/index/annoy_test";
     param.timestamp = vraft::Clock::NSec();
     param.dim = dim;
     param.index_type = vectordb::kIndexAnnoy;
@@ -53,6 +53,7 @@ TEST(VindexAnnoy, VindexAnnoy) {
     vectordb::VindexSPtr vindex =
         std::make_shared<vectordb::VindexAnnoy>(param, ve);
     assert(vindex);
+    std::cout << vindex->ToJsonString(true, true) << std::endl;
   }
 }
 

@@ -13,16 +13,22 @@ namespace vectordb {
 
 class VindexMeta final {
  public:
-  explicit VindexMeta(VIndexParam &param);
+  explicit VindexMeta(const std::string &path, VIndexParam &param);
   ~VindexMeta();
   VindexMeta(const VindexMeta &) = delete;
   VindexMeta &operator=(const VindexMeta &) = delete;
 
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+
  private:
   void Init();
   void Persist();
+  int32_t CreateDB();
 
  private:
+  const std::string path_;
   leveldb::Options db_options_;
   std::shared_ptr<leveldb::DB> db_;
 
