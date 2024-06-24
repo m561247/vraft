@@ -183,6 +183,7 @@ TEST(VEngine, OP) {
 
 TEST(VEngine, Load) {
   system("rm -rf /tmp/vengine_test_dir");
+  system("./output/test/generate_vec_test 10 100 > /tmp/vec.txt");
 
   {
     vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
