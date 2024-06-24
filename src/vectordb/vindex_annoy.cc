@@ -111,7 +111,7 @@ void VindexAnnoy::Init() {
     rv = Build();
     assert(rv == 0);
   } else {
-    // rv = Load();
+    rv = Load();
     assert(rv == 0);
   }
 }
@@ -123,6 +123,7 @@ void VindexAnnoy::MkDir() {
 }
 
 int32_t VindexAnnoy::Build() {
+  assert(annoy_index_);
   VEngineSPtr ve = vengine_.lock();
   if (ve) {
     int32_t annoy_index_id = 0;
@@ -175,6 +176,13 @@ int32_t VindexAnnoy::Build() {
   } else {
     return -1;
   }
+}
+
+int32_t VindexAnnoy::Load() {
+  assert(annoy_index_);
+  auto b = annoy_index_->load(annoy_path_file_.c_str());
+  assert(b);
+  return 0;
 }
 
 }  // namespace vectordb

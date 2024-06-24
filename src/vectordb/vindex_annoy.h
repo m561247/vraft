@@ -40,6 +40,7 @@ class VindexAnnoy : public Vindex {
   void Init();
   void MkDir();
   int32_t Build();
+  int32_t Load();
 
  private:
   std::string keyid_path_;
