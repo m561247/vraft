@@ -90,6 +90,7 @@ VENGINE_TEST_SRCS := src/test/vengine_test.cc $(COMMON_SRCS)
 GENERATE_VEC_TEST_SRCS := src/test/generate_vec_test.cc $(COMMON_SRCS)
 VINDEX_ANNOY_TEST_SRCS := src/test/vindex_annoy_test.cc $(COMMON_SRCS)
 VINDEX_TEST_SRCS := src/test/vindex_test.cc $(COMMON_SRCS)
+VINDEX_META_TEST_SRCS := src/test/vindex_meta_test.cc $(COMMON_SRCS)
 
 
 # remu test src
@@ -152,6 +153,7 @@ VENGINE_TEST_OBJECTS := $(VENGINE_TEST_SRCS:.cc=.o)
 GENERATE_VEC_TEST_OBJECTS := $(GENERATE_VEC_TEST_SRCS:.cc=.o)
 VINDEX_ANNOY_TEST_OBJECTS := $(VINDEX_ANNOY_TEST_SRCS:.cc=.o)
 VINDEX_TEST_OBJECTS := $(VINDEX_TEST_SRCS:.cc=.o)
+VINDEX_META_TEST_OBJECTS := $(VINDEX_META_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -200,6 +202,7 @@ TEST += vengine_test
 TEST += generate_vec_test
 TEST += vindex_annoy_test
 TEST += vindex_test
+TEST += vindex_meta_test
 
 
 # compile
@@ -372,6 +375,9 @@ vindex_annoy_test: $(VINDEX_ANNOY_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 vindex_test: $(VINDEX_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+vindex_meta_test: $(VINDEX_META_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 

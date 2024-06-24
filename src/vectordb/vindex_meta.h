@@ -18,6 +18,7 @@ class VindexMeta final {
   VindexMeta(const VindexMeta &) = delete;
   VindexMeta &operator=(const VindexMeta &) = delete;
 
+  VIndexParam param() const;
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
@@ -36,6 +37,8 @@ class VindexMeta final {
 };
 
 inline VindexMeta::~VindexMeta() {}
+
+inline VIndexParam VindexMeta::param() const { return param_; }
 
 }  // namespace vectordb
 
