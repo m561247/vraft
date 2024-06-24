@@ -181,6 +181,24 @@ TEST(VEngine, OP) {
   }
 }
 
+TEST(VEngine, Load) {
+  system("rm -rf /tmp/vengine_test_dir");
+
+  {
+    vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
+    std::cout << ve.ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve.Dim(), dim);
+
+    int32_t rv = ve.Load("/tmp/vec.txt");
+    ASSERT_EQ(rv, 0);
+
+    vectordb::VecObj vo;
+    rv = ve.Get("key_0", vo);
+    ASSERT_EQ(rv, 0);
+    std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+  }
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

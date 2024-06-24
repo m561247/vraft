@@ -366,6 +366,11 @@ int32_t VEngine::Delete(const std::string &key) {
   return 0;
 }
 
+/*
+key_0; 0.297595, 0.585204, 0.253584, 0.193170, 0.118066; attach_value_0
+key_1; 0.133834, 0.533521, 0.041994, 0.736852, 0.453392; attach_value_1
+key_2; 0.004477, 0.069064, 0.204226, 0.180199, 0.125557; attach_value_2
+*/
 int32_t VEngine::Load(const std::string &file_path) {
   std::ifstream file(file_path);
   if (!file.is_open()) {
@@ -374,12 +379,34 @@ int32_t VEngine::Load(const std::string &file_path) {
   }
 
   std::string line;
+  int32_t line_num = 1;
   while (std::getline(file, line)) {
-    std::cout << "----" << line << std::endl;
+    std::cout << "load line " << line_num++ << ": " << line << std::endl;
 
     vraft::DelSpace(line);
     std::vector<std::string> result;
-    vraft::Split(line, ',', result);
+    vraft::Split(line, ';', result);
+
+    if (result.size() != 3) {
+      return -1;
+    }
+
+    std::string key = result[0];
+    VecValue vv;
+    std::string vec_str = result[1];
+    std::vector<std::string> r;
+    vraft::Split(vec_str, ',', r);
+    for (auto f_str : r) {
+      float f32;
+      sscanf(f_str.c_str(), "%f", &f32);
+      vv.vec.data.push_back(f32);
+    }
+    vv.attach_value = result[2];
+
+    int32_t rv = Put(key, vv);
+    if (rv != 0) {
+      return rv;
+    }
   }
 
   file.close();

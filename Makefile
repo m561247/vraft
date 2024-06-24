@@ -86,6 +86,7 @@ MSG_VERSION_TEST_SRCS := src/test/msg_version_test.cc $(COMMON_SRCS)
 MSG_VERSION_REPLY_TEST_SRCS := src/test/msg_version_reply_test.cc $(COMMON_SRCS)
 ENGINE_META_TEST_SRCS := src/test/engine_meta_test.cc $(COMMON_SRCS)
 VENGINE_TEST_SRCS := src/test/vengine_test.cc $(COMMON_SRCS)
+GENERATE_VEC_TEST_SRCS := src/test/generate_vec_test.cc $(COMMON_SRCS)
 
 
 # remu test src
@@ -145,6 +146,7 @@ MSG_VERSION_TEST_OBJECTS := $(MSG_VERSION_TEST_SRCS:.cc=.o)
 MSG_VERSION_REPLY_TEST_OBJECTS := $(MSG_VERSION_REPLY_TEST_SRCS:.cc=.o)
 ENGINE_META_TEST_OBJECTS := $(ENGINE_META_TEST_SRCS:.cc=.o)
 VENGINE_TEST_OBJECTS := $(VENGINE_TEST_SRCS:.cc=.o)
+GENERATE_VEC_TEST_OBJECTS := $(GENERATE_VEC_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -190,6 +192,7 @@ TEST += msg_version_test
 TEST += msg_version_reply_test
 TEST += engine_meta_test
 TEST += vengine_test
+TEST += generate_vec_test
 
 
 # compile
@@ -353,6 +356,9 @@ engine_meta_test: $(ENGINE_META_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 vengine_test: $(VENGINE_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+generate_vec_test: $(GENERATE_VEC_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 
