@@ -4,6 +4,7 @@
 #include "util.h"
 #include "vengine.h"
 #include "vindex_meta.h"
+#include "keyid_meta.h"
 
 namespace vectordb {
 
@@ -65,6 +66,9 @@ void VindexAnnoy::Init() {
   VIndexParam tmp_param = param();
   meta_ = std::make_shared<VindexMeta>(meta_path_, tmp_param);
   assert(meta_);
+
+  keyid_ = std::make_shared<KeyidMeta>(keyid_path_);
+  assert(keyid_);
 }
 
 void VindexAnnoy::MkDir() {

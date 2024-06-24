@@ -2,20 +2,38 @@
 #define VECTORDB_KEYID_META_H_
 
 #include <memory>
+#include <string>
+
+#include "leveldb/db.h"
+#include "nlohmann/json.hpp"
+#include "slice.h"
 
 namespace vectordb {
 
+#define ANNOY_KEY_PREFIX "key_"
+std::string EncodeAnnoyKey(std::string &key);
+vraft::Slice DecodeAnnoyKey(std::string &key);
+
 class KeyidMeta final {
  public:
-  explicit KeyidMeta();
+  explicit KeyidMeta(const std::string &path);
   ~KeyidMeta();
   KeyidMeta(const KeyidMeta &) = delete;
   KeyidMeta &operator=(const KeyidMeta &) = delete;
 
- private:
-};
+  int32_t Put(const std::string &key, uint32_t id);
+  int32_t Put(uint32_t id, const std::string &key);
+  int32_t Get(const std::string &key, uint32_t &id);
+  int32_t Get(uint32_t id, std::string &key);
 
-inline KeyidMeta::KeyidMeta() {}
+ private:
+  int32_t CreateDB();
+
+ private:
+  std::string path_;
+  leveldb::Options db_options_;
+  std::shared_ptr<leveldb::DB> db_;
+};
 
 inline KeyidMeta::~KeyidMeta() {}
 
