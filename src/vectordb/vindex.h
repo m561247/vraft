@@ -26,6 +26,7 @@ struct VIndexParam {
   int dim;
   VIndexType index_type;
   DistanceType distance_type;
+  int32_t annoy_tree_num;
 };
 
 class VecResult {
@@ -47,8 +48,6 @@ class Vindex {
                          std::vector<VecResult> &results) = 0;
   virtual int32_t GetKNN(const std::vector<float> &vec, int limit,
                          std::vector<VecResult> &results) = 0;
-  virtual int32_t Build() = 0;
-  virtual int32_t Load() = 0;
 
  private:
   VIndexParam param_;

@@ -23,15 +23,15 @@ class VindexAnnoy : public Vindex {
                  std::vector<VecResult> &results);
   int32_t GetKNN(const std::vector<float> &vec, int limit,
                  std::vector<VecResult> &results);
-  int32_t Build();
-  int32_t Load();
 
  private:
-  VIndexParam param_;
+  void Init();
+  void MkDir();
+
+ private:
   std::string keyid_path_;
-  std::string db_meta_path_;
   std::string annoy_path_;
-  int32_t tree_num_;
+  std::string db_meta_path_;
 
   KeyidMetaSPtr keyid_;
   EngineMetaSPtr meta_;

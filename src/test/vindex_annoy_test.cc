@@ -49,6 +49,7 @@ TEST(VindexAnnoy, VindexAnnoy) {
     param.dim = dim;
     param.index_type = vectordb::kIndexAnnoy;
     param.distance_type = vectordb::kCosine;
+    param.annoy_tree_num = 10;
     vectordb::VindexSPtr vindex =
         std::make_shared<vectordb::VindexAnnoy>(param, ve);
     assert(vindex);
