@@ -1,6 +1,9 @@
 #include "vengine.h"
 
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 #include "allocator.h"
 #include "coding.h"
@@ -106,13 +109,107 @@ std::string Vec::ToJsonString(bool tiny, bool one_line) {
   }
 }
 
+int32_t VecValue::MaxBytes() {
+  int32_t sz = 0;
+  sz += vec.MaxBytes();
+  sz += 2 * sizeof(uint32_t);
+  sz += attach_value.size();
+  return sz;
+}
+
+int32_t VecValue::ToString(std::string &s) {
+  s.clear();
+  int32_t max_bytes = MaxBytes();
+  char *ptr =
+      reinterpret_cast<char *>(vraft::DefaultAllocator().Malloc(max_bytes));
+  int32_t size = ToString(ptr, max_bytes);
+  s.append(ptr, size);
+  vraft::DefaultAllocator().Free(ptr);
+  return size;
+}
+
+int32_t VecValue::ToString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  int32_t bytes = vec.ToString(p, len - size);
+  assert(bytes > 0);
+  p += bytes;
+  size += bytes;
+
+  {
+    vraft::Slice sls(attach_value.c_str(), attach_value.size());
+    char *p2 = vraft::EncodeString2(p, len - size, sls);
+    size += (p2 - p);
+    p = p2;
+  }
+
+  assert(size <= len);
+  return size;
+}
+
+int32_t VecValue::FromString(std::string &s) {
+  return FromString(s.c_str(), s.size());
+}
+
+int32_t VecValue::FromString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  int32_t bytes = vec.FromString(p, len - size);
+  assert(bytes >= 0);
+  p += bytes;
+  size += bytes;
+
+  {
+    attach_value.clear();
+    vraft::Slice result;
+    vraft::Slice input(p, len - size);
+    int32_t sz = DecodeString2(&input, &result);
+    if (sz > 0) {
+      attach_value.append(result.data(), result.size());
+      p += sz;
+      size += sz;
+    }
+  }
+
+  return size;
+}
+
+nlohmann::json VecValue::ToJson() {
+  nlohmann::json j;
+  j["vec"] = vec.ToJson();
+  j["attach_value"] = attach_value;
+  return j;
+}
+
+nlohmann::json VecValue::ToJsonTiny() {
+  nlohmann::json j;
+  j["vec"] = vec.ToJsonTiny();
+  j["av"] = attach_value;
+  return j;
+}
+
+std::string VecValue::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["vv"] = ToJsonTiny();
+  } else {
+    j["vec-value"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
 int32_t VecObj::MaxBytes() {
   int32_t sz = 0;
   sz += 2 * sizeof(uint32_t);
   sz += key.size();
-  sz += vec.MaxBytes();
-  sz += 2 * sizeof(uint32_t);
-  sz += attach_value.size();
+  sz += vv.MaxBytes();
   return sz;
 }
 
@@ -138,17 +235,10 @@ int32_t VecObj::ToString(const char *ptr, int32_t len) {
     p = p2;
   }
 
-  int32_t bytes = vec.ToString(p, len - size);
+  int32_t bytes = vv.ToString(p, len - size);
   assert(bytes > 0);
   p += bytes;
   size += bytes;
-
-  {
-    vraft::Slice sls(attach_value.c_str(), attach_value.size());
-    char *p2 = vraft::EncodeString2(p, len - size, sls);
-    size += (p2 - p);
-    p = p2;
-  }
 
   assert(size <= len);
   return size;
@@ -174,22 +264,10 @@ int32_t VecObj::FromString(const char *ptr, int32_t len) {
     }
   }
 
-  int32_t bytes = vec.FromString(p, len - size);
+  int32_t bytes = vv.FromString(p, len - size);
   assert(bytes >= 0);
   p += bytes;
   size += bytes;
-
-  {
-    attach_value.clear();
-    vraft::Slice result;
-    vraft::Slice input(p, len - size);
-    int32_t sz = DecodeString2(&input, &result);
-    if (sz > 0) {
-      attach_value.append(result.data(), result.size());
-      p += sz;
-      size += sz;
-    }
-  }
 
   return size;
 }
@@ -197,16 +275,14 @@ int32_t VecObj::FromString(const char *ptr, int32_t len) {
 nlohmann::json VecObj::ToJson() {
   nlohmann::json j;
   j["key"] = key;
-  j["vec"] = vec.ToJson();
-  j["attach_value"] = attach_value;
+  j["value"] = vv.ToJson();
   return j;
 }
 
 nlohmann::json VecObj::ToJsonTiny() {
   nlohmann::json j;
   j["key"] = key;
-  j["vec"] = vec.ToJsonTiny();
-  j["av"] = attach_value;
+  j["val"] = vv.ToJsonTiny();
   return j;
 }
 
@@ -244,15 +320,15 @@ VEngine::VEngine(const std::string &path, int32_t dim)
 
 int32_t VEngine::Dim() const { return meta_->dim(); }
 
-int32_t VEngine::Put(const std::string &key, VecObj &vo) {
-  if (vo.vec.dim() != meta_->dim()) {
-    vraft::vraft_logger.FError("dim error, %d != %d", vo.vec.dim(),
+int32_t VEngine::Put(const std::string &key, VecValue &vv) {
+  if (vv.vec.dim() != meta_->dim()) {
+    vraft::vraft_logger.FError("dim error, %d != %d", vv.vec.dim(),
                                meta_->dim());
     return -1;
   }
 
   std::string value;
-  vo.ToString(value);
+  vv.ToString(value);
 
   leveldb::Status s;
   leveldb::WriteOptions wo;
@@ -263,12 +339,15 @@ int32_t VEngine::Put(const std::string &key, VecObj &vo) {
 }
 
 int32_t VEngine::Get(const std::string &key, VecObj &vo) const {
+  VecValue vv;
   leveldb::Status s;
   std::string value;
   s = db_->Get(leveldb::ReadOptions(), key, &value);
   if (s.ok()) {
-    int32_t bytes = vo.FromString(value);
+    int32_t bytes = vv.FromString(value);
     assert(bytes > 0);
+    vo.key = key;
+    vo.vv = vv;
     return 0;
   } else if (s.IsNotFound()) {
     std::string hex_key = vraft::StrToHexStr(key.c_str(), key.size());
@@ -280,7 +359,25 @@ int32_t VEngine::Get(const std::string &key, VecObj &vo) const {
 
 int32_t VEngine::Delete(const std::string &key) { return 0; }
 
-int32_t VEngine::Load(const std::string &file_path) { return 0; }
+int32_t VEngine::Load(const std::string &file_path) {
+  std::ifstream file(file_path);
+  if (!file.is_open()) {
+    vraft::vraft_logger.FError("failed to open file: %s", file_path.c_str());
+    return -1;
+  }
+
+  std::string line;
+  while (std::getline(file, line)) {
+    std::cout << "----" << line << std::endl;
+
+    vraft::DelSpace(line);
+    std::vector<std::string> result;
+    vraft::Split(line, ',', result);
+  }
+
+  file.close();
+  return 0;
+}
 
 bool VEngine::HasIndex() const { return 0; }
 

@@ -59,14 +59,41 @@ TEST(Vec, Vec) {
   }
 }
 
-TEST(VecObj, VecObj) {
-  vectordb::VecObj vo;
-  vo.key = "key";
+TEST(VecValue, VecValue) {
+  vectordb::VecValue vo;
   for (int32_t i = 0; i < dim; ++i) {
     float f32 = vraft::RandomFloat(1);
     vo.vec.data.push_back(f32);
   }
   vo.attach_value = "attach_value.jpg";
+
+  std::string str;
+  int32_t bytes = vo.ToString(str);
+  std::cout << "encoding bytes:" << bytes << std::endl;
+  std::cout << vo.ToJsonString(false, true) << std::endl;
+
+  vectordb::VecValue vo2;
+  int32_t bytes2 = vo2.FromString(str);
+  assert(bytes2 > 0);
+
+  std::cout << "decoding bytes:" << bytes2 << std::endl;
+  std::cout << vo2.ToJsonString(false, true) << std::endl;
+
+  ASSERT_EQ(vo.vec.data.size(), vo2.vec.data.size());
+  for (size_t i = 0; i < vo.vec.data.size(); ++i) {
+    ASSERT_EQ(vo.vec.data[i], vo2.vec.data[i]);
+  }
+  ASSERT_EQ(vo.attach_value, vo2.attach_value);
+}
+
+TEST(VecObj, VecObj) {
+  vectordb::VecObj vo;
+  vo.key = "key";
+  for (int32_t i = 0; i < dim; ++i) {
+    float f32 = vraft::RandomFloat(1);
+    vo.vv.vec.data.push_back(f32);
+  }
+  vo.vv.attach_value = "attach_value.jpg";
 
   std::string str;
   int32_t bytes = vo.ToString(str);
@@ -81,11 +108,11 @@ TEST(VecObj, VecObj) {
   std::cout << vo2.ToJsonString(false, true) << std::endl;
 
   ASSERT_EQ(vo.key, vo2.key);
-  ASSERT_EQ(vo.vec.data.size(), vo2.vec.data.size());
-  for (size_t i = 0; i < vo.vec.data.size(); ++i) {
-    ASSERT_EQ(vo.vec.data[i], vo2.vec.data[i]);
+  ASSERT_EQ(vo.vv.vec.data.size(), vo2.vv.vec.data.size());
+  for (size_t i = 0; i < vo.vv.vec.data.size(); ++i) {
+    ASSERT_EQ(vo.vv.vec.data[i], vo2.vv.vec.data[i]);
   }
-  ASSERT_EQ(vo.attach_value, vo2.attach_value);
+  ASSERT_EQ(vo.vv.attach_value, vo2.vv.attach_value);
 }
 
 TEST(VEngine, VEngine) {

@@ -27,7 +27,7 @@ namespace vraft {
 void Split(const std::string &str, char separator,
            std::vector<std::string> &result);
 
-void DelSpace(const std::string &str);
+void DelSpace(std::string &str);
 
 std::string CurrentTidStr();
 

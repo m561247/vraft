@@ -26,12 +26,28 @@ struct Vec {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
-struct VecObj {
-  std::string key;
+struct VecValue {
   Vec vec;
   std::string attach_value;
 
   int32_t dim() const { return vec.dim(); }
+
+  int32_t MaxBytes();
+  int32_t ToString(std::string &s);
+  int32_t ToString(const char *ptr, int32_t len);
+  int32_t FromString(std::string &s);
+  int32_t FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+};
+
+struct VecObj {
+  std::string key;
+  VecValue vv;
+
+  int32_t dim() const { return vv.dim(); }
 
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
@@ -57,7 +73,7 @@ class VEngine final {
   std::string index_path() const;
   int32_t Dim() const;
 
-  int32_t Put(const std::string &key, VecObj &vo);
+  int32_t Put(const std::string &key, VecValue &vv);
   int32_t Get(const std::string &key, VecObj &vo) const;
   int32_t Delete(const std::string &key);
   int32_t Load(const std::string &file_path);
