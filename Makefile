@@ -8,7 +8,7 @@ endif
 
 CXX := g++
 
-CXXFLAGS := -g -Wall -std=c++14 
+CXXFLAGS := -g -Wall -std=c++14 -DANNOYLIB_MULTITHREADED_BUILD
 CXXFLAGS += $(SANITIZE_FLAGS)
 
 INCLUDES := -Isrc/raft -Isrc/seda -Isrc/util -Isrc/test -Isrc/example

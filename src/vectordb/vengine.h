@@ -71,6 +71,7 @@ class VEngine final {
   std::string meta_path() const;
   std::string data_path() const;
   std::string index_path() const;
+  std::shared_ptr<leveldb::DB> db();
   int32_t Dim() const;
 
   int32_t Put(const std::string &key, VecValue &vv);

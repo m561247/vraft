@@ -19,13 +19,13 @@ vraft::Slice DecodeAnnoyKey(std::string &key) {
 
 KeyidMeta::KeyidMeta(const std::string &path) : path_(path) { CreateDB(); }
 
-int32_t KeyidMeta::Put(const std::string &key, uint32_t id) { return 0; }
+int32_t KeyidMeta::Put(const std::string &key, int32_t id) { return 0; }
 
-int32_t KeyidMeta::Put(uint32_t id, const std::string &key) { return 0; }
+int32_t KeyidMeta::Put(int32_t id, const std::string &key) { return 0; }
 
-int32_t KeyidMeta::Get(const std::string &key, uint32_t &id) { return 0; }
+int32_t KeyidMeta::Get(const std::string &key, int32_t &id) { return 0; }
 
-int32_t KeyidMeta::Get(uint32_t id, std::string &key) { return 0; }
+int32_t KeyidMeta::Get(int32_t id, std::string &key) { return 0; }
 
 int32_t KeyidMeta::CreateDB() {
   db_options_.create_if_missing = true;

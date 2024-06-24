@@ -37,23 +37,41 @@ int32_t dim = 10;
 TEST(VindexAnnoy, VindexAnnoy) {
   system("rm -rf /tmp/vindex_annoy_test_dir");
 
-  {
-    vectordb::VEngineSPtr ve =
-        std::make_shared<vectordb::VEngine>("/tmp/vindex_annoy_test_dir", dim);
-    std::cout << ve->ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve->Dim(), dim);
+  bool ok = false;
+  if (vraft::IsFileExist("./output/test/generate_vec_test")) {
+    system("./output/test/generate_vec_test 10 100 > /tmp/vec.txt");
+    ok = true;
 
-    vectordb::VIndexParam param;
-    param.path = "/tmp/vindex_annoy_test_dir/index/annoy_test";
-    param.timestamp = vraft::Clock::NSec();
-    param.dim = dim;
-    param.index_type = vectordb::kIndexAnnoy;
-    param.distance_type = vectordb::kCosine;
-    param.annoy_tree_num = 10;
-    vectordb::VindexSPtr vindex =
-        std::make_shared<vectordb::VindexAnnoy>(param, ve);
-    assert(vindex);
-    std::cout << vindex->ToJsonString(true, true) << std::endl;
+  } else if (vraft::IsFileExist("./generate_vec_test")) {
+    system("./generate_vec_test 10 100 > /tmp/vec.txt");
+    ok = true;
+
+  } else {
+    std::cout << "\ngenerate_vec_test not exist !!!\n" << std::endl;
+  }
+
+  if (ok) {
+    {
+      vectordb::VEngineSPtr ve = std::make_shared<vectordb::VEngine>(
+          "/tmp/vindex_annoy_test_dir", dim);
+      std::cout << ve->ToJsonString(true, true) << std::endl;
+      ASSERT_EQ(ve->Dim(), dim);
+
+      int32_t rv = ve->Load("/tmp/vec.txt");
+      ASSERT_EQ(rv, 0);
+
+      vectordb::VIndexParam param;
+      param.path = "/tmp/vindex_annoy_test_dir/index/annoy_test";
+      param.timestamp = vraft::Clock::NSec();
+      param.dim = dim;
+      param.index_type = vectordb::kIndexAnnoy;
+      param.distance_type = vectordb::kCosine;
+      param.annoy_tree_num = 10;
+      vectordb::VindexSPtr vindex =
+          std::make_shared<vectordb::VindexAnnoy>(param, ve);
+      assert(vindex);
+      std::cout << vindex->ToJsonString(true, true) << std::endl;
+    }
   }
 }
 

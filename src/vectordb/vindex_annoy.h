@@ -5,6 +5,7 @@
 
 #include "annoylib.h"
 #include "engine_meta.h"
+#include "kissrandom.h"
 #include "leveldb/db.h"
 #include "nlohmann/json.hpp"
 #include "vdb_common.h"
@@ -16,6 +17,8 @@ using Annoy = AnnoyIndexInterface<int32_t, float>;
 using AnnoySPtr = std::shared_ptr<Annoy>;
 using AnnoyUPtr = std::unique_ptr<Annoy>;
 using AnnoyWPtr = std::weak_ptr<Annoy>;
+
+AnnoySPtr CreateAnnoy(const VIndexParam &param);
 
 class VindexAnnoy : public Vindex {
  public:
@@ -36,15 +39,16 @@ class VindexAnnoy : public Vindex {
  private:
   void Init();
   void MkDir();
+  int32_t Build();
 
  private:
   std::string keyid_path_;
   std::string meta_path_;
-  std::string annoy_path_;
+  std::string annoy_path_file_;
 
   KeyidMetaSPtr keyid_;
   VindexMetaSPtr meta_;
-  Annoy *annoy_index_;
+  AnnoySPtr annoy_index_;
   VEngineWPtr vengine_;
 };
 

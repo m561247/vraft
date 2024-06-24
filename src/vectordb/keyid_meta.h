@@ -21,10 +21,10 @@ class KeyidMeta final {
   KeyidMeta(const KeyidMeta &) = delete;
   KeyidMeta &operator=(const KeyidMeta &) = delete;
 
-  int32_t Put(const std::string &key, uint32_t id);
-  int32_t Put(uint32_t id, const std::string &key);
-  int32_t Get(const std::string &key, uint32_t &id);
-  int32_t Get(uint32_t id, std::string &key);
+  int32_t Put(const std::string &key, int32_t id);
+  int32_t Put(int32_t id, const std::string &key);
+  int32_t Get(const std::string &key, int32_t &id);
+  int32_t Get(int32_t id, std::string &key);
 
  private:
   int32_t CreateDB();

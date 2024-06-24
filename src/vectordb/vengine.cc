@@ -319,6 +319,8 @@ VEngine::VEngine(const std::string &path, int32_t dim)
   Init();
 }
 
+std::shared_ptr<leveldb::DB> VEngine::db() { return db_; }
+
 int32_t VEngine::Dim() const { return meta_->dim(); }
 
 int32_t VEngine::Put(const std::string &key, VecValue &vv) {
