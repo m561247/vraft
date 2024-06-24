@@ -6,8 +6,8 @@
 
 namespace vectordb {
 
-VindexSPtr VIndexFactory::Create(VIndexType index_type, const std::string &path,
-                                 VEngineSPtr v, VIndexParam &param) {
+VindexSPtr Create(VIndexType index_type, const std::string &path, VEngineSPtr v,
+                  VIndexParam &param) {
   VindexSPtr index_sp;
   switch (index_type) {
     case kIndexAnnoy: {

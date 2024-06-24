@@ -38,9 +38,20 @@ TEST(VindexAnnoy, VindexAnnoy) {
   system("rm -rf /tmp/vindex_annoy_test_dir");
 
   {
-    vectordb::VEngine ve("/tmp/vindex_annoy_test_dir", dim);
-    std::cout << ve.ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve.Dim(), dim);
+    vectordb::VEngineSPtr ve =
+        std::make_shared<vectordb::VEngine>("/tmp/vindex_annoy_test_dir", dim);
+    std::cout << ve->ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve->Dim(), dim);
+
+    vectordb::VIndexParam param;
+    param.path = "/tmp/vindex_annoy_test_dir/index/annoy";
+    param.timestamp = vraft::Clock::NSec();
+    param.dim = dim;
+    param.index_type = vectordb::kIndexAnnoy;
+    param.distance_type = vectordb::kCosine;
+    vectordb::VindexSPtr vindex =
+        std::make_shared<vectordb::VindexAnnoy>(param, ve);
+    assert(vindex);
   }
 }
 

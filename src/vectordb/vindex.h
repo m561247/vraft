@@ -58,11 +58,8 @@ inline Vindex::Vindex(const VIndexParam &param) {}
 
 inline Vindex::~Vindex() {}
 
-class VIndexFactory {
- public:
-  static VindexSPtr Create(VIndexType index_type, const std::string &path,
-                           VEngineSPtr v, VIndexParam &param);
-};
+VindexSPtr Create(VIndexType index_type, const std::string &path, VEngineSPtr v,
+                  VIndexParam &param);
 
 }  // namespace vectordb
 
