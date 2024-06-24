@@ -1,10 +1,12 @@
 #include "vindex_annoy.h"
 
+#include "annoylib.h"
 #include "common.h"
+#include "keyid_meta.h"
+#include "kissrandom.h"
 #include "util.h"
 #include "vengine.h"
 #include "vindex_meta.h"
-#include "keyid_meta.h"
 
 namespace vectordb {
 

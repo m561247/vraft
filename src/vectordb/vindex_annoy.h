@@ -12,6 +12,11 @@
 
 namespace vectordb {
 
+using Annoy = AnnoyIndexInterface<int32_t, float>;
+using AnnoySPtr = std::shared_ptr<Annoy>;
+using AnnoyUPtr = std::unique_ptr<Annoy>;
+using AnnoyWPtr = std::weak_ptr<Annoy>;
+
 class VindexAnnoy : public Vindex {
  public:
   explicit VindexAnnoy(VIndexParam &param, VEngineSPtr v);
@@ -39,6 +44,7 @@ class VindexAnnoy : public Vindex {
 
   KeyidMetaSPtr keyid_;
   VindexMetaSPtr meta_;
+  Annoy *annoy_index_;
   VEngineWPtr vengine_;
 };
 
