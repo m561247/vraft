@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -311,6 +312,11 @@ bool IsDirExist(const std::string &dir_path) {
     // dir_path is not a directory
     return false;
   }
+}
+
+bool IsFileExist(const std::string &path) {
+  std::ifstream file(path);
+  return file.good();
 }
 
 }  // namespace vraft

@@ -462,9 +462,9 @@ void VEngine::Init() {
   db_options_.create_if_missing = true;
   db_options_.error_if_exists = false;
   leveldb::DB *dbptr;
-  leveldb::Status status = leveldb::DB::Open(db_options_, path_, &dbptr);
+  leveldb::Status status = leveldb::DB::Open(db_options_, data_path_, &dbptr);
   if (!status.ok()) {
-    vraft::vraft_logger.FError("leveldb open %s error, %s", path_.c_str(),
+    vraft::vraft_logger.FError("leveldb open %s error, %s", data_path_.c_str(),
                                status.ToString().c_str());
     assert(0);
   }

@@ -183,9 +183,21 @@ TEST(VEngine, OP) {
 
 TEST(VEngine, Load) {
   system("rm -rf /tmp/vengine_test_dir");
-  system("./output/test/generate_vec_test 10 100 > /tmp/vec.txt");
 
-  {
+  bool ok = false;
+  if (vraft::IsFileExist("./output/test/generate_vec_test")) {
+    system("./output/test/generate_vec_test 10 100 > /tmp/vec.txt");
+    ok = true;
+
+  } else if (vraft::IsFileExist("./generate_vec_test")) {
+    system("./generate_vec_test 10 100 > /tmp/vec.txt");
+    ok = true;
+
+  } else {
+    std::cout << "\ngenerate_vec_test not exist !!!\n" << std::endl;
+  }
+
+  if (ok) {
     vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
     std::cout << ve.ToJsonString(true, true) << std::endl;
     ASSERT_EQ(ve.Dim(), dim);

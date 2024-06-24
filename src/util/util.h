@@ -74,6 +74,8 @@ float RandomFloat(float max);
 
 bool IsDirExist(const std::string &dir_path);
 
+bool IsFileExist(const std::string &path);
+
 }  // namespace vraft
 
 #endif
