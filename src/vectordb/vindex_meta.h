@@ -1,22 +1,36 @@
-#ifndef VRAFT_VINDEX_META_H_
-#define VRAFT_VINDEX_META_H_
+#ifndef VECTORDB_VINDEX_META_H_
+#define VECTORDB_VINDEX_META_H_
 
-namespace vraft {
+#include <memory>
+
+#include "leveldb/db.h"
+#include "nlohmann/json.hpp"
+#include "vindex.h"
+
+namespace vectordb {
+
+#define VINDEX_META_KEY "0"
 
 class VindexMeta final {
-public:
-  explicit VindexMeta();
+ public:
+  explicit VindexMeta(VIndexParam &param);
   ~VindexMeta();
   VindexMeta(const VindexMeta &) = delete;
   VindexMeta &operator=(const VindexMeta &) = delete;
 
-private:
-};
+ private:
+  void Init();
+  void Persist();
 
-inline VindexMeta::VindexMeta() {}
+ private:
+  leveldb::Options db_options_;
+  std::shared_ptr<leveldb::DB> db_;
+
+  VIndexParam param_;
+};
 
 inline VindexMeta::~VindexMeta() {}
 
-} // namespace vraft
+}  // namespace vectordb
 
 #endif

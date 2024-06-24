@@ -35,6 +35,11 @@ using KeyidMetaSPtr = std::shared_ptr<KeyidMeta>;
 using KeyidMetaUPtr = std::unique_ptr<KeyidMeta>;
 using KeyidMetaWPtr = std::weak_ptr<KeyidMeta>;
 
+class VindexMeta;
+using VindexMetaSPtr = std::shared_ptr<VindexMeta>;
+using VindexMetaUPtr = std::unique_ptr<VindexMeta>;
+using VindexMetaWPtr = std::weak_ptr<VindexMeta>;
+
 }  // namespace vectordb
 
 #endif

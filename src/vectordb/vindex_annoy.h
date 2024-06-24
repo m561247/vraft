@@ -31,7 +31,7 @@ class VindexAnnoy : public Vindex {
  private:
   std::string keyid_path_;
   std::string annoy_path_;
-  std::string db_meta_path_;
+  std::string meta_path_;
 
   KeyidMetaSPtr keyid_;
   EngineMetaSPtr meta_;

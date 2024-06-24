@@ -1,14 +1,15 @@
 #include "vindex_annoy.h"
+
 #include "util.h"
 
 namespace vectordb {
 
 VindexAnnoy::VindexAnnoy(VIndexParam &param, VEngineSPtr v)
     : Vindex(param),
-      vengine_(v),
       keyid_path_(param.path + "/keyid"),
       annoy_path_(param.path + "/annoy"),
-      db_meta_path_(param.path + "/meta") {}
+      meta_path_(param.path + "/meta"),
+      vengine_(v) {}
 
 int32_t VindexAnnoy::GetKNN(const std::string &key, int limit,
                             std::vector<VecResult> &results) {
@@ -22,14 +23,10 @@ int32_t VindexAnnoy::GetKNN(const std::vector<float> &vec, int limit,
 
 void VindexAnnoy::Init() {
   if (vraft::IsDirExist(param().path)) {
-
   } else {
-
   }
 }
 
-void VindexAnnoy::MkDir() {
-
-}
+void VindexAnnoy::MkDir() {}
 
 }  // namespace vectordb

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "nlohmann/json.hpp"
 #include "vdb_common.h"
 
 namespace vectordb {
@@ -14,19 +15,74 @@ enum VIndexType {
   kIndexNum,
 };
 
+VIndexType U82VIndexType(uint8_t u8) {
+  switch (u8) {
+    case 0:
+      return kIndexAnnoy;
+    default:
+      assert(0);
+  }
+}
+
+inline const char *VIndexType2Str(VIndexType index_type) {
+  switch (index_type) {
+    case kIndexAnnoy:
+      return "IndexAnnoy";
+
+    default:
+      return "UnknownIndexType";
+  }
+}
+
 enum DistanceType {
   kCosine = 0,
   kInnerProduct,
   kEuclidean,
 };
 
+DistanceType U82DistanceType(uint8_t u8) {
+  switch (u8) {
+    case 0:
+      return kCosine;
+    case 1:
+      return kInnerProduct;
+    case 2:
+      return kEuclidean;
+    default:
+      assert(0);
+  }
+}
+
+inline const char *DistanceType2Str(DistanceType distance_type) {
+  switch (distance_type) {
+    case kCosine:
+      return "Cosine";
+    case kInnerProduct:
+      return "InnerProduct";
+    case kEuclidean:
+      return "Euclidean";
+    default:
+      return "UnknownDistanceType";
+  }
+}
+
 struct VIndexParam {
   std::string path;
   uint64_t timestamp;
-  int dim;
-  VIndexType index_type;
-  DistanceType distance_type;
+  int32_t dim;
+  VIndexType index_type;       // uint8_t
+  DistanceType distance_type;  // uint8_t
   int32_t annoy_tree_num;
+
+  int32_t MaxBytes();
+  int32_t ToString(std::string &s);
+  int32_t ToString(const char *ptr, int32_t len);
+  int32_t FromString(std::string &s);
+  int32_t FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
 
 class VecResult {
