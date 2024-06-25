@@ -72,6 +72,8 @@ TEST(Partition, Partition) {
   partition.path = "/tmp/data";
   partition.replica_num = 5;
   partition.uid = 88;
+  partition.table_name = "test-table";
+  partition.table_uid = 77;
   for (int32_t i = 0; i < partition.replica_num; ++i) {
     std::string replica_name = vectordb::ReplicaName(partition.name, i);
     partition.replicas_by_name[replica_name] = nullptr;
@@ -95,6 +97,8 @@ TEST(Partition, Partition) {
   ASSERT_EQ(partition.path, partition2.path);
   ASSERT_EQ(partition.replica_num, partition2.replica_num);
   ASSERT_EQ(partition.uid, partition2.uid);
+  ASSERT_EQ(partition.table_name, partition2.table_name);
+  ASSERT_EQ(partition.table_uid, partition2.table_uid);
   ASSERT_EQ(partition.replicas_by_uid.size(),
             partition2.replicas_by_uid.size());
   ASSERT_EQ(partition.replicas_by_name.size(),
@@ -135,6 +139,29 @@ TEST(Table, Table) {
   ASSERT_EQ(table.uid, table2.uid);
   ASSERT_EQ(table.partitions_by_uid.size(), table2.partitions_by_uid.size());
   ASSERT_EQ(table.partitions_by_name.size(), table2.partitions_by_name.size());
+}
+
+TEST(Metadata, AddTable) {
+  vectordb::Metadata meta("xx");
+
+  for (int32_t i = 0; i < 3; ++i) {
+    vectordb::Table table;
+    char buf[128];
+    snprintf(buf, sizeof(buf), "table_%d", i);
+    table.name = buf;
+
+    snprintf(buf, sizeof(buf), "/tmp/data/%s", table.name.c_str());
+    table.path = buf;
+
+    table.partition_num = 10;
+    table.replica_num = 3;
+    table.dim = 1024;
+    table.uid = 0;
+    int32_t rv = meta.AddTable(table);
+    ASSERT_EQ(rv, 0);
+  }
+
+  std::cout << meta.ToJsonString(false, false) << std::endl;
 }
 
 int main(int argc, char **argv) {

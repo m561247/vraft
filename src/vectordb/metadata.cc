@@ -7,6 +7,10 @@
 
 namespace vectordb {
 
+uint64_t Replica::replica_uid = 0;
+uint64_t Partition::partition_uid = 0;
+uint64_t Table::table_uid = 0;
+
 std::string PartitionName(const std::string &table_name, int32_t partition_id) {
   char buf[256];
   snprintf(buf, sizeof(buf), "%s#%d", table_name.c_str(), partition_id);
@@ -214,6 +218,10 @@ int32_t Partition::MaxBytes() {
   sz += sizeof(replica_num);
   sz += sizeof(uid);
 
+  sz += 2 * sizeof(uint32_t);
+  sz += table_name.size();
+  sz += sizeof(table_uid);
+
   // replicas_by_uid.size()
   sz += sizeof(uint32_t);
 
@@ -274,6 +282,17 @@ int32_t Partition::ToString(const char *ptr, int32_t len) {
   vraft::EncodeFixed64(p, uid);
   p += sizeof(uid);
   size += sizeof(uid);
+
+  {
+    vraft::Slice sls(table_name.c_str(), table_name.size());
+    char *p2 = vraft::EncodeString2(p, len - size, sls);
+    size += (p2 - p);
+    p = p2;
+  }
+
+  vraft::EncodeFixed64(p, table_uid);
+  p += sizeof(table_uid);
+  size += sizeof(table_uid);
 
   // uids
   for (auto item : replicas_by_uid) {
@@ -339,6 +358,22 @@ int32_t Partition::FromString(const char *ptr, int32_t len) {
   p += sizeof(uid);
   size += sizeof(uid);
 
+  {
+    table_name.clear();
+    vraft::Slice result;
+    vraft::Slice input(p, len - size);
+    int32_t sz = vraft::DecodeString2(&input, &result);
+    if (sz > 0) {
+      table_name.append(result.data(), result.size());
+      p += sz;
+      size += sz;
+    }
+  }
+
+  table_uid = vraft::DecodeFixed64(p);
+  p += sizeof(table_uid);
+  size += sizeof(table_uid);
+
   // uids
   for (int32_t i = 0; i < replica_num; ++i) {
     uint64_t u64 = vraft::DecodeFixed64(p);
@@ -371,6 +406,8 @@ nlohmann::json Partition::ToJson() {
   j["path"] = path;
   j["replica_num"] = replica_num;
   j["uid"] = uid;
+  j["table_name"] = table_name;
+  j["table_uid"] = table_uid;
 
   int32_t i = 0;
   for (auto item : replicas_by_uid) {
@@ -612,10 +649,97 @@ std::string Table::ToJsonString(bool tiny, bool one_line) {
 
 Metadata::Metadata(const std::string &path) : path_(path) {}
 
-TableSPtr Metadata::CreateTable(Table param) {}
+nlohmann::json Metadata::ToJson() {
+  nlohmann::json j;
+  for (auto item : tables_) {
+    j[item.first] = item.second->ToJson();
+  }
+  return j;
+}
 
-PartitionSPtr Metadata::CreatePartition(Partition param) {}
+nlohmann::json Metadata::ToJsonTiny() { return ToJson(); }
 
-PartitionSPtr Metadata::CreateReplica(Replica param) {}
+std::string Metadata::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["meta"] = ToJsonTiny();
+  } else {
+    j["meta"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
+int32_t Metadata::AddTable(Table param) {
+  TableSPtr sptr = GetTable(param.name);
+  if (sptr) {
+    return -1;
+  }
+
+  sptr = CreateTable(param);
+  tables_[sptr->name] = sptr;
+  return 0;
+}
+
+TableSPtr Metadata::GetTable(const std::string &name) {
+  TableSPtr sptr = nullptr;
+  auto it = tables_.find(name);
+  if (it != tables_.end()) {
+    sptr = it->second;
+  }
+  return sptr;
+}
+
+TableSPtr Metadata::CreateTable(Table param) {
+  param.uid = Table::table_uid++;
+  TableSPtr table_sptr = std::make_shared<Table>();
+  *table_sptr = param;
+  for (int32_t i = 0; i < param.partition_num; ++i) {
+    Partition partition;
+    partition.id = i;
+    partition.name = PartitionName(param.name, i);
+    partition.path = param.path + "/" + partition.name;
+    partition.replica_num = param.replica_num;
+    partition.uid = Partition::partition_uid++;
+    partition.table_name = param.name;
+    partition.table_uid = param.uid;
+
+    PartitionSPtr partition_sptr = CreatePartition(partition);
+    (table_sptr->partitions_by_uid)[partition_sptr->uid] = partition_sptr;
+    (table_sptr->partitions_by_name)[partition_sptr->name] = partition_sptr;
+  }
+  return table_sptr;
+}
+
+PartitionSPtr Metadata::CreatePartition(Partition param) {
+  PartitionSPtr partition_sptr = std::make_shared<Partition>();
+  *partition_sptr = param;
+  for (int32_t i = 0; i < param.replica_num; ++i) {
+    Replica replica;
+    replica.id = i;
+    replica.name = ReplicaName(param.name, i);
+    replica.path = param.path + "/" + replica.name;
+    replica.uid = Replica::replica_uid++;
+    replica.table_name = param.table_name;
+    replica.table_uid = param.table_uid;
+    replica.partition_name = param.name;
+    replica.partition_uid = param.partition_uid;
+
+    ReplicaSPtr replica_sptr = CreateReplica(replica);
+    (partition_sptr->replicas_by_uid)[replica_sptr->uid] = replica_sptr;
+    (partition_sptr->replicas_by_name)[replica_sptr->name] = replica_sptr;
+  }
+  return partition_sptr;
+}
+
+ReplicaSPtr Metadata::CreateReplica(Replica param) {
+  ReplicaSPtr replica_sptr = std::make_shared<Replica>();
+  *replica_sptr = param;
+  return replica_sptr;
+}
 
 }  // namespace vectordb

@@ -37,6 +37,8 @@ struct Replica {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+
+  static uint64_t replica_uid;
 };
 
 struct Partition {
@@ -45,6 +47,9 @@ struct Partition {
   std::string path;
   int32_t replica_num;
   uint64_t uid;
+
+  std::string table_name;
+  uint64_t table_uid;
 
   std::map<uint64_t, ReplicaSPtr> replicas_by_uid;
   std::map<std::string, ReplicaSPtr> replicas_by_name;
@@ -58,6 +63,8 @@ struct Partition {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+
+  static uint64_t partition_uid;
 };
 
 struct Table {
@@ -80,6 +87,8 @@ struct Table {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+
+  static uint64_t table_uid;
 };
 
 class Metadata final {
@@ -89,10 +98,17 @@ class Metadata final {
   Metadata(const Metadata &) = delete;
   Metadata &operator=(const Metadata &) = delete;
 
+  int32_t AddTable(Table param);
+  TableSPtr GetTable(const std::string &name);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+
  private:
   TableSPtr CreateTable(Table param);
   PartitionSPtr CreatePartition(Partition param);
-  PartitionSPtr CreateReplica(Replica param);
+  ReplicaSPtr CreateReplica(Replica param);
 
  private:
   std::string path_;
