@@ -420,15 +420,14 @@ bool VEngine::HasIndex() const { return index_manager_->HasIndex(); }
 
 int32_t VEngine::AddIndex(VIndexType type) { return 0; }
 
-int32_t VEngine::GetKNN(const std::string &key, int limit,
-                        std::vector<VecResult> &results,
-                        const std::string &index_name) {
+int32_t VEngine::GetKNN(const std::string &key, std::vector<VecResult> &results,
+                        const std::string &index_name, int limit) {
   return 0;
 }
 
-int32_t VEngine::GetKNN(const std::vector<float> &vec, int limit,
+int32_t VEngine::GetKNN(const std::vector<float> &vec,
                         std::vector<VecResult> &results,
-                        const std::string &index_name) {
+                        const std::string &index_name, int limit) {
   return 0;
 }
 

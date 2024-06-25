@@ -50,13 +50,49 @@ VindexAnnoy::VindexAnnoy(VIndexParam &param, VEngineSPtr v)
   Init();
 }
 
-int32_t VindexAnnoy::GetKNN(const std::string &key, int limit,
-                            std::vector<VecResult> &results) {
+int32_t VindexAnnoy::GetKNN(const std::string &key,
+                            std::vector<VecResult> &results, int limit) {
+  int32_t id, rv;
+
+  if (limit > 0) {
+    rv = keyid_->Get(key, id);
+    if (rv != 0) {
+      return -1;
+    }
+
+    std::vector<int> annoy_result;
+    std::vector<float> distances;
+
+    annoy_index_->get_nns_by_item(id, limit, SEARCH_K, &annoy_result,
+                                  &distances);
+    assert(annoy_result.size() == distances.size());
+
+    rv = PrepareResults(annoy_result, distances, results);
+    assert(rv == 0);
+  }
+
   return 0;
 }
 
-int32_t VindexAnnoy::GetKNN(const std::vector<float> &vec, int limit,
-                            std::vector<VecResult> &results) {
+int32_t VindexAnnoy::GetKNN(const std::vector<float> &vec,
+                            std::vector<VecResult> &results, int limit) {
+  if (static_cast<int32_t>(vec.size()) != param().dim) {
+    vraft::vraft_logger.FError("build index dim error, %u != %d", vec.size(),
+                               param().dim);
+    return -1;
+  }
+
+  if (limit > 0) {
+    std::vector<int32_t> annoy_result;
+    std::vector<float> distances;
+    annoy_index_->get_nns_by_vector(vec.data(), limit, SEARCH_K, &annoy_result,
+                                    &distances);
+    assert(annoy_result.size() == distances.size());
+
+    int32_t rv = PrepareResults(annoy_result, distances, results);
+    assert(rv == 0);
+  }
+
   return 0;
 }
 
@@ -182,6 +218,40 @@ int32_t VindexAnnoy::Load() {
   assert(annoy_index_);
   auto b = annoy_index_->load(annoy_path_file_.c_str());
   assert(b);
+  return 0;
+}
+
+int32_t VindexAnnoy::PrepareResults(const std::vector<int32_t> results,
+                                    const std::vector<float> distances,
+                                    std::vector<VecResult> &results_out) {
+  assert(results.size() == distances.size());
+  results_out.clear();
+
+  VEngineSPtr ve = vengine_.lock();
+  if (!ve) {
+    return -1;
+  }
+
+  for (size_t i = 0; i < results.size(); ++i) {
+    std::string find_key;
+
+    int32_t rv = keyid_->Get(results[i], find_key);
+    assert(rv == 0);
+
+    VecObj vo;
+    rv = ve->Get(find_key, vo);
+    assert(rv == 0);
+    assert(find_key == vo.key);
+
+    VecResult vr;
+    vr.key = vo.key;
+    vr.attach_value = vo.vv.attach_value;
+    vr.distance = distances[i];
+
+    results_out.push_back(vr);
+  }
+
+  std::sort(results_out.begin(), results_out.end(), std::less<VecResult>());
   return 0;
 }
 

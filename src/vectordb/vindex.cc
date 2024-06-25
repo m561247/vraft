@@ -10,6 +10,37 @@
 
 namespace vectordb {
 
+nlohmann::json VecResult::ToJson() {
+  nlohmann::json j;
+  j["key"] = key;
+  j["attach_value"] = attach_value;
+  j["distance"] = distance;
+  return j;
+}
+
+nlohmann::json VecResult::ToJsonTiny() {
+  nlohmann::json j;
+  j["key"] = key;
+  j["av"] = attach_value;
+  j["dis"] = distance;
+  return j;
+}
+
+std::string VecResult::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["vr"] = ToJsonTiny();
+  } else {
+    j["vec-result"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
 int32_t VIndexParam::MaxBytes() {
   int32_t sz = 0;
   sz += 2 * sizeof(uint32_t);

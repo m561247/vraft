@@ -5,6 +5,9 @@
 
 namespace vectordb {
 
+#define DEFAULT_LIMIT 10
+#define SEARCH_K 1000000
+
 class Vindex;
 using VindexSPtr = std::shared_ptr<Vindex>;
 using VindexUPtr = std::unique_ptr<Vindex>;

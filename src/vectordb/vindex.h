@@ -85,10 +85,17 @@ struct VIndexParam {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
-class VecResult {
+struct VecResult {
   std::string key;
   std::string attach_value;
   float distance;
+
+  bool operator<(const VecResult &rhs) const { return distance < rhs.distance; }
+  bool operator>(const VecResult &rhs) const { return distance > rhs.distance; }
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
 
 class Vindex {
@@ -100,10 +107,12 @@ class Vindex {
 
   VIndexParam param() const { return param_; }
 
-  virtual int32_t GetKNN(const std::string &key, int limit,
-                         std::vector<VecResult> &results) = 0;
-  virtual int32_t GetKNN(const std::vector<float> &vec, int limit,
-                         std::vector<VecResult> &results) = 0;
+  virtual int32_t GetKNN(const std::string &key,
+                         std::vector<VecResult> &results,
+                         int limit = DEFAULT_LIMIT) = 0;
+  virtual int32_t GetKNN(const std::vector<float> &vec,
+                         std::vector<VecResult> &results,
+                         int limit = DEFAULT_LIMIT) = 0;
 
   virtual nlohmann::json ToJson() = 0;
   virtual nlohmann::json ToJsonTiny() = 0;

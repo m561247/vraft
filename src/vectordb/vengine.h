@@ -81,12 +81,10 @@ class VEngine final {
 
   bool HasIndex() const;
   int32_t AddIndex(VIndexType type);
-  int32_t GetKNN(const std::string &key, int limit,
-                 std::vector<VecResult> &results,
-                 const std::string &index_name);
-  int32_t GetKNN(const std::vector<float> &vec, int limit,
-                 std::vector<VecResult> &results,
-                 const std::string &index_name);
+  int32_t GetKNN(const std::string &key, std::vector<VecResult> &results,
+                 const std::string &index_name, int limit);
+  int32_t GetKNN(const std::vector<float> &vec, std::vector<VecResult> &results,
+                 const std::string &index_name, int limit);
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();

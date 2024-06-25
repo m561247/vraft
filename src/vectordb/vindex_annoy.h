@@ -27,10 +27,10 @@ class VindexAnnoy : public Vindex {
   VindexAnnoy(const VindexAnnoy &) = delete;
   VindexAnnoy &operator=(const VindexAnnoy &) = delete;
 
-  int32_t GetKNN(const std::string &key, int limit,
-                 std::vector<VecResult> &results) override;
-  int32_t GetKNN(const std::vector<float> &vec, int limit,
-                 std::vector<VecResult> &results) override;
+  int32_t GetKNN(const std::string &key, std::vector<VecResult> &results,
+                 int limit = DEFAULT_LIMIT) override;
+  int32_t GetKNN(const std::vector<float> &vec, std::vector<VecResult> &results,
+                 int limit = DEFAULT_LIMIT) override;
 
   nlohmann::json ToJson() override;
   nlohmann::json ToJsonTiny() override;
@@ -41,6 +41,9 @@ class VindexAnnoy : public Vindex {
   void MkDir();
   int32_t Build();
   int32_t Load();
+  int32_t PrepareResults(const std::vector<int32_t> results,
+                         const std::vector<float> distances,
+                         std::vector<VecResult> &results_out);
 
  private:
   std::string keyid_path_;

@@ -71,6 +71,42 @@ TEST(VindexAnnoy, VindexAnnoy) {
           std::make_shared<vectordb::VindexAnnoy>(param, ve);
       assert(vindex);
       std::cout << vindex->ToJsonString(true, true) << std::endl;
+
+      {
+        std::string find_key = "key_3";
+        std::vector<vectordb::VecResult> results;
+        rv = vindex->GetKNN(find_key, results, 5);
+        ASSERT_EQ(rv, 0);
+
+        std::cout << "results.size(): " << results.size() << std::endl;
+        for (auto &item : results) {
+          std::cout << item.ToJsonString(true, true) << std::endl;
+        }
+      }
+
+      {
+        std::string find_key = "key_30";
+        std::vector<vectordb::VecResult> results;
+        rv = vindex->GetKNN(find_key, results, 20);
+        ASSERT_EQ(rv, 0);
+
+        std::cout << "results.size(): " << results.size() << std::endl;
+        for (auto &item : results) {
+          std::cout << item.ToJsonString(true, true) << std::endl;
+        }
+      }
+
+      {
+        std::string find_key = "key_40";
+        std::vector<vectordb::VecResult> results;
+        rv = vindex->GetKNN(find_key, results);
+        ASSERT_EQ(rv, 0);
+
+        std::cout << "results.size(): " << results.size() << std::endl;
+        for (auto &item : results) {
+          std::cout << item.ToJsonString(true, true) << std::endl;
+        }
+      }
     }
   }
 }
