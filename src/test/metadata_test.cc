@@ -143,21 +143,27 @@ TEST(Table, Table) {
 
 TEST(Metadata, AddTable) {
   system("rm -rf /tmp/metadata_test_dir");
-  vectordb::Metadata meta("/tmp/metadata_test_dir");
 
-  for (int32_t i = 0; i < 3; ++i) {
-    vectordb::TableParam table;
-    char buf[128];
-    snprintf(buf, sizeof(buf), "table_%d", i);
-    table.name = buf;
-    table.partition_num = 10;
-    table.replica_num = 3;
-    table.dim = 1024;
-    int32_t rv = meta.AddTable(table);
-    ASSERT_EQ(rv, 0);
+  {
+    vectordb::Metadata meta("/tmp/metadata_test_dir");
+    for (int32_t i = 0; i < 3; ++i) {
+      vectordb::TableParam table;
+      char buf[128];
+      snprintf(buf, sizeof(buf), "table_%d", i);
+      table.name = buf;
+      table.partition_num = 10;
+      table.replica_num = 3;
+      table.dim = 1024;
+      int32_t rv = meta.AddTable(table);
+      ASSERT_EQ(rv, 0);
+    }
+    std::cout << meta.ToJsonString(false, false) << std::endl << std::endl;
   }
 
-  std::cout << meta.ToJsonString(false, false) << std::endl;
+  {
+    vectordb::Metadata meta("/tmp/metadata_test_dir");
+    std::cout << meta.ToJsonString(false, false) << std::endl << std::endl;
+  }
 }
 
 TEST(TableNames, TableNames) {

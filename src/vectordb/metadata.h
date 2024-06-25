@@ -133,8 +133,12 @@ class Metadata final {
   TableSPtr CreateTable(TableParam param);
   PartitionSPtr CreatePartition(Partition param);
   ReplicaSPtr CreateReplica(Replica param);
+  TableSPtr LoadTable(const std::string &name);
+  PartitionSPtr LoadPartition(const std::string &name);
+  ReplicaSPtr LoadReplica(const std::string &name);
   int32_t CreateDB();
   int32_t Persist();
+  int32_t Load();
 
  private:
   std::string path_;

@@ -3,6 +3,7 @@
 #include "allocator.h"
 #include "coding.h"
 #include "common.h"
+#include "leveldb/write_batch.h"
 #include "util.h"
 #include "vraft_logger.h"
 
@@ -751,7 +752,13 @@ std::string Table::ToJsonString(bool tiny, bool one_line) {
   }
 }
 
-Metadata::Metadata(const std::string &path) : path_(path) { CreateDB(); }
+Metadata::Metadata(const std::string &path) : path_(path) {
+  int32_t rv = CreateDB();
+  assert(rv == 0);
+
+  rv = Load();
+  assert(rv == 0);
+}
 
 nlohmann::json Metadata::ToJson() {
   nlohmann::json j;
@@ -786,6 +793,7 @@ int32_t Metadata::AddTable(TableParam param) {
 
   sptr = CreateTable(param);
   tables_[sptr->name] = sptr;
+  Persist();
   return 0;
 }
 
@@ -852,6 +860,45 @@ ReplicaSPtr Metadata::CreateReplica(Replica param) {
   return replica_sptr;
 }
 
+TableSPtr Metadata::LoadTable(const std::string &name) {
+  TableSPtr sptr = nullptr;
+  std::string value;
+  auto s = db_->Get(leveldb::ReadOptions(), leveldb::Slice(name), &value);
+  if (s.ok()) {
+    Table t;
+    t.FromString(value);
+    sptr = std::make_shared<Table>();
+    *sptr = t;
+  }
+  return sptr;
+}
+
+PartitionSPtr Metadata::LoadPartition(const std::string &name) {
+  PartitionSPtr sptr;
+  std::string value;
+  auto s = db_->Get(leveldb::ReadOptions(), leveldb::Slice(name), &value);
+  if (s.ok()) {
+    Partition p;
+    p.FromString(value);
+    sptr = std::make_shared<Partition>();
+    *sptr = p;
+  }
+  return sptr;
+}
+
+ReplicaSPtr Metadata::LoadReplica(const std::string &name) {
+  ReplicaSPtr sptr;
+  std::string value;
+  auto s = db_->Get(leveldb::ReadOptions(), leveldb::Slice(name), &value);
+  if (s.ok()) {
+    Replica r;
+    r.FromString(value);
+    sptr = std::make_shared<Replica>();
+    *sptr = r;
+  }
+  return sptr;
+}
+
 int32_t Metadata::CreateDB() {
   db_options_.create_if_missing = true;
   db_options_.error_if_exists = false;
@@ -866,6 +913,108 @@ int32_t Metadata::CreateDB() {
   return 0;
 }
 
-int32_t Metadata::Persist() { return 0; }
+int32_t Metadata::Persist() {
+  leveldb::WriteBatch batch;
+
+  // table_names
+  {
+    TableNames tables;
+    for (auto &item : tables_) {
+      tables.names.push_back(item.first);
+    }
+
+    std::string key(METADATA_TABLES_KEY);
+    std::string value;
+    tables.ToString(value);
+
+    batch.Put(leveldb::Slice(key), leveldb::Slice(value));
+  }
+
+  // tables
+  {
+    for (auto &t : tables_) {
+      TableSPtr table_sptr = t.second;
+      std::string table_key = table_sptr->name;
+      std::string table_value;
+      table_sptr->ToString(table_value);
+      batch.Put(leveldb::Slice(table_key), leveldb::Slice(table_value));
+
+      // partitions
+      for (auto &p : table_sptr->partitions_by_name) {
+        PartitionSPtr partition_sptr = p.second;
+        std::string partition_key = partition_sptr->name;
+        std::string partition_value;
+        partition_sptr->ToString(partition_value);
+        batch.Put(leveldb::Slice(partition_key),
+                  leveldb::Slice(partition_value));
+
+        // replicas
+        for (auto &r : partition_sptr->replicas_by_name) {
+          ReplicaSPtr replica_sptr = r.second;
+          std::string replica_key = replica_sptr->name;
+          std::string replica_value;
+          replica_sptr->ToString(replica_value);
+          batch.Put(leveldb::Slice(replica_key), leveldb::Slice(replica_value));
+        }
+      }
+    }
+  }
+
+  // write
+  leveldb::WriteOptions wo;
+  wo.sync = true;
+  leveldb::Status s = db_->Write(wo, &batch);
+  assert(s.ok());
+
+  return 0;
+}
+
+int32_t Metadata::Load() {
+  std::string value;
+  std::string key(METADATA_TABLES_KEY);
+  auto s = db_->Get(leveldb::ReadOptions(), leveldb::Slice(key), &value);
+  if (s.ok()) {
+    TableNames t;
+    t.FromString(value);
+    for (auto table_name : t.names) {
+      TableSPtr table_sptr = LoadTable(table_name);
+      assert(table_sptr);
+      tables_[table_sptr->name] = table_sptr;
+
+      std::vector<std::string> tmp_partition_names;
+      for (auto item : table_sptr->partitions_by_name) {
+        tmp_partition_names.push_back(item.first);
+      }
+
+      for (auto &partition_name : tmp_partition_names) {
+        PartitionSPtr partition_sptr = LoadPartition(partition_name);
+        assert(partition_sptr);
+
+        // add into table
+        (table_sptr->partitions_by_name)[partition_sptr->name] = partition_sptr;
+        (table_sptr->partitions_by_uid)[partition_sptr->uid] = partition_sptr;
+
+        std::vector<std::string> tmp_replica_names;
+        for (auto &replica_name : tmp_replica_names) {
+          ReplicaSPtr replica_sptr = LoadReplica(replica_name);
+          assert(replica_sptr);
+
+          // add into partition
+          (partition_sptr->replicas_by_name)[replica_sptr->name] = replica_sptr;
+          (partition_sptr->replicas_by_uid)[replica_sptr->uid] = replica_sptr;
+        }
+      }
+    }
+
+  } else if (s.IsNotFound()) {
+    // do nothing
+    ;
+
+  } else {
+    assert(0);
+  }
+
+  return 0;
+}
 
 }  // namespace vectordb
