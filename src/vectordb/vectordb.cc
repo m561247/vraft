@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "message.h"
+#include "metadata.h"
 #include "msg_version.h"
 #include "msg_version_reply.h"
 #include "server_thread.h"
@@ -16,8 +17,8 @@ namespace vectordb {
 VectorDB::VectorDB(VdbConfigSPtr config)
     : start_(false), seqid_(0), config_(config) {
   path_ = config_->path();
-  vengine_ = std::make_shared<VEngine>(path_, 3);
-  assert(vengine_);
+  meta_ = std::make_shared<Metadata>(path_);
+  assert(meta_);
 
   vraft::ServerThreadParam param;
   param.name = "vectordb";
@@ -42,6 +43,16 @@ void VectorDB::Start() {
 void VectorDB::Join() { server_thread_->Join(); }
 
 void VectorDB::Stop() { server_thread_->Stop(); }
+
+int32_t VectorDB::AddTable(TableParam param) {
+  int32_t rv = meta_->AddTable(param);
+  if (rv != 0) {
+    vraft::vraft_logger.FTrace("vectordb add table:%s error", param.name);
+    return -1;
+  }
+
+  return 0;
+}
 
 void VectorDB::OnConnection(const vraft::TcpConnectionSPtr &conn) {
   vraft::vraft_logger.FInfo("vectordb on-connection, %s",

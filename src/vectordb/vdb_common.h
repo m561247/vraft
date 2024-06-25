@@ -1,6 +1,7 @@
 #ifndef VECTORDB_VDB_COMMON_H_
 #define VECTORDB_VDB_COMMON_H_
 
+#include <functional>
 #include <memory>
 
 namespace vectordb {
@@ -27,6 +28,10 @@ class Metadata;
 using MetadataSPtr = std::shared_ptr<Metadata>;
 using MetadataUPtr = std::unique_ptr<Metadata>;
 using MetadataWPtr = std::weak_ptr<Metadata>;
+
+using TableFunc = std::function<void(TableSPtr)>;
+using PartitionFunc = std::function<void(PartitionSPtr)>;
+using ReplicaFunc = std::function<void(ReplicaSPtr)>;
 
 class Vindex;
 using VindexSPtr = std::shared_ptr<Vindex>;

@@ -166,8 +166,8 @@ TEST(Metadata, AddTable) {
   }
 }
 
-TEST(TableNames, TableNames) {
-  vectordb::TableNames table_names;
+TEST(Names, Names) {
+  vectordb::Names table_names;
   for (int32_t i = 0; i < 10; ++i) {
     char buf[128];
     snprintf(buf, sizeof(buf), "table_%d", i);
@@ -179,7 +179,7 @@ TEST(TableNames, TableNames) {
   std::cout << "encoding bytes:" << bytes << std::endl;
   std::cout << table_names.ToJsonString(false, true) << std::endl;
 
-  vectordb::TableNames table_names2;
+  vectordb::Names table_names2;
   int32_t bytes2 = table_names2.FromString(str);
   assert(bytes2 > 0);
 
@@ -187,6 +187,28 @@ TEST(TableNames, TableNames) {
   std::cout << table_names2.ToJsonString(false, true) << std::endl;
 
   ASSERT_EQ(table_names.names.size(), table_names2.names.size());
+}
+
+TEST(Metadata, ForEachTable) {
+  system("rm -rf /tmp/metadata_test_dir");
+
+  {
+    vectordb::Metadata meta("/tmp/metadata_test_dir");
+    for (int32_t i = 0; i < 3; ++i) {
+      vectordb::TableParam table;
+      char buf[128];
+      snprintf(buf, sizeof(buf), "table_%d", i);
+      table.name = buf;
+      table.partition_num = 10;
+      table.replica_num = 3;
+      table.dim = 1024;
+      int32_t rv = meta.AddTable(table);
+      ASSERT_EQ(rv, 0);
+    }
+
+    meta.ForEachTable(
+        [](vectordb::TableSPtr sptr) { std::cout << "--------" << sptr->name << std::endl; });
+  }
 }
 
 int main(int argc, char **argv) {

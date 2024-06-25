@@ -25,7 +25,7 @@ std::string ReplicaName(const std::string &partition_name, int32_t replica_id) {
   return std::string(buf);
 }
 
-int32_t TableNames::MaxBytes() {
+int32_t Names::MaxBytes() {
   int32_t sz = 0;
   // names.size()
   sz += sizeof(uint32_t);
@@ -38,7 +38,7 @@ int32_t TableNames::MaxBytes() {
   return sz;
 }
 
-int32_t TableNames::ToString(std::string &s) {
+int32_t Names::ToString(std::string &s) {
   s.clear();
   int32_t max_bytes = MaxBytes();
   char *ptr =
@@ -49,7 +49,7 @@ int32_t TableNames::ToString(std::string &s) {
   return size;
 }
 
-int32_t TableNames::ToString(const char *ptr, int32_t len) {
+int32_t Names::ToString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   int32_t size = 0;
 
@@ -70,11 +70,11 @@ int32_t TableNames::ToString(const char *ptr, int32_t len) {
   return size;
 }
 
-int32_t TableNames::FromString(std::string &s) {
+int32_t Names::FromString(std::string &s) {
   return FromString(s.c_str(), s.size());
 }
 
-int32_t TableNames::FromString(const char *ptr, int32_t len) {
+int32_t Names::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   int32_t size = 0;
 
@@ -99,7 +99,7 @@ int32_t TableNames::FromString(const char *ptr, int32_t len) {
   return size;
 }
 
-nlohmann::json TableNames::ToJson() {
+nlohmann::json Names::ToJson() {
   nlohmann::json j;
   j["table_num"] = names.size();
 
@@ -111,9 +111,9 @@ nlohmann::json TableNames::ToJson() {
   return j;
 }
 
-nlohmann::json TableNames::ToJsonTiny() { return ToJson(); }
+nlohmann::json Names::ToJsonTiny() { return ToJson(); }
 
-std::string TableNames::ToJsonString(bool tiny, bool one_line) {
+std::string Names::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
     j["names"] = ToJsonTiny();
@@ -806,6 +806,12 @@ TableSPtr Metadata::GetTable(const std::string &name) {
   return sptr;
 }
 
+void Metadata::ForEachTable(TableFunc func) {
+  for (auto &table_kv : tables_) {
+    func(table_kv.second);
+  }
+}
+
 TableSPtr Metadata::CreateTable(TableParam param) {
   Table table;
   table.name = param.name;
@@ -918,7 +924,7 @@ int32_t Metadata::Persist() {
 
   // table_names
   {
-    TableNames tables;
+    Names tables;
     for (auto &item : tables_) {
       tables.names.push_back(item.first);
     }
@@ -974,7 +980,7 @@ int32_t Metadata::Load() {
   std::string key(METADATA_TABLES_KEY);
   auto s = db_->Get(leveldb::ReadOptions(), leveldb::Slice(key), &value);
   if (s.ok()) {
-    TableNames t;
+    Names t;
     t.FromString(value);
     for (auto table_name : t.names) {
       TableSPtr table_sptr = LoadTable(table_name);

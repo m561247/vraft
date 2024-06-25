@@ -6,7 +6,9 @@
 
 #include "buffer.h"
 #include "common.h"
+#include "metadata.h"
 #include "server_thread.h"
+#include "unordered_map"
 #include "vdb_config.h"
 #include "vengine.h"
 
@@ -28,6 +30,8 @@ class VectorDB {
   void Join();
   void Stop();
 
+  int32_t AddTable(TableParam param);
+
  private:
   void OnConnection(const vraft::TcpConnectionSPtr &conn);
   void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf);
@@ -36,12 +40,16 @@ class VectorDB {
 
  private:
   std::atomic<bool> start_;
-  std::atomic<uint64_t> seqid_;
   VdbConfigSPtr config_;
   std::string path_;
-  VEngineSPtr vengine_;
+
+  MetadataSPtr meta_;
+  std::unordered_map<uint64_t, VEngineSPtr> engines_;
+
   vraft::ServerThreadSPtr server_thread_;
   vraft::WorkThreadPoolSPtr worker_pool_;
+
+  std::atomic<uint64_t> seqid_;
   std::unordered_map<uint64_t, vraft::TcpConnectionSPtr>
       requests_;  // <seqid, connection>
 };

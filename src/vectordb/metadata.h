@@ -19,7 +19,7 @@ std::string ReplicaName(const std::string &partition_name, int32_t replica_id);
 
 #define METADATA_TABLES_KEY "---|||---"
 
-struct TableNames {
+struct Names {
   std::vector<std::string> names;
 
   int32_t MaxBytes();
@@ -128,6 +128,8 @@ class Metadata final {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+
+  void ForEachTable(TableFunc func);
 
  private:
   TableSPtr CreateTable(TableParam param);
