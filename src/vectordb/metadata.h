@@ -90,6 +90,11 @@ class Metadata final {
   Metadata &operator=(const Metadata &) = delete;
 
  private:
+  TableSPtr CreateTable(Table param);
+  PartitionSPtr CreatePartition(Partition param);
+  PartitionSPtr CreateReplica(Replica param);
+
+ private:
   std::string path_;
   leveldb::DB *db_;
   std::unordered_map<std::string, TableSPtr> tables_;

@@ -612,4 +612,10 @@ std::string Table::ToJsonString(bool tiny, bool one_line) {
 
 Metadata::Metadata(const std::string &path) : path_(path) {}
 
+TableSPtr Metadata::CreateTable(Table param) {}
+
+PartitionSPtr Metadata::CreatePartition(Partition param) {}
+
+PartitionSPtr Metadata::CreateReplica(Replica param) {}
+
 }  // namespace vectordb
