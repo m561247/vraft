@@ -8,6 +8,26 @@ namespace vectordb {
 #define DEFAULT_LIMIT 10
 #define SEARCH_K 1000000
 
+class Table;
+using TableSPtr = std::shared_ptr<Table>;
+using TableUPtr = std::unique_ptr<Table>;
+using TableWPtr = std::weak_ptr<Table>;
+
+class Partition;
+using PartitionSPtr = std::shared_ptr<Partition>;
+using PartitionUPtr = std::unique_ptr<Partition>;
+using PartitionWPtr = std::weak_ptr<Partition>;
+
+class Replica;
+using ReplicaSPtr = std::shared_ptr<Replica>;
+using ReplicaUPtr = std::unique_ptr<Replica>;
+using ReplicaWPtr = std::weak_ptr<Replica>;
+
+class Metadata;
+using MetadataSPtr = std::shared_ptr<Metadata>;
+using MetadataUPtr = std::unique_ptr<Metadata>;
+using MetadataWPtr = std::weak_ptr<Metadata>;
+
 class Vindex;
 using VindexSPtr = std::shared_ptr<Vindex>;
 using VindexUPtr = std::unique_ptr<Vindex>;

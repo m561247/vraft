@@ -92,6 +92,7 @@ VINDEX_ANNOY_TEST_SRCS := src/test/vindex_annoy_test.cc $(COMMON_SRCS)
 VINDEX_TEST_SRCS := src/test/vindex_test.cc $(COMMON_SRCS)
 VINDEX_META_TEST_SRCS := src/test/vindex_meta_test.cc $(COMMON_SRCS)
 KEYID_META_TEST_SRCS := src/test/keyid_meta_test.cc $(COMMON_SRCS)
+METADATA_TEST_SRCS := src/test/metadata_test.cc $(COMMON_SRCS)
 
 
 # remu test src
@@ -156,6 +157,7 @@ VINDEX_ANNOY_TEST_OBJECTS := $(VINDEX_ANNOY_TEST_SRCS:.cc=.o)
 VINDEX_TEST_OBJECTS := $(VINDEX_TEST_SRCS:.cc=.o)
 VINDEX_META_TEST_OBJECTS := $(VINDEX_META_TEST_SRCS:.cc=.o)
 KEYID_META_TEST_OBJECTS := $(KEYID_META_TEST_SRCS:.cc=.o)
+METADATA_TEST_OBJECTS := $(METADATA_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -206,6 +208,7 @@ TEST += vindex_annoy_test
 TEST += vindex_test
 TEST += vindex_meta_test
 TEST += keyid_meta_test
+TEST += metadata_test
 
 
 # compile
@@ -384,6 +387,9 @@ vindex_meta_test: $(VINDEX_META_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 keyid_meta_test: $(KEYID_META_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+metadata_test: $(METADATA_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 
