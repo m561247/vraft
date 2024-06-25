@@ -87,31 +87,31 @@ std::string VindexAnnoy::ToJsonString(bool tiny, bool one_line) {
 }
 
 void VindexAnnoy::Init() {
-  bool need_init = false;
-  if (!vraft::IsDirExist(param().path)) {
-    need_init = true;
-  }
-
-  if (need_init) {
+  bool dir_exist = vraft::IsDirExist(param().path);
+  if (!dir_exist) {
     MkDir();
   }
 
+  // init param meta, dir logic in VindexMeta
   VIndexParam tmp_param = param();
   meta_ = std::make_shared<VindexMeta>(meta_path_, tmp_param);
   assert(meta_);
 
+  // init keyid meta, dir logic in KeyidMeta
   keyid_ = std::make_shared<KeyidMeta>(keyid_path_);
   assert(keyid_);
 
+  // init annoy index
   annoy_index_ = CreateAnnoy(param());
   assert(annoy_index_);
 
-  int32_t rv = 0;
-  if (need_init) {
-    rv = Build();
+  bool annoy_file_exist = vraft::IsFileExist(annoy_path_file_);
+  if (!annoy_file_exist) {
+    auto rv = Build();  // file not exist, build
     assert(rv == 0);
+
   } else {
-    rv = Load();
+    auto rv = Load();  // file exist, load
     assert(rv == 0);
   }
 }
