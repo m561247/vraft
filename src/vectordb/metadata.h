@@ -62,14 +62,24 @@ struct Partition {
 
 struct Table {
   std::string name;
-  int32_t dim;
+  std::string path;
   int32_t partition_num;
   int32_t replica_num;
-  std::string path;
+  int32_t dim;
   uint64_t uid;
 
   std::map<uint64_t, PartitionSPtr> partitions_by_uid;
   std::map<std::string, PartitionSPtr> partitions_by_name;
+
+  int32_t MaxBytes();
+  int32_t ToString(std::string &s);
+  int32_t ToString(const char *ptr, int32_t len);
+  int32_t FromString(std::string &s);
+  int32_t FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
 };
 
 class Metadata final {

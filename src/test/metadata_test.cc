@@ -101,6 +101,42 @@ TEST(Partition, Partition) {
             partition2.replicas_by_name.size());
 }
 
+TEST(Table, Table) {
+  vectordb::Table table;
+  table.name = "test-table";
+  table.path = "/tmp/data";
+  table.partition_num = 5;
+  table.replica_num = 3;
+  table.dim = 1024;
+  table.uid = 88;
+  for (int32_t i = 0; i < table.partition_num; ++i) {
+    std::string partition_name = vectordb::PartitionName(table.name, i);
+    table.partitions_by_name[partition_name] = nullptr;
+    table.partitions_by_uid[i] = nullptr;
+  }
+
+  std::string str;
+  int32_t bytes = table.ToString(str);
+  std::cout << "encoding bytes:" << bytes << std::endl;
+  std::cout << table.ToJsonString(false, true) << std::endl;
+
+  vectordb::Table table2;
+  int32_t bytes2 = table2.FromString(str);
+  assert(bytes2 > 0);
+
+  std::cout << "decoding bytes:" << bytes2 << std::endl;
+  std::cout << table2.ToJsonString(false, true) << std::endl;
+
+  ASSERT_EQ(table.name, table2.name);
+  ASSERT_EQ(table.path, table2.path);
+  ASSERT_EQ(table.partition_num, table2.partition_num);
+  ASSERT_EQ(table.replica_num, table2.replica_num);
+  ASSERT_EQ(table.dim, table2.dim);
+  ASSERT_EQ(table.uid, table2.uid);
+  ASSERT_EQ(table.partitions_by_uid.size(), table2.partitions_by_uid.size());
+  ASSERT_EQ(table.partitions_by_name.size(), table2.partitions_by_name.size());
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);
