@@ -189,7 +189,39 @@ TEST(Names, Names) {
   ASSERT_EQ(table_names.names.size(), table_names2.names.size());
 }
 
-TEST(Metadata, ForEachTable) {
+TEST(Metadata, Get) {
+  system("rm -rf /tmp/metadata_test_dir");
+
+  {
+    vectordb::Metadata meta("/tmp/metadata_test_dir");
+    for (int32_t i = 0; i < 10; ++i) {
+      vectordb::TableParam table;
+      char buf[128];
+      snprintf(buf, sizeof(buf), "table_%d", i);
+      table.name = buf;
+      table.partition_num = 4;
+      table.replica_num = 3;
+      table.dim = 1024;
+      int32_t rv = meta.AddTable(table);
+      ASSERT_EQ(rv, 0);
+    }
+
+    vectordb::TableSPtr table = meta.GetTable("table_1");
+    assert(table);
+    std::cout << table->ToJsonString(false, false) << std::endl << std::endl;
+
+    vectordb::PartitionSPtr partition = meta.GetPartition("table_2#1");
+    assert(partition);
+    std::cout << partition->ToJsonString(false, false) << std::endl
+              << std::endl;
+
+    vectordb::ReplicaSPtr replica = meta.GetReplica("table_2#1#0");
+    assert(replica);
+    std::cout << replica->ToJsonString(false, false) << std::endl << std::endl;
+  }
+}
+
+TEST(Metadata, ForEach) {
   system("rm -rf /tmp/metadata_test_dir");
 
   {
@@ -199,15 +231,38 @@ TEST(Metadata, ForEachTable) {
       char buf[128];
       snprintf(buf, sizeof(buf), "table_%d", i);
       table.name = buf;
-      table.partition_num = 10;
+      table.partition_num = 4;
       table.replica_num = 3;
       table.dim = 1024;
       int32_t rv = meta.AddTable(table);
       ASSERT_EQ(rv, 0);
     }
 
-    meta.ForEachTable(
-        [](vectordb::TableSPtr sptr) { std::cout << "--------" << sptr->name << std::endl; });
+    meta.ForEachTable([](vectordb::TableSPtr sptr) {
+      std::cout << "--------ForEachTable: " << sptr->name << std::endl;
+    });
+
+    meta.ForEachPartition([](vectordb::PartitionSPtr sptr) {
+      std::cout << "--------ForEachPartition: " << sptr->name << std::endl;
+    });
+
+    meta.ForEachPartitionInTable("table_1", [](vectordb::PartitionSPtr sptr) {
+      std::cout << "--------ForEachPartitionInTable: " << sptr->name
+                << std::endl;
+    });
+
+    meta.ForEachReplica([](vectordb::ReplicaSPtr sptr) {
+      std::cout << "--------ForEachReplica: " << sptr->name << std::endl;
+    });
+
+    meta.ForEachReplicaInPartition("table_1#0", [](vectordb::ReplicaSPtr sptr) {
+      std::cout << "--------ForEachReplicaInPartition: " << sptr->name
+                << std::endl;
+    });
+
+    meta.ForEachReplicaInTable("table_1", [](vectordb::ReplicaSPtr sptr) {
+      std::cout << "--------ForEachReplicaInTable: " << sptr->name << std::endl;
+    });
   }
 }
 

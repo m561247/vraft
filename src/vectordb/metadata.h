@@ -124,12 +124,21 @@ class Metadata final {
 
   int32_t AddTable(TableParam param);
   TableSPtr GetTable(const std::string &name);
+  PartitionSPtr GetPartition(const std::string &name);
+  ReplicaSPtr GetReplica(const std::string &name);
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
 
   void ForEachTable(TableFunc func);
+  void ForEachPartition(PartitionFunc func);
+  void ForEachPartitionInTable(const std::string &table_name,
+                               PartitionFunc func);
+  void ForEachReplica(ReplicaFunc func);
+  void ForEachReplicaInPartition(const std::string &partition_name,
+                                 ReplicaFunc func);
+  void ForEachReplicaInTable(const std::string &table_name, ReplicaFunc func);
 
  private:
   TableSPtr CreateTable(TableParam param);

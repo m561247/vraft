@@ -724,12 +724,12 @@ nlohmann::json Table::ToJson() {
 
   int32_t i = 0;
   for (auto item : partitions_by_uid) {
-    j["replica_uids"][i++] = item.first;
+    j["partition_uids"][i++] = item.first;
   }
 
   i = 0;
   for (auto item : partitions_by_name) {
-    j["replica_names"][i++] = item.first;
+    j["partition_names"][i++] = item.first;
   }
 
   return j;
@@ -806,10 +806,90 @@ TableSPtr Metadata::GetTable(const std::string &name) {
   return sptr;
 }
 
+PartitionSPtr Metadata::GetPartition(const std::string &name) {
+  TableSPtr table;
+  PartitionSPtr partition;
+  for (auto &table_kv : tables_) {
+    table = table_kv.second;
+    if (table) {
+      auto it = table->partitions_by_name.find(name);
+      if (it != table->partitions_by_name.end()) {
+        partition = it->second;
+        return partition;
+      }
+    }
+  }
+  return partition;
+}
+
+ReplicaSPtr Metadata::GetReplica(const std::string &name) {
+  TableSPtr table;
+  PartitionSPtr partition;
+  ReplicaSPtr replica;
+  for (auto &table_kv : tables_) {
+    table = table_kv.second;
+    if (table) {
+      for (auto &partition_kv : table->partitions_by_name) {
+        partition = partition_kv.second;
+        if (partition) {
+          auto it = partition->replicas_by_name.find(name);
+          if (it != partition->replicas_by_name.end()) {
+            replica = it->second;
+            return replica;
+          }
+        }
+      }
+    }
+  }
+  return replica;
+}
+
 void Metadata::ForEachTable(TableFunc func) {
   for (auto &table_kv : tables_) {
     func(table_kv.second);
   }
+}
+
+void Metadata::ForEachPartition(PartitionFunc func) {
+  ForEachTable([func, this](TableSPtr sptr) {
+    std::bind(&Metadata::ForEachPartitionInTable, this, sptr->name, func)();
+  });
+}
+
+void Metadata::ForEachPartitionInTable(const std::string &table_name,
+                                       PartitionFunc func) {
+  TableSPtr table = GetTable(table_name);
+  if (table) {
+    for (auto &kv : table->partitions_by_name) {
+      func(kv.second);
+    }
+  }
+}
+
+void Metadata::ForEachReplica(ReplicaFunc func) {
+  ForEachTable([this, func](TableSPtr sptr) {
+    std::bind(&Metadata::ForEachReplicaInTable, this, sptr->name, func)();
+  });
+}
+
+void Metadata::ForEachReplicaInPartition(const std::string &partition_name,
+                                         ReplicaFunc func) {
+  PartitionSPtr partition = GetPartition(partition_name);
+  if (partition) {
+    for (auto &replica_kv : partition->replicas_by_uid) {
+      ReplicaSPtr replica = replica_kv.second;
+      if (replica) {
+        func(replica);
+      }
+    }
+  }
+}
+
+void Metadata::ForEachReplicaInTable(const std::string &table_name,
+                                     ReplicaFunc func) {
+  ForEachPartitionInTable(table_name, [this, func](PartitionSPtr sptr) {
+    std::bind(&Metadata::ForEachReplicaInPartition, this, sptr->name, func)();
+  });
 }
 
 TableSPtr Metadata::CreateTable(TableParam param) {
