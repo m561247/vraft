@@ -142,21 +142,17 @@ TEST(Table, Table) {
 }
 
 TEST(Metadata, AddTable) {
-  vectordb::Metadata meta("xx");
+  system("rm -rf /tmp/metadata_test_dir");
+  vectordb::Metadata meta("/tmp/metadata_test_dir");
 
   for (int32_t i = 0; i < 3; ++i) {
-    vectordb::Table table;
+    vectordb::TableParam table;
     char buf[128];
     snprintf(buf, sizeof(buf), "table_%d", i);
     table.name = buf;
-
-    snprintf(buf, sizeof(buf), "/tmp/data/%s", table.name.c_str());
-    table.path = buf;
-
     table.partition_num = 10;
     table.replica_num = 3;
     table.dim = 1024;
-    table.uid = 0;
     int32_t rv = meta.AddTable(table);
     ASSERT_EQ(rv, 0);
   }

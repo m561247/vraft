@@ -67,6 +67,13 @@ struct Partition {
   static uint64_t partition_uid;
 };
 
+struct TableParam {
+  std::string name;
+  int32_t partition_num;
+  int32_t replica_num;
+  int32_t dim;
+};
+
 struct Table {
   std::string name;
   std::string path;
@@ -98,7 +105,7 @@ class Metadata final {
   Metadata(const Metadata &) = delete;
   Metadata &operator=(const Metadata &) = delete;
 
-  int32_t AddTable(Table param);
+  int32_t AddTable(TableParam param);
   TableSPtr GetTable(const std::string &name);
 
   nlohmann::json ToJson();
@@ -106,13 +113,15 @@ class Metadata final {
   std::string ToJsonString(bool tiny, bool one_line);
 
  private:
-  TableSPtr CreateTable(Table param);
+  TableSPtr CreateTable(TableParam param);
   PartitionSPtr CreatePartition(Partition param);
   ReplicaSPtr CreateReplica(Replica param);
+  int32_t CreateDB();
 
  private:
   std::string path_;
-  leveldb::DB *db_;
+  leveldb::Options db_options_;
+  std::shared_ptr<leveldb::DB> db_;
   std::unordered_map<std::string, TableSPtr> tables_;
 };
 
