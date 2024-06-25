@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "leveldb/db.h"
 #include "nlohmann/json.hpp"
@@ -15,6 +16,22 @@ namespace vectordb {
 
 std::string PartitionName(const std::string &table_name, int32_t partition_id);
 std::string ReplicaName(const std::string &partition_name, int32_t replica_id);
+
+#define METADATA_TABLES_KEY "---|||---"
+
+struct TableNames {
+  std::vector<std::string> names;
+
+  int32_t MaxBytes();
+  int32_t ToString(std::string &s);
+  int32_t ToString(const char *ptr, int32_t len);
+  int32_t FromString(std::string &s);
+  int32_t FromString(const char *ptr, int32_t len);
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+};
 
 struct Replica {
   int32_t id;
@@ -117,6 +134,7 @@ class Metadata final {
   PartitionSPtr CreatePartition(Partition param);
   ReplicaSPtr CreateReplica(Replica param);
   int32_t CreateDB();
+  int32_t Persist();
 
  private:
   std::string path_;

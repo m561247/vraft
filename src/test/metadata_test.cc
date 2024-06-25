@@ -160,6 +160,29 @@ TEST(Metadata, AddTable) {
   std::cout << meta.ToJsonString(false, false) << std::endl;
 }
 
+TEST(TableNames, TableNames) {
+  vectordb::TableNames table_names;
+  for (int32_t i = 0; i < 10; ++i) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "table_%d", i);
+    table_names.names.push_back(buf);
+  }
+
+  std::string str;
+  int32_t bytes = table_names.ToString(str);
+  std::cout << "encoding bytes:" << bytes << std::endl;
+  std::cout << table_names.ToJsonString(false, true) << std::endl;
+
+  vectordb::TableNames table_names2;
+  int32_t bytes2 = table_names2.FromString(str);
+  assert(bytes2 > 0);
+
+  std::cout << "decoding bytes:" << bytes2 << std::endl;
+  std::cout << table_names2.ToJsonString(false, true) << std::endl;
+
+  ASSERT_EQ(table_names.names.size(), table_names2.names.size());
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

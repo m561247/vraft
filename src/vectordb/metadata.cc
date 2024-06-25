@@ -24,6 +24,109 @@ std::string ReplicaName(const std::string &partition_name, int32_t replica_id) {
   return std::string(buf);
 }
 
+int32_t TableNames::MaxBytes() {
+  int32_t sz = 0;
+  // names.size()
+  sz += sizeof(uint32_t);
+
+  // uids
+  for (auto name : names) {
+    sz += 2 * sizeof(uint32_t);
+    sz += name.size();
+  }
+  return sz;
+}
+
+int32_t TableNames::ToString(std::string &s) {
+  s.clear();
+  int32_t max_bytes = MaxBytes();
+  char *ptr =
+      reinterpret_cast<char *>(vraft::DefaultAllocator().Malloc(max_bytes));
+  int32_t size = ToString(ptr, max_bytes);
+  s.append(ptr, size);
+  vraft::DefaultAllocator().Free(ptr);
+  return size;
+}
+
+int32_t TableNames::ToString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  uint32_t u32 = names.size();
+  vraft::EncodeFixed32(p, u32);
+  p += sizeof(u32);
+  size += sizeof(u32);
+
+  // names
+  for (auto item : names) {
+    vraft::Slice sls(item.c_str(), item.size());
+    char *p2 = vraft::EncodeString2(p, len - size, sls);
+    size += (p2 - p);
+    p = p2;
+  }
+
+  assert(size <= len);
+  return size;
+}
+
+int32_t TableNames::FromString(std::string &s) {
+  return FromString(s.c_str(), s.size());
+}
+
+int32_t TableNames::FromString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+
+  int32_t table_num = vraft::DecodeFixed32(p);
+  p += sizeof(table_num);
+  size += sizeof(table_num);
+
+  // names
+  for (int32_t i = 0; i < table_num; ++i) {
+    std::string table_name;
+    vraft::Slice result;
+    vraft::Slice input(p, len - size);
+    int32_t sz = vraft::DecodeString2(&input, &result);
+    if (sz > 0) {
+      table_name.append(result.data(), result.size());
+      p += sz;
+      size += sz;
+    }
+    names.push_back(table_name);
+  }
+
+  return size;
+}
+
+nlohmann::json TableNames::ToJson() {
+  nlohmann::json j;
+  j["table_num"] = names.size();
+
+  int32_t i = 0;
+  for (auto name : names) {
+    j["names"][i++] = name;
+  }
+
+  return j;
+}
+
+nlohmann::json TableNames::ToJsonTiny() { return ToJson(); }
+
+std::string TableNames::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["names"] = ToJsonTiny();
+  } else {
+    j["names"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
 int32_t Replica::MaxBytes() {
   int32_t sz = 0;
   sz += sizeof(id);
@@ -762,5 +865,7 @@ int32_t Metadata::CreateDB() {
   db_.reset(dbptr);
   return 0;
 }
+
+int32_t Metadata::Persist() { return 0; }
 
 }  // namespace vectordb
