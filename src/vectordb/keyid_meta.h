@@ -11,8 +11,8 @@
 namespace vectordb {
 
 #define ANNOY_KEY_PREFIX "key_"
-std::string EncodeAnnoyKey(std::string &key);
-vraft::Slice DecodeAnnoyKey(std::string &key);
+std::string EncodeAnnoyKey(const std::string &key);
+vraft::Slice DecodeAnnoyKey(const std::string &key);
 
 class KeyidMeta final {
  public:
@@ -21,10 +21,10 @@ class KeyidMeta final {
   KeyidMeta(const KeyidMeta &) = delete;
   KeyidMeta &operator=(const KeyidMeta &) = delete;
 
-  int32_t Put(const std::string &key, int32_t id);
-  int32_t Put(int32_t id, const std::string &key);
-  int32_t Get(const std::string &key, int32_t &id);
-  int32_t Get(int32_t id, std::string &key);
+  int32_t Put(const std::string &vkey, int32_t id);
+  int32_t Put(int32_t id, const std::string &vkey);
+  int32_t Get(const std::string &vkey, int32_t &id);
+  int32_t Get(int32_t id, std::string &vkey);
 
  private:
   int32_t CreateDB();

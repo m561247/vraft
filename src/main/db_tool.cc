@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     std::string key = vraft::StrToHexStr(it->key().ToString().c_str(),
                                          it->key().ToString().size());
     std::string value = vraft::StrToHexStr(it->value().ToString().c_str(),
-                                           it->key().ToString().size());
+                                           it->value().ToString().size());
     std::cout << key << " -- " << value << std::endl;
   }
   assert(it->status().ok());  // Check for any errors found during the scan
