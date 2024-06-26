@@ -9,6 +9,7 @@
 #include "test_suite.h"
 #include "timer.h"
 #include "util.h"
+#include "vindex.h"
 
 //--------------------------------
 // EXPECT_TRUE  true
@@ -119,15 +120,17 @@ TEST(VEngine, VEngine) {
   system("rm -rf /tmp/vengine_test_dir");
 
   {
-    vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
-    std::cout << ve.ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve.Dim(), dim);
+    vectordb::VEngineSPtr ve =
+        std::make_shared<vectordb::VEngine>("/tmp/vengine_test_dir", dim);
+    std::cout << ve->ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve->Dim(), dim);
   }
 
   {
-    vectordb::VEngine ve("/tmp/vengine_test_dir", dim + 99);
-    std::cout << ve.ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve.Dim(), dim);
+    vectordb::VEngineSPtr ve =
+        std::make_shared<vectordb::VEngine>("/tmp/vengine_test_dir", dim + 99);
+    std::cout << ve->ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve->Dim(), dim);
   }
 }
 
@@ -136,9 +139,10 @@ TEST(VEngine, OP) {
   std::string key = "kkk";
 
   {
-    vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
-    std::cout << ve.ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve.Dim(), dim);
+    vectordb::VEngineSPtr ve =
+        std::make_shared<vectordb::VEngine>("/tmp/vengine_test_dir", dim);
+    std::cout << ve->ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve->Dim(), dim);
 
     vectordb::VecValue vv;
     for (int32_t i = 0; i < dim; ++i) {
@@ -146,12 +150,12 @@ TEST(VEngine, OP) {
       vv.vec.data.push_back(f32);
     }
     vv.attach_value = "aaavvv";
-    int32_t rv = ve.Put(key, vv);
+    int32_t rv = ve->Put(key, vv);
     ASSERT_EQ(rv, 0);
     std::cout << "put: " << vv.ToJsonString(false, true) << std::endl;
 
     vectordb::VecObj vo;
-    rv = ve.Get(key, vo);
+    rv = ve->Get(key, vo);
     ASSERT_EQ(rv, 0);
     std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
 
@@ -164,19 +168,20 @@ TEST(VEngine, OP) {
   }
 
   {
-    vectordb::VEngine ve("/tmp/vengine_test_dir", dim + 99);
-    std::cout << ve.ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve.Dim(), dim);
+    vectordb::VEngineSPtr ve =
+        std::make_shared<vectordb::VEngine>("/tmp/vengine_test_dir", dim + 99);
+    std::cout << ve->ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve->Dim(), dim);
 
     vectordb::VecObj vo;
-    int32_t rv = ve.Get(key, vo);
+    int32_t rv = ve->Get(key, vo);
     ASSERT_EQ(rv, 0);
     std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
 
-    rv = ve.Delete(key);
+    rv = ve->Delete(key);
     ASSERT_EQ(rv, 0);
 
-    rv = ve.Get(key, vo);
+    rv = ve->Get(key, vo);
     ASSERT_EQ(rv, -2);
   }
 }
@@ -186,7 +191,7 @@ TEST(VEngine, Load) {
 
   bool ok = false;
   if (vraft::IsFileExist("./output/test/generate_vec_test")) {
-    system("./output/test/generate_vec_test 10 100 > /tmp/vec.txt");
+    system("./output/test/generate_vec_test 10 1000 > /tmp/vec.txt");
     ok = true;
 
   } else if (vraft::IsFileExist("./generate_vec_test")) {
@@ -198,17 +203,35 @@ TEST(VEngine, Load) {
   }
 
   if (ok) {
-    vectordb::VEngine ve("/tmp/vengine_test_dir", dim);
-    std::cout << ve.ToJsonString(true, true) << std::endl;
-    ASSERT_EQ(ve.Dim(), dim);
+    vectordb::VEngineSPtr ve =
+        std::make_shared<vectordb::VEngine>("/tmp/vengine_test_dir", dim);
+    std::cout << ve->ToJsonString(true, true) << std::endl;
+    ASSERT_EQ(ve->Dim(), dim);
 
-    int32_t rv = ve.Load("/tmp/vec.txt");
+    int32_t rv = ve->Load("/tmp/vec.txt");
     ASSERT_EQ(rv, 0);
 
     vectordb::VecObj vo;
-    rv = ve.Get("key_0", vo);
+    rv = ve->Get("key_0", vo);
     ASSERT_EQ(rv, 0);
     std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+
+    vectordb::AddIndexParam param;
+    param.timestamp = vraft::Clock::NSec();
+    param.dim = dim;
+    param.index_type = vectordb::kIndexAnnoy;
+    param.distance_type = vectordb::kCosine;
+    param.annoy_tree_num = 20;
+    rv = ve->AddIndex(param);
+    ASSERT_EQ(rv, 0);
+
+    param.timestamp = vraft::Clock::NSec();
+    rv = ve->AddIndex(param);
+    ASSERT_EQ(rv, 0);
+
+    param.timestamp = vraft::Clock::NSec();
+    rv = ve->AddIndex(param);
+    ASSERT_EQ(rv, 0);
   }
 }
 

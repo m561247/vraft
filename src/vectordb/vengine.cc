@@ -3,12 +3,14 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "allocator.h"
 #include "coding.h"
 #include "common.h"
 #include "util.h"
+#include "vindex_annoy.h"
 #include "vindex_manager.h"
 #include "vraft_logger.h"
 
@@ -418,7 +420,26 @@ int32_t VEngine::Load(const std::string &file_path) {
 
 bool VEngine::HasIndex() const { return index_manager_->HasIndex(); }
 
-int32_t VEngine::AddIndex(VIndexType type) { return 0; }
+int32_t VEngine::AddIndex(AddIndexParam add_param) {
+  char buf[256];
+  snprintf(buf, sizeof(buf), "%s/%s_%lu", index_path_.c_str(),
+           VIndexType2Str(add_param.index_type), add_param.timestamp);
+
+  VIndexParam param;
+  param.path = buf;
+  param.timestamp = add_param.timestamp;
+  param.dim = add_param.dim;
+  param.index_type = add_param.index_type;
+  param.distance_type = add_param.distance_type;
+  param.annoy_tree_num = add_param.annoy_tree_num;
+  VindexAnnoy *index = new VindexAnnoy(param, shared_from_this());
+  assert(index);
+  VindexSPtr vindex;
+  vindex.reset(index);
+  index_manager_->Add(vindex);
+
+  return 0;
+}
 
 int32_t VEngine::GetKNN(const std::string &key, std::vector<VecResult> &results,
                         const std::string &index_name, int limit) {
@@ -476,6 +497,8 @@ void VEngine::Init() {
   assert(meta_);
 
   // init index
+  index_manager_ = std::make_shared<VindexManager>();
+  assert(index_manager_);
 }
 
 void VEngine::MkDir() {

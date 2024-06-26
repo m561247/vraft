@@ -11,7 +11,7 @@ namespace vectordb {
 
 class VindexManager final {
  public:
-  explicit VindexManager(VEngineSPtr v);
+  explicit VindexManager();
   ~VindexManager();
   VindexManager(const VindexManager &) = delete;
   VindexManager &operator=(const VindexManager &) = delete;
@@ -23,9 +23,6 @@ class VindexManager final {
   VindexSPtr GetNewest();
 
  private:
-  VEngineWPtr vengine_;
-  std::string path_;
-
   std::map<uint64_t, VindexSPtr> indices_;
 };
 

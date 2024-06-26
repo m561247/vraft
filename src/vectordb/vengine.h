@@ -11,6 +11,14 @@
 
 namespace vectordb {
 
+struct AddIndexParam {
+  uint64_t timestamp;
+  int32_t dim;
+  VIndexType index_type;       // uint8_t
+  DistanceType distance_type;  // uint8_t
+  int32_t annoy_tree_num;
+};
+
 struct Vec {
   std::vector<float> data;
   int32_t dim() const { return static_cast<int32_t>(data.size()); }
@@ -60,7 +68,7 @@ struct VecObj {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
-class VEngine final {
+class VEngine final : public std::enable_shared_from_this<VEngine> {
  public:
   explicit VEngine(const std::string &path, int32_t dim);
   ~VEngine();
@@ -80,7 +88,7 @@ class VEngine final {
   int32_t Load(const std::string &file_path);
 
   bool HasIndex() const;
-  int32_t AddIndex(VIndexType type);
+  int32_t AddIndex(AddIndexParam param);
   int32_t GetKNN(const std::string &key, std::vector<VecResult> &results,
                  const std::string &index_name, int limit);
   int32_t GetKNN(const std::vector<float> &vec, std::vector<VecResult> &results,

@@ -6,8 +6,7 @@
 
 namespace vectordb {
 
-VindexManager::VindexManager(VEngineSPtr v)
-    : vengine_(v), path_(v->index_path()) {}
+VindexManager::VindexManager() {}
 
 bool VindexManager::HasIndex() const { return indices_.size() > 0; }
 
