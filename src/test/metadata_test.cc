@@ -77,7 +77,7 @@ TEST(Partition, Partition) {
   for (int32_t i = 0; i < partition.replica_num; ++i) {
     std::string replica_name = vectordb::ReplicaName(partition.name, i);
     partition.replicas_by_name[replica_name] = nullptr;
-    partition.replicas_by_uid[i] = nullptr;
+    partition.replicas_by_id[i] = nullptr;
   }
 
   std::string str;
@@ -99,8 +99,7 @@ TEST(Partition, Partition) {
   ASSERT_EQ(partition.uid, partition2.uid);
   ASSERT_EQ(partition.table_name, partition2.table_name);
   ASSERT_EQ(partition.table_uid, partition2.table_uid);
-  ASSERT_EQ(partition.replicas_by_uid.size(),
-            partition2.replicas_by_uid.size());
+  ASSERT_EQ(partition.replicas_by_id.size(), partition2.replicas_by_id.size());
   ASSERT_EQ(partition.replicas_by_name.size(),
             partition2.replicas_by_name.size());
 }

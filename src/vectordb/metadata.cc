@@ -353,11 +353,11 @@ int32_t Partition::MaxBytes() {
   sz += table_name.size();
   sz += sizeof(table_uid);
 
-  // replicas_by_uid.size()
+  // replicas_by_id.size()
   sz += sizeof(uint32_t);
 
-  // uids
-  for (auto item : replicas_by_uid) {
+  // ids
+  for (auto item : replicas_by_id) {
     sz += sizeof(item.first);
   }
 
@@ -425,12 +425,12 @@ int32_t Partition::ToString(const char *ptr, int32_t len) {
   p += sizeof(table_uid);
   size += sizeof(table_uid);
 
-  // uids
-  for (auto item : replicas_by_uid) {
-    uint64_t u64 = item.first;
-    vraft::EncodeFixed64(p, u64);
-    p += sizeof(u64);
-    size += sizeof(u64);
+  // ids
+  for (auto item : replicas_by_id) {
+    uint32_t u32 = item.first;
+    vraft::EncodeFixed32(p, u32);
+    p += sizeof(u32);
+    size += sizeof(u32);
   }
 
   // names
@@ -505,12 +505,12 @@ int32_t Partition::FromString(const char *ptr, int32_t len) {
   p += sizeof(table_uid);
   size += sizeof(table_uid);
 
-  // uids
+  // ids
   for (int32_t i = 0; i < replica_num; ++i) {
-    uint64_t u64 = vraft::DecodeFixed64(p);
-    p += sizeof(u64);
-    size += sizeof(u64);
-    replicas_by_uid[u64] = nullptr;
+    uint32_t u32 = vraft::DecodeFixed32(p);
+    p += sizeof(u32);
+    size += sizeof(u32);
+    replicas_by_id[u32] = nullptr;
   }
 
   // names
@@ -541,8 +541,8 @@ nlohmann::json Partition::ToJson() {
   j["table_uid"] = table_uid;
 
   int32_t i = 0;
-  for (auto item : replicas_by_uid) {
-    j["replica_uids"][i++] = item.first;
+  for (auto item : replicas_by_id) {
+    j["replica_ids"][i++] = item.first;
   }
 
   i = 0;
@@ -857,8 +857,8 @@ ReplicaSPtr Metadata::GetReplica(const std::string &name) {
   PartitionSPtr partition =
       GetPartition(PartitionName(table_name, partition_id));
   if (partition) {
-    auto it = partition->replicas_by_name.find(name);
-    if (it != partition->replicas_by_name.end()) {
+    auto it = partition->replicas_by_id.find(replica_id);
+    if (it != partition->replicas_by_id.end()) {
       replica = it->second;
       return replica;
     }
@@ -899,7 +899,7 @@ void Metadata::ForEachReplicaInPartition(const std::string &partition_name,
                                          ReplicaFunc func) {
   PartitionSPtr partition = GetPartition(partition_name);
   if (partition) {
-    for (auto &replica_kv : partition->replicas_by_uid) {
+    for (auto &replica_kv : partition->replicas_by_id) {
       ReplicaSPtr replica = replica_kv.second;
       if (replica) {
         func(replica);
@@ -957,7 +957,7 @@ PartitionSPtr Metadata::CreatePartition(Partition param) {
     replica.partition_uid = param.partition_uid;
 
     ReplicaSPtr replica_sptr = CreateReplica(replica);
-    (partition_sptr->replicas_by_uid)[replica_sptr->uid] = replica_sptr;
+    (partition_sptr->replicas_by_id)[replica_sptr->id] = replica_sptr;
     (partition_sptr->replicas_by_name)[replica_sptr->name] = replica_sptr;
   }
   return partition_sptr;
@@ -1110,7 +1110,7 @@ int32_t Metadata::Load() {
 
           // add into partition
           (partition_sptr->replicas_by_name)[replica_sptr->name] = replica_sptr;
-          (partition_sptr->replicas_by_uid)[replica_sptr->uid] = replica_sptr;
+          (partition_sptr->replicas_by_id)[replica_sptr->id] = replica_sptr;
         }
       }
     }

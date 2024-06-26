@@ -75,7 +75,7 @@ struct Partition {
   std::string table_name;
   uint64_t table_uid;
 
-  std::map<uint64_t, ReplicaSPtr> replicas_by_uid;
+  std::map<int32_t, ReplicaSPtr> replicas_by_id;
   std::map<std::string, ReplicaSPtr> replicas_by_name;
 
   int32_t MaxBytes();
