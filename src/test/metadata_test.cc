@@ -115,7 +115,7 @@ TEST(Table, Table) {
   for (int32_t i = 0; i < table.partition_num; ++i) {
     std::string partition_name = vectordb::PartitionName(table.name, i);
     table.partitions_by_name[partition_name] = nullptr;
-    table.partitions_by_uid[i] = nullptr;
+    table.partitions_by_id[i] = nullptr;
   }
 
   std::string str;
@@ -136,7 +136,7 @@ TEST(Table, Table) {
   ASSERT_EQ(table.replica_num, table2.replica_num);
   ASSERT_EQ(table.dim, table2.dim);
   ASSERT_EQ(table.uid, table2.uid);
-  ASSERT_EQ(table.partitions_by_uid.size(), table2.partitions_by_uid.size());
+  ASSERT_EQ(table.partitions_by_id.size(), table2.partitions_by_id.size());
   ASSERT_EQ(table.partitions_by_name.size(), table2.partitions_by_name.size());
 }
 

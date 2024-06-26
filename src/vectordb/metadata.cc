@@ -581,11 +581,11 @@ int32_t Table::MaxBytes() {
   sz += sizeof(dim);
   sz += sizeof(uid);
 
-  // partitions_by_uid.size()
+  // partitions_by_id.size()
   sz += sizeof(uint32_t);
 
   // uids
-  for (auto item : partitions_by_uid) {
+  for (auto item : partitions_by_id) {
     sz += sizeof(item.first);
   }
 
@@ -647,11 +647,11 @@ int32_t Table::ToString(const char *ptr, int32_t len) {
   size += sizeof(uid);
 
   // uids
-  for (auto item : partitions_by_uid) {
-    uint64_t u64 = item.first;
-    vraft::EncodeFixed64(p, u64);
-    p += sizeof(u64);
-    size += sizeof(u64);
+  for (auto item : partitions_by_id) {
+    int32_t i32 = item.first;
+    vraft::EncodeFixed32(p, i32);
+    p += sizeof(i32);
+    size += sizeof(i32);
   }
 
   // names
@@ -716,10 +716,10 @@ int32_t Table::FromString(const char *ptr, int32_t len) {
 
   // uids
   for (int32_t i = 0; i < partition_num; ++i) {
-    uint64_t u64 = vraft::DecodeFixed64(p);
-    p += sizeof(u64);
-    size += sizeof(u64);
-    partitions_by_uid[u64] = nullptr;
+    int32_t i32 = vraft::DecodeFixed32(p);
+    p += sizeof(i32);
+    size += sizeof(i32);
+    partitions_by_id[i32] = nullptr;
   }
 
   // names
@@ -749,8 +749,8 @@ nlohmann::json Table::ToJson() {
   j["uid"] = uid;
 
   int32_t i = 0;
-  for (auto item : partitions_by_uid) {
-    j["partition_uids"][i++] = item.first;
+  for (auto item : partitions_by_id) {
+    j["partition_ids"][i++] = item.first;
   }
 
   i = 0;
@@ -839,8 +839,8 @@ PartitionSPtr Metadata::GetPartition(const std::string &name) {
   ParsePartitionName(name, table_name, partition_id);
   TableSPtr table = GetTable(table_name);
   if (table) {
-    auto it = table->partitions_by_name.find(name);
-    if (it != table->partitions_by_name.end()) {
+    auto it = table->partitions_by_id.find(partition_id);
+    if (it != table->partitions_by_id.end()) {
       partition = it->second;
     }
   }
@@ -936,7 +936,7 @@ TableSPtr Metadata::CreateTable(TableParam param) {
     partition.table_uid = table_sptr->uid;
 
     PartitionSPtr partition_sptr = CreatePartition(partition);
-    (table_sptr->partitions_by_uid)[partition_sptr->uid] = partition_sptr;
+    (table_sptr->partitions_by_id)[partition_sptr->id] = partition_sptr;
     (table_sptr->partitions_by_name)[partition_sptr->name] = partition_sptr;
   }
   return table_sptr;
@@ -1101,7 +1101,7 @@ int32_t Metadata::Load() {
 
         // add into table
         (table_sptr->partitions_by_name)[partition_sptr->name] = partition_sptr;
-        (table_sptr->partitions_by_uid)[partition_sptr->uid] = partition_sptr;
+        (table_sptr->partitions_by_id)[partition_sptr->id] = partition_sptr;
 
         std::vector<std::string> tmp_replica_names;
         for (auto &replica_name : tmp_replica_names) {

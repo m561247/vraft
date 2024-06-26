@@ -106,7 +106,7 @@ struct Table {
   int32_t dim;
   uint64_t uid;
 
-  std::map<uint64_t, PartitionSPtr> partitions_by_uid;
+  std::map<int32_t, PartitionSPtr> partitions_by_id;
   std::map<std::string, PartitionSPtr> partitions_by_name;
 
   int32_t MaxBytes();
