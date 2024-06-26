@@ -90,9 +90,9 @@ class VEngine final : public std::enable_shared_from_this<VEngine> {
   bool HasIndex() const;
   int32_t AddIndex(AddIndexParam param);
   int32_t GetKNN(const std::string &key, std::vector<VecResult> &results,
-                 const std::string &index_name, int limit);
+                 int limit);
   int32_t GetKNN(const std::vector<float> &vec, std::vector<VecResult> &results,
-                 const std::string &index_name, int limit);
+                 int limit);
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();

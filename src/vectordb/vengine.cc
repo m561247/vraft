@@ -442,14 +442,23 @@ int32_t VEngine::AddIndex(AddIndexParam add_param) {
 }
 
 int32_t VEngine::GetKNN(const std::string &key, std::vector<VecResult> &results,
-                        const std::string &index_name, int limit) {
-  return 0;
+                        int limit) {
+  results.clear();
+  auto sptr = index_manager_->GetNewest();
+  if (sptr) {
+    return sptr->GetKNN(key, results, limit);
+  }
+  return -1;
 }
 
 int32_t VEngine::GetKNN(const std::vector<float> &vec,
-                        std::vector<VecResult> &results,
-                        const std::string &index_name, int limit) {
-  return 0;
+                        std::vector<VecResult> &results, int limit) {
+  results.clear();
+  auto sptr = index_manager_->GetNewest();
+  if (sptr) {
+    return sptr->GetKNN(vec, results, limit);
+  }
+  return -1;
 }
 
 nlohmann::json VEngine::ToJson() {

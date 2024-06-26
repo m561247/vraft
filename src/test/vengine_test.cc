@@ -232,6 +232,18 @@ TEST(VEngine, Load) {
     param.timestamp = vraft::Clock::NSec();
     rv = ve->AddIndex(param);
     ASSERT_EQ(rv, 0);
+
+    {
+      std::string find_key = "key_3";
+      std::vector<vectordb::VecResult> results;
+      rv = ve->GetKNN(find_key, results, 5);
+      ASSERT_EQ(rv, 0);
+
+      std::cout << "results.size(): " << results.size() << std::endl;
+      for (auto &item : results) {
+        std::cout << item.ToJsonString(true, true) << std::endl;
+      }
+    }
   }
 }
 
