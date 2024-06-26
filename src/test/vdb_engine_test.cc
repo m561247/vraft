@@ -125,7 +125,17 @@ TEST(VdbEngine, Load) {
     rv = vdb.AddIndex(param.name, add_index_param);
     ASSERT_EQ(rv, 0);
 
-    
+    {
+      std::string find_key = "key_3";
+      std::vector<vectordb::VecResult> results;
+      rv = vdb.GetKNN(param.name, find_key, results, 10);
+      ASSERT_EQ(rv, 0);
+
+      std::cout << "results.size(): " << results.size() << std::endl;
+      for (auto &item : results) {
+        std::cout << item.ToJsonString(true, true) << std::endl;
+      }
+    }
   }
 }
 

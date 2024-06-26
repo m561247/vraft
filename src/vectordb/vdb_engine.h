@@ -16,6 +16,8 @@
 
 namespace vectordb {
 
+int32_t EveryLimit(int32_t limit, int32_t partition_num);
+
 struct AddTableParam {
   std::string name;
   int32_t partition_num;

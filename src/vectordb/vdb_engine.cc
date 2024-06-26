@@ -1,5 +1,6 @@
 #include "vdb_engine.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -7,6 +8,8 @@
 #include "util.h"
 
 namespace vectordb {
+
+int32_t EveryLimit(int32_t limit, int32_t partition_num) { return limit; }
 
 VdbEngine::VdbEngine(const std::string &path)
     : path_(path), meta_path_(path + "/meta"), data_path_(path + "/data") {
@@ -134,7 +137,38 @@ int32_t VdbEngine::AddIndex(const std::string &table, AddIndexParam param) {
 }
 
 int32_t VdbEngine::GetKNN(const std::string &table, const std::string &key,
-                          std::vector<VecResult> &results, int limit) {}
+                          std::vector<VecResult> &results, int limit) {
+  if (limit <= 0) {
+    return -1;
+  }
+
+  TableSPtr table_sptr = meta_->GetTable(table);
+  if (table_sptr) {
+    results.clear();
+    int32_t every_limit = EveryLimit(limit, table_sptr->partition_num);
+    meta_->ForEachReplicaInTable(table, [this, key, &results,
+                                         every_limit](ReplicaSPtr r) {
+      VEngineSPtr ve;
+      auto it = this->engines_.find(r->uid);
+      if (it != this->engines_.end()) {
+        ve = it->second;
+
+        std::vector<VecResult> part_results;
+        ve->GetKNN(key, part_results, every_limit);
+        results.insert(results.end(), part_results.begin(), part_results.end());
+      }
+    });
+
+    std::sort(results.begin(), results.end());
+    if (results.size() > static_cast<size_t>(limit)) {
+      results.erase(results.begin() + limit, results.end());
+    }
+
+    return 0;
+  }
+
+  return -1;
+}
 
 int32_t VdbEngine::GetKNN(const std::string &table,
                           const std::vector<float> &vec,
