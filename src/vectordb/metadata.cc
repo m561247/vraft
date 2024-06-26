@@ -427,10 +427,10 @@ int32_t Partition::ToString(const char *ptr, int32_t len) {
 
   // ids
   for (auto item : replicas_by_id) {
-    uint32_t u32 = item.first;
-    vraft::EncodeFixed32(p, u32);
-    p += sizeof(u32);
-    size += sizeof(u32);
+    int32_t i32 = item.first;
+    vraft::EncodeFixed32(p, i32);
+    p += sizeof(i32);
+    size += sizeof(i32);
   }
 
   // names
@@ -507,10 +507,10 @@ int32_t Partition::FromString(const char *ptr, int32_t len) {
 
   // ids
   for (int32_t i = 0; i < replica_num; ++i) {
-    uint32_t u32 = vraft::DecodeFixed32(p);
-    p += sizeof(u32);
-    size += sizeof(u32);
-    replicas_by_id[u32] = nullptr;
+    int32_t i32 = vraft::DecodeFixed32(p);
+    p += sizeof(i32);
+    size += sizeof(i32);
+    replicas_by_id[i32] = nullptr;
   }
 
   // names
