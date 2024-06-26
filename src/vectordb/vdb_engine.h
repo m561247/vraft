@@ -36,6 +36,13 @@ class VdbEngine final {
   int32_t Delete(const std::string &table, const std::string &key);
   int32_t Load(const std::string &table, const std::string &file_path);
 
+  bool HasIndex(const std::string &table) const;
+  int32_t AddIndex(const std::string &table, AddIndexParam param);
+  int32_t GetKNN(const std::string &table, const std::string &key,
+                 std::vector<VecResult> &results, int limit);
+  int32_t GetKNN(const std::string &table, const std::vector<float> &vec,
+                 std::vector<VecResult> &results, int limit);
+
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);

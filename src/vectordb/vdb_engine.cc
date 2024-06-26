@@ -105,6 +105,17 @@ int32_t VdbEngine::Load(const std::string &table,
   return 0;
 }
 
+bool VdbEngine::HasIndex(const std::string &table) const {}
+
+int32_t VdbEngine::AddIndex(const std::string &table, AddIndexParam param) {}
+
+int32_t VdbEngine::GetKNN(const std::string &table, const std::string &key,
+                          std::vector<VecResult> &results, int limit) {}
+
+int32_t VdbEngine::GetKNN(const std::string &table,
+                          const std::vector<float> &vec,
+                          std::vector<VecResult> &results, int limit) {}
+
 nlohmann::json VdbEngine::ToJson() {
   nlohmann::json j;
   j["meta"] = meta_->ToJson();
