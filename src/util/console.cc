@@ -11,7 +11,7 @@ Console::Console(const std::string &name)
       name_(name),
       prompt_("(" + name + ")> "),
       wait_result_(1),
-      dest_(0) {}
+      dest_("0.0.0.0:0") {}
 
 Console::Console(const std::string &name, const HostPort &dest)
     : start(false),

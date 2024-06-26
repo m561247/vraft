@@ -1,5 +1,9 @@
 #include <csignal>
 
+#include "cli_config.h"
+#include "common.h"
+#include "local_console.h"
+#include "vdb_common.h"
 #include "vdb_console.h"
 #include "vraft_logger.h"
 
@@ -18,17 +22,37 @@ void SignalHandler(int signal) {
 }
 
 int main(int argc, char **argv) {
-  std::signal(SIGINT, SignalHandler);
+  // std::signal(SIGINT, SignalHandler);
   vraft::CodingInit();
+  vectordb::CliConfigSPtr config = vectordb::CliConfigSingleton::GetInstance();
 
-  vraft::LoggerOptions logger_options{"vectordb",          false, 1, 8192,
+  if (argc == 1) {
+    std::cout << config->UsageBanner(argv[0]) << std::endl;
+    return 0;
+  }
+
+  config->Parse(argc, argv);
+  if (config->result().count("h")) {
+    std::cout << config->Usage() << std::endl;
+    return 0;
+  }
+
+  vraft::LoggerOptions logger_options{"vectordb-cli",      false, 1, 8192,
                                       vraft::kLoggerTrace, true};
   vraft::vraft_logger.Init("/tmp/vectordb-cli.log", logger_options);
   logger_options.enable_debug = true;
 
-  vectordb::VdbConsoleSPtr console =
-      std::make_shared<vectordb::VdbConsole>("vectordb-cli", "127.0.0.1:9000");
-  wptr = console;
+  vraft::ConsoleSPtr console;
+  if (config->path() == "") {
+    vraft::Console *c =
+        new vectordb::VdbConsole("vectordb-cli", config->addr().ToString());
+    console.reset(c);
+  } else {
+    vraft::Console *c =
+        new vectordb::LocalConsole("vectordb-cli", config->path());
+    console.reset(c);
+  }
+
   console->Run();
 
   return 0;

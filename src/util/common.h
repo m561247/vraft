@@ -23,6 +23,11 @@ using TracerCb = std::function<void(std::string)>;
 using SendFunc =
     std::function<int32_t(uint64_t dest, const char *buf, unsigned int size)>;
 
+class Console;
+using ConsoleSPtr = std::shared_ptr<Console>;
+using ConsoleUPtr = std::unique_ptr<Console>;
+using ConsoleWPtr = std::weak_ptr<Console>;
+
 class EventLoop;
 using EventLoopSPtr = std::shared_ptr<EventLoop>;
 using EventLoopUPtr = std::unique_ptr<EventLoop>;
