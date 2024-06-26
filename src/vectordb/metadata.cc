@@ -161,6 +161,7 @@ int32_t Replica::MaxBytes() {
   sz += name.size();
   sz += 2 * sizeof(uint32_t);
   sz += path.size();
+  sz += sizeof(dim);
   sz += sizeof(uid);
   sz += 2 * sizeof(uint32_t);
   sz += table_name.size();
@@ -203,6 +204,10 @@ int32_t Replica::ToString(const char *ptr, int32_t len) {
     size += (p2 - p);
     p = p2;
   }
+
+  vraft::EncodeFixed32(p, dim);
+  p += sizeof(dim);
+  size += sizeof(dim);
 
   vraft::EncodeFixed64(p, uid);
   p += sizeof(uid);
@@ -270,6 +275,10 @@ int32_t Replica::FromString(const char *ptr, int32_t len) {
     }
   }
 
+  dim = vraft::DecodeFixed32(p);
+  p += sizeof(dim);
+  size += sizeof(dim);
+
   uid = vraft::DecodeFixed64(p);
   p += sizeof(uid);
   size += sizeof(uid);
@@ -314,6 +323,7 @@ nlohmann::json Replica::ToJson() {
   j["id"] = id;
   j["name"] = name;
   j["path"] = path;
+  j["dim"] = dim;
   j["uid"] = uid;
   j["table_name"] = table_name;
   j["table_uid"] = table_uid;
@@ -347,6 +357,7 @@ int32_t Partition::MaxBytes() {
   sz += 2 * sizeof(uint32_t);
   sz += path.size();
   sz += sizeof(replica_num);
+  sz += sizeof(dim);
   sz += sizeof(uid);
 
   sz += 2 * sizeof(uint32_t);
@@ -409,6 +420,10 @@ int32_t Partition::ToString(const char *ptr, int32_t len) {
   vraft::EncodeFixed32(p, replica_num);
   p += sizeof(replica_num);
   size += sizeof(replica_num);
+
+  vraft::EncodeFixed32(p, dim);
+  p += sizeof(dim);
+  size += sizeof(dim);
 
   vraft::EncodeFixed64(p, uid);
   p += sizeof(uid);
@@ -485,6 +500,10 @@ int32_t Partition::FromString(const char *ptr, int32_t len) {
   p += sizeof(replica_num);
   size += sizeof(replica_num);
 
+  dim = vraft::DecodeFixed32(p);
+  p += sizeof(dim);
+  size += sizeof(dim);
+
   uid = vraft::DecodeFixed64(p);
   p += sizeof(uid);
   size += sizeof(uid);
@@ -536,6 +555,7 @@ nlohmann::json Partition::ToJson() {
   j["name"] = name;
   j["path"] = path;
   j["replica_num"] = replica_num;
+  j["dim"] = dim;
   j["uid"] = uid;
   j["table_name"] = table_name;
   j["table_uid"] = table_uid;
@@ -918,7 +938,7 @@ void Metadata::ForEachReplicaInTable(const std::string &table_name,
 TableSPtr Metadata::CreateTable(TableParam param) {
   Table table;
   table.name = param.name;
-  table.path = path_ + "/" + param.name;
+  table.path = param.path + "/" + param.name;
   table.partition_num = param.partition_num;
   table.replica_num = param.replica_num;
   table.dim = param.dim;
@@ -931,6 +951,7 @@ TableSPtr Metadata::CreateTable(TableParam param) {
     partition.name = PartitionName(table_sptr->name, i);
     partition.path = table_sptr->path + "/" + partition.name;
     partition.replica_num = table_sptr->replica_num;
+    partition.dim = table_sptr->dim;
     partition.uid = Partition::partition_uid++;
     partition.table_name = table_sptr->name;
     partition.table_uid = table_sptr->uid;
@@ -950,6 +971,7 @@ PartitionSPtr Metadata::CreatePartition(Partition param) {
     replica.id = i;
     replica.name = ReplicaName(param.name, i);
     replica.path = param.path + "/" + replica.name;
+    replica.dim = param.dim;
     replica.uid = Replica::replica_uid++;
     replica.table_name = param.table_name;
     replica.table_uid = param.table_uid;

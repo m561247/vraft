@@ -37,6 +37,7 @@ TEST(Replica, Replica) {
   r.id = 100;
   r.name = "test-replica";
   r.path = "/tmp/data";
+  r.dim = 1024;
   r.uid = 88;
   r.table_name = "table";
   r.table_uid = 77;
@@ -58,6 +59,7 @@ TEST(Replica, Replica) {
   ASSERT_EQ(r.id, r2.id);
   ASSERT_EQ(r.name, r2.name);
   ASSERT_EQ(r.path, r2.path);
+  ASSERT_EQ(r.dim, r2.dim);
   ASSERT_EQ(r.uid, r2.uid);
   ASSERT_EQ(r.table_name, r2.table_name);
   ASSERT_EQ(r.table_uid, r2.table_uid);
@@ -71,6 +73,7 @@ TEST(Partition, Partition) {
   partition.name = "test-partition";
   partition.path = "/tmp/data";
   partition.replica_num = 5;
+  partition.dim = 1024;
   partition.uid = 88;
   partition.table_name = "test-table";
   partition.table_uid = 77;
@@ -96,6 +99,7 @@ TEST(Partition, Partition) {
   ASSERT_EQ(partition.name, partition2.name);
   ASSERT_EQ(partition.path, partition2.path);
   ASSERT_EQ(partition.replica_num, partition2.replica_num);
+  ASSERT_EQ(partition.dim, partition2.dim);
   ASSERT_EQ(partition.uid, partition2.uid);
   ASSERT_EQ(partition.table_name, partition2.table_name);
   ASSERT_EQ(partition.table_uid, partition2.table_uid);
@@ -150,6 +154,7 @@ TEST(Metadata, AddTable) {
       char buf[128];
       snprintf(buf, sizeof(buf), "table_%d", i);
       table.name = buf;
+      table.path = "/tmp/metadata_test_dir";
       table.partition_num = 10;
       table.replica_num = 3;
       table.dim = 1024;
@@ -198,6 +203,7 @@ TEST(Metadata, Get) {
       char buf[128];
       snprintf(buf, sizeof(buf), "table_%d", i);
       table.name = buf;
+      table.path = "/tmp/metadata_test_dir";
       table.partition_num = 4;
       table.replica_num = 3;
       table.dim = 1024;
@@ -237,6 +243,7 @@ TEST(Metadata, ForEach) {
       char buf[128];
       snprintf(buf, sizeof(buf), "table_%d", i);
       table.name = buf;
+      table.path = "/tmp/metadata_test_dir";
       table.partition_num = 4;
       table.replica_num = 3;
       table.dim = 1024;

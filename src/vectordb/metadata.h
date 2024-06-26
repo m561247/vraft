@@ -44,6 +44,7 @@ struct Replica {
   int32_t id;
   std::string name;
   std::string path;
+  int32_t dim;
   uint64_t uid;
 
   std::string table_name;
@@ -70,6 +71,7 @@ struct Partition {
   std::string name;
   std::string path;
   int32_t replica_num;
+  int32_t dim;
   uint64_t uid;
 
   std::string table_name;
@@ -91,8 +93,12 @@ struct Partition {
   static uint64_t partition_uid;
 };
 
+// eg:
+// path: /tmp/test
+// name: test_table
 struct TableParam {
   std::string name;
+  std::string path;
   int32_t partition_num;
   int32_t replica_num;
   int32_t dim;

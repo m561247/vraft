@@ -37,11 +37,14 @@ class VectorDB {
   void OnMessage(const vraft::TcpConnectionSPtr &conn, vraft::Buffer *buf);
   void OnMsgVersion(const vraft::TcpConnectionSPtr &conn,
                     struct MsgVersion &msg);
+  int32_t CreateVEngine(ReplicaSPtr replica);
 
  private:
   std::atomic<bool> start_;
   VdbConfigSPtr config_;
   std::string path_;
+  std::string meta_path_;
+  std::string data_path_;
 
   MetadataSPtr meta_;
   std::unordered_map<uint64_t, VEngineSPtr> engines_;

@@ -15,9 +15,11 @@
 namespace vectordb {
 
 VectorDB::VectorDB(VdbConfigSPtr config)
-    : start_(false), seqid_(0), config_(config) {
+    : start_(false), config_(config), seqid_(0) {
   path_ = config_->path();
-  meta_ = std::make_shared<Metadata>(path_);
+  meta_path_ = path_ + "/meta";
+  data_path_ = path_ + "/data";
+  meta_ = std::make_shared<Metadata>(meta_path_);
   assert(meta_);
 
   vraft::ServerThreadParam param;
@@ -50,6 +52,11 @@ int32_t VectorDB::AddTable(TableParam param) {
     vraft::vraft_logger.FTrace("vectordb add table:%s error", param.name);
     return -1;
   }
+
+  meta_->ForEachReplicaInTable(param.name, [this](ReplicaSPtr replica) {
+    int32_t rv = this->CreateVEngine(replica);
+    assert(rv == 0);
+  });
 
   return 0;
 }
@@ -117,6 +124,13 @@ void VectorDB::OnMsgVersion(const vraft::TcpConnectionSPtr &conn,
     header_str.append(std::move(reply_str));
     conn->CopySend(header_str.data(), header_str.size());
   }
+}
+
+int32_t VectorDB::CreateVEngine(ReplicaSPtr replica) {
+  vectordb::VEngineSPtr ve =
+      std::make_shared<VEngine>(replica->path, replica->dim);
+  engines_[replica->uid] = ve;
+  return 0;
 }
 
 }  // namespace vectordb
