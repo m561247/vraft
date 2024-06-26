@@ -111,6 +111,21 @@ TEST(VdbEngine, Load) {
     rv = vdb.Get(param.name, "key_0", vo);
     ASSERT_EQ(rv, 0);
     std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+
+    vectordb::AddIndexParam add_index_param;
+    add_index_param.timestamp = vraft::Clock::NSec();
+    add_index_param.dim = dim;
+    add_index_param.index_type = vectordb::kIndexAnnoy;
+    add_index_param.distance_type = vectordb::kCosine;
+    add_index_param.annoy_tree_num = 20;
+    rv = vdb.AddIndex(param.name, add_index_param);
+    ASSERT_EQ(rv, 0);
+
+    add_index_param.timestamp = vraft::Clock::NSec();
+    rv = vdb.AddIndex(param.name, add_index_param);
+    ASSERT_EQ(rv, 0);
+
+    
   }
 }
 

@@ -105,9 +105,33 @@ int32_t VdbEngine::Load(const std::string &table,
   return 0;
 }
 
-bool VdbEngine::HasIndex(const std::string &table) const {}
+bool VdbEngine::HasIndex(const std::string &table) const {
+  bool b = true;
+  meta_->ForEachReplicaInTable(table, [&b, this](ReplicaSPtr r) {
+    auto it = this->engines_.find(r->uid);
+    if (it == this->engines_.end()) {
+      b = false;
+    } else {
+      if (it->second->HasIndex() == false) {
+        b = false;
+      }
+    }
+  });
+  return b;
+}
 
-int32_t VdbEngine::AddIndex(const std::string &table, AddIndexParam param) {}
+int32_t VdbEngine::AddIndex(const std::string &table, AddIndexParam param) {
+  meta_->ForEachReplicaInTable(table, [this, param](ReplicaSPtr r) {
+    VEngineSPtr ve;
+    auto it = this->engines_.find(r->uid);
+    if (it != this->engines_.end()) {
+      ve = it->second;
+      ve->AddIndex(param);
+    }
+  });
+
+  return 0;
+}
 
 int32_t VdbEngine::GetKNN(const std::string &table, const std::string &key,
                           std::vector<VecResult> &results, int limit) {}
