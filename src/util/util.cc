@@ -319,4 +319,8 @@ bool IsFileExist(const std::string &path) {
   return file.good();
 }
 
+int32_t PartitionId(const std::string &key, int32_t partition_num) {
+  return Crc32(key.c_str(), key.size()) % partition_num;
+}
+
 }  // namespace vraft

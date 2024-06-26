@@ -76,6 +76,8 @@ bool IsDirExist(const std::string &dir_path);
 
 bool IsFileExist(const std::string &path);
 
+int32_t PartitionId(const std::string &key, int32_t partition_num);
+
 }  // namespace vraft
 
 #endif

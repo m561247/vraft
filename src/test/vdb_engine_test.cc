@@ -9,6 +9,7 @@
 #include "test_suite.h"
 #include "timer.h"
 #include "util.h"
+#include "vraft_logger.h"
 
 //--------------------------------
 // EXPECT_TRUE  true
@@ -33,13 +34,55 @@
 //--------------------------------
 
 int32_t dim = 10;
-TEST(VdbEngine, VdbEngine) {
-  system("rm -rf /tmp/vdb_engine_test_dir");
+std::string home_path = "/tmp/vdb_engine_test_dir";
 
-  { vectordb::VdbEngine vdb("/tmp/vdb_engine_test_dir"); }
+TEST(VdbEngine, VdbEngine) {
+  system((std::string("rm -rf ") + home_path).c_str());
+  std::string key = "kkk";
+
+  {
+    vectordb::VdbEngine vdb(home_path);
+    std::cout << vdb.ToJsonString(false, false) << std::endl;
+
+    vectordb::AddTableParam param;
+    param.name = "test-table";
+    param.partition_num = 10;
+    param.replica_num = 3;
+    param.dim = dim;
+    vdb.AddTable(param);
+    std::cout << vdb.ToJsonString(false, false) << std::endl;
+
+    vectordb::VecValue vv;
+    for (int32_t i = 0; i < dim; ++i) {
+      float f32 = vraft::RandomFloat(1);
+      vv.vec.data.push_back(f32);
+    }
+    vv.attach_value = "aaavvv";
+    int32_t rv = vdb.Put(param.name, key, vv);
+    ASSERT_EQ(rv, 0);
+    std::cout << "put: " << vv.ToJsonString(false, true) << std::endl;
+
+    vectordb::VecObj vo;
+    rv = vdb.Get(param.name, key, vo);
+    ASSERT_EQ(rv, 0);
+    std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+
+    ASSERT_EQ(vo.key, key);
+    ASSERT_EQ(vo.vv.vec.data.size(), vv.vec.data.size());
+    for (size_t i = 0; i < vo.vv.vec.data.size(); ++i) {
+      ASSERT_EQ(vo.vv.vec.data[i], vv.vec.data[i]);
+    }
+    ASSERT_EQ(vo.vv.attach_value, vv.attach_value);
+  }
 }
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
+  vraft::LoggerOptions logger_options{
+      "vraft", false, 1, 8192, vraft::kLoggerTrace, true};
+  std::string log_file = home_path + "/log/test.log";
+  vraft::vraft_logger.Init(log_file, logger_options);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
