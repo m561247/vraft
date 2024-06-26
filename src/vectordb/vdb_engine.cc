@@ -1,6 +1,8 @@
 #include "vdb_engine.h"
 
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 
 #include "util.h"
 
@@ -62,6 +64,44 @@ int32_t VdbEngine::Delete(const std::string &table, const std::string &key) {
 
 int32_t VdbEngine::Load(const std::string &table,
                         const std::string &file_path) {
+  std::ifstream file(file_path);
+  if (!file.is_open()) {
+    vraft::vraft_logger.FError("failed to open file: %s", file_path.c_str());
+    return -1;
+  }
+
+  std::string line;
+  int32_t line_num = 1;
+  while (std::getline(file, line)) {
+    std::cout << "load line " << line_num++ << ": " << line << std::endl;
+
+    vraft::DelSpace(line);
+    std::vector<std::string> result;
+    vraft::Split(line, ';', result);
+
+    if (result.size() != 3) {
+      return -1;
+    }
+
+    std::string key = result[0];
+    VecValue vv;
+    std::string vec_str = result[1];
+    std::vector<std::string> r;
+    vraft::Split(vec_str, ',', r);
+    for (auto f_str : r) {
+      float f32;
+      sscanf(f_str.c_str(), "%f", &f32);
+      vv.vec.data.push_back(f32);
+    }
+    vv.attach_value = result[2];
+
+    int32_t rv = Put(table, key, vv);
+    if (rv != 0) {
+      return rv;
+    }
+  }
+
+  file.close();
   return 0;
 }
 

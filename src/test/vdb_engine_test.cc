@@ -76,6 +76,44 @@ TEST(VdbEngine, VdbEngine) {
   }
 }
 
+TEST(VdbEngine, Load) {
+  system((std::string("rm -rf ") + home_path).c_str());
+
+  bool ok = false;
+  if (vraft::IsFileExist("./output/test/generate_vec_test")) {
+    system("./output/test/generate_vec_test 10 1000 > /tmp/vec.txt");
+    ok = true;
+
+  } else if (vraft::IsFileExist("./generate_vec_test")) {
+    system("./generate_vec_test 10 100 > /tmp/vec.txt");
+    ok = true;
+
+  } else {
+    std::cout << "\ngenerate_vec_test not exist !!!\n" << std::endl;
+  }
+
+  if (ok) {
+    vectordb::VdbEngine vdb(home_path);
+    std::cout << vdb.ToJsonString(false, false) << std::endl;
+
+    vectordb::AddTableParam param;
+    param.name = "test-table";
+    param.partition_num = 10;
+    param.replica_num = 3;
+    param.dim = dim;
+    vdb.AddTable(param);
+    std::cout << vdb.ToJsonString(false, false) << std::endl;
+
+    int32_t rv = vdb.Load(param.name, "/tmp/vec.txt");
+    ASSERT_EQ(rv, 0);
+
+    vectordb::VecObj vo;
+    rv = vdb.Get(param.name, "key_0", vo);
+    ASSERT_EQ(rv, 0);
+    std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+  }
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   vraft::LoggerOptions logger_options{
