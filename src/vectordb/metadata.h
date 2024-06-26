@@ -16,6 +16,13 @@ namespace vectordb {
 
 std::string PartitionName(const std::string &table_name, int32_t partition_id);
 std::string ReplicaName(const std::string &partition_name, int32_t replica_id);
+std::string ReplicaName(const std::string &table_name, int32_t partition_id,
+                        int32_t replica_id);
+
+void ParsePartitionName(const std::string &partition_name,
+                        std::string &table_name, int32_t &partition_id);
+void ParseReplicaName(const std::string &replica_name, std::string &table_name,
+                      int32_t &partition_id, int32_t &replica_id);
 
 #define METADATA_TABLES_KEY "---|||---"
 

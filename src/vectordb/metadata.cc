@@ -1,5 +1,7 @@
 #include "metadata.h"
 
+#include <vector>
+
 #include "allocator.h"
 #include "coding.h"
 #include "common.h"
@@ -23,6 +25,30 @@ std::string ReplicaName(const std::string &partition_name, int32_t replica_id) {
   char buf[256];
   snprintf(buf, sizeof(buf), "%s#%d", partition_name.c_str(), replica_id);
   return std::string(buf);
+}
+
+std::string ReplicaName(const std::string &table_name, int32_t partition_id,
+                        int32_t replica_id) {
+  return ReplicaName(PartitionName(table_name, partition_id), replica_id);
+}
+
+void ParsePartitionName(const std::string &partition_name,
+                        std::string &table_name, int32_t &partition_id) {
+  std::vector<std::string> result;
+  vraft::Split(partition_name, '#', result);
+  assert(result.size() == 2);
+  table_name = result[0];
+  partition_id = atoi(result[1].c_str());
+}
+
+void ParseReplicaName(const std::string &replica_name, std::string &table_name,
+                      int32_t &partition_id, int32_t &replica_id) {
+  std::vector<std::string> result;
+  vraft::Split(replica_name, '#', result);
+  assert(result.size() == 3);
+  table_name = result[0];
+  partition_id = atoi(result[1].c_str());
+  replica_id = atoi(result[2].c_str());
 }
 
 int32_t Names::MaxBytes() {
@@ -807,40 +833,37 @@ TableSPtr Metadata::GetTable(const std::string &name) {
 }
 
 PartitionSPtr Metadata::GetPartition(const std::string &name) {
-  TableSPtr table;
   PartitionSPtr partition;
-  for (auto &table_kv : tables_) {
-    table = table_kv.second;
-    if (table) {
-      auto it = table->partitions_by_name.find(name);
-      if (it != table->partitions_by_name.end()) {
-        partition = it->second;
-        return partition;
-      }
+  std::string table_name;
+  int32_t partition_id;
+  ParsePartitionName(name, table_name, partition_id);
+  TableSPtr table = GetTable(table_name);
+  if (table) {
+    auto it = table->partitions_by_name.find(name);
+    if (it != table->partitions_by_name.end()) {
+      partition = it->second;
     }
   }
   return partition;
 }
 
 ReplicaSPtr Metadata::GetReplica(const std::string &name) {
-  TableSPtr table;
-  PartitionSPtr partition;
   ReplicaSPtr replica;
-  for (auto &table_kv : tables_) {
-    table = table_kv.second;
-    if (table) {
-      for (auto &partition_kv : table->partitions_by_name) {
-        partition = partition_kv.second;
-        if (partition) {
-          auto it = partition->replicas_by_name.find(name);
-          if (it != partition->replicas_by_name.end()) {
-            replica = it->second;
-            return replica;
-          }
-        }
-      }
+  std::string table_name;
+  int32_t partition_id;
+  int32_t replica_id;
+  ParseReplicaName(name, table_name, partition_id, replica_id);
+
+  PartitionSPtr partition =
+      GetPartition(PartitionName(table_name, partition_id));
+  if (partition) {
+    auto it = partition->replicas_by_name.find(name);
+    if (it != partition->replicas_by_name.end()) {
+      replica = it->second;
+      return replica;
     }
   }
+
   return replica;
 }
 

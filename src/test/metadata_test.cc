@@ -206,17 +206,24 @@ TEST(Metadata, Get) {
       ASSERT_EQ(rv, 0);
     }
 
-    vectordb::TableSPtr table = meta.GetTable("table_1");
+    std::string table_name = "table_1";
+    std::string partition_name = "table_2#1";
+    std::string replica_name = "table_2#1#0";
+
+    vectordb::TableSPtr table = meta.GetTable(table_name);
     assert(table);
+    ASSERT_EQ(table_name, table->name);
     std::cout << table->ToJsonString(false, false) << std::endl << std::endl;
 
-    vectordb::PartitionSPtr partition = meta.GetPartition("table_2#1");
+    vectordb::PartitionSPtr partition = meta.GetPartition(partition_name);
     assert(partition);
+    ASSERT_EQ(partition_name, partition->name);
     std::cout << partition->ToJsonString(false, false) << std::endl
               << std::endl;
 
-    vectordb::ReplicaSPtr replica = meta.GetReplica("table_2#1#0");
+    vectordb::ReplicaSPtr replica = meta.GetReplica(replica_name);
     assert(replica);
+    ASSERT_EQ(replica_name, replica->name);
     std::cout << replica->ToJsonString(false, false) << std::endl << std::endl;
   }
 }
@@ -263,6 +270,56 @@ TEST(Metadata, ForEach) {
     meta.ForEachReplicaInTable("table_1", [](vectordb::ReplicaSPtr sptr) {
       std::cout << "--------ForEachReplicaInTable: " << sptr->name << std::endl;
     });
+  }
+}
+
+TEST(Metadata, Name) {
+  std::string table_name = "table";
+  int32_t partition_id = 3;
+  int32_t replica_id = 6;
+
+  {
+    std::string partition_name =
+        vectordb::PartitionName(table_name, partition_id);
+    std::cout << partition_name << std::endl;
+
+    std::string table_name2;
+    int32_t partition_id2;
+    vectordb::ParsePartitionName(partition_name, table_name2, partition_id2);
+    ASSERT_EQ(table_name, table_name2);
+    ASSERT_EQ(partition_id, partition_id2);
+  }
+
+  {
+    std::string replica_name =
+        vectordb::ReplicaName(table_name, partition_id, replica_id);
+    std::cout << replica_name << std::endl;
+
+    std::string table_name2;
+    int32_t partition_id2;
+    int32_t replica_id2;
+    vectordb::ParseReplicaName(replica_name, table_name2, partition_id2,
+                               replica_id2);
+    ASSERT_EQ(table_name, table_name2);
+    ASSERT_EQ(partition_id, partition_id2);
+    ASSERT_EQ(replica_id, replica_id2);
+  }
+
+  {
+    std::string partition_name =
+        vectordb::PartitionName(table_name, partition_id);
+    std::string replica_name =
+        vectordb::ReplicaName(partition_name, replica_id);
+    std::cout << replica_name << std::endl;
+
+    std::string table_name2;
+    int32_t partition_id2;
+    int32_t replica_id2;
+    vectordb::ParseReplicaName(replica_name, table_name2, partition_id2,
+                               replica_id2);
+    ASSERT_EQ(table_name, table_name2);
+    ASSERT_EQ(partition_id, partition_id2);
+    ASSERT_EQ(replica_id, replica_id2);
   }
 }
 
