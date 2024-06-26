@@ -68,6 +68,16 @@ using VindexMetaSPtr = std::shared_ptr<VindexMeta>;
 using VindexMetaUPtr = std::unique_ptr<VindexMeta>;
 using VindexMetaWPtr = std::weak_ptr<VindexMeta>;
 
+class VdbEngine;
+using VdbEngineSPtr = std::shared_ptr<VdbEngine>;
+using VdbEngineUPtr = std::unique_ptr<VdbEngine>;
+using VdbEngineWPtr = std::weak_ptr<VdbEngine>;
+
+class VectorDB;
+using VectorDBSPtr = std::shared_ptr<VectorDB>;
+using VectorDBUPtr = std::unique_ptr<VectorDB>;
+using VectorDBWPtr = std::weak_ptr<VectorDB>;
+
 }  // namespace vectordb
 
 #endif
