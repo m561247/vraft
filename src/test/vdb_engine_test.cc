@@ -136,6 +136,23 @@ TEST(VdbEngine, Load) {
         std::cout << item.ToJsonString(true, true) << std::endl;
       }
     }
+
+    {
+      std::vector<float> vec;
+      for (int32_t i = 0; i < dim; ++i) {
+        float f32 = vraft::RandomFloat(1);
+        vec.push_back(f32);
+      }
+
+      std::vector<vectordb::VecResult> results;
+      rv = vdb.GetKNN(param.name, vec, results, 10);
+      ASSERT_EQ(rv, 0);
+
+      std::cout << "results.size(): " << results.size() << std::endl;
+      for (auto &item : results) {
+        std::cout << item.ToJsonString(true, true) << std::endl;
+      }
+    }
   }
 }
 
