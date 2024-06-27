@@ -158,6 +158,25 @@ TEST(Parser, kCmdLoad) {
   ASSERT_EQ(parser.name(), "/tmp/vec.txt");
 }
 
+TEST(Parser, kCmdGetKNN) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdGetKNN));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdGetKNN);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.key(), "kkk");
+  ASSERT_EQ(parser.table(), "test-table");
+  ASSERT_EQ(parser.limit(), 20);
+}
+
+TEST(Parser, kCmdGetKNN2) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdGetKNN2));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdGetKNN);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.table(), "test-table");
+  ASSERT_EQ(parser.limit(), 20);
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

@@ -19,6 +19,7 @@ enum VectordbCmd {
   kCmdGet,      // get
   kCmdDelete,   // del
   kCmdGetKNN,   // getknn
+  kCmdGetKNN2,  // getknn
   kCmdLoad,     // load
 
   kCmdCreateTable,   // create table
@@ -61,6 +62,7 @@ class Parser {
   std::vector<float> &vec() { return vec_; }
   std::string attach_value() const { return attach_value_; }
   std::string table() const { return table_; }
+  int32_t limit() const { return limit_; }
 
  private:
   void Parse();
@@ -82,6 +84,7 @@ class Parser {
   std::vector<float> vec_;
   std::string attach_value_;
   std::string table_;
+  int32_t limit_;
 };
 
 }  // namespace vectordb

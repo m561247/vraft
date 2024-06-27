@@ -49,7 +49,16 @@ const std::string example_cmdstr(VectordbCmd cmd) {
     }
 
     case kCmdGetKNN: {
-      cmd_str.append("getknn ");
+      cmd_str.append("getknn --table=test-table --key=kkk --limit=20");
+      return cmd_str;
+    }
+
+    case kCmdGetKNN2: {
+      cmd_str.append(
+          "getknn --table=test-table "
+          "--vec=0.435852,0.031869,0.161108,0.055670,0.846847,0.604385,0."
+          "075282,0.386435,0.407000,0.101307 "
+          "--limit=20");
       return cmd_str;
     }
 
@@ -125,6 +134,8 @@ std::string CmdStr(VectordbCmd cmd) {
       return "kCmdDelete";
     case kCmdGetKNN:
       return "kCmdGetKNN";
+    case kCmdGetKNN2:
+      return "kCmdGetKNN2";
     case kCmdLoad:
       return "kCmdLoad";
     case kCmdCreateTable:
@@ -292,6 +303,12 @@ VectordbCmd GetCmd(const std::string &cmd_line, int *argc, char ***argv) {
     }
 
   } else if (result[0] == "getknn") {
+    if (result.size() == 4) {
+      ret_cmd = kCmdGetKNN;
+      vraft::ConvertStringToArgcArgv(cmd_line, argc, argv);
+      return ret_cmd;
+    }
+
   } else if (result[0] == "load") {
     if (result.size() == 2) {
       ret_cmd = kCmdLoad;
@@ -321,6 +338,7 @@ nlohmann::json Parser::ToJson() {
   j["param"]["attach_value"] = attach_value();
   j["param"]["vec"] = vec_;
   j["param"]["table"] = table_;
+  j["param"]["limit"] = limit_;
 
   return j;
 }
@@ -360,9 +378,8 @@ void Parser::Parse() {
         "attach_value", "attach_value",
         cxxopts::value<std::string>()->default_value(""))(
         "vec", "vec", cxxopts::value<std::string>()->default_value(""))(
-        "table", "table", cxxopts::value<std::string>()->default_value(""))
-
-        ;
+        "table", "table", cxxopts::value<std::string>()->default_value(""))(
+        "limit", "limit", cxxopts::value<int32_t>()->default_value("0"));
 
     parse_result_ = std::make_shared<cxxopts::ParseResult>();
     *parse_result_ = options_->parse(argc_, argv_);
@@ -410,6 +427,10 @@ void Parser::Parse() {
         vec_.push_back(f32);
       }
     }
+
+    if (parse_result_->count("limit")) {
+      limit_ = (*parse_result_)["limit"].as<int32_t>();
+    }
   }
 }
 
@@ -421,7 +442,8 @@ Parser::Parser(const std::string &cmd_line)
       partition_num_(0),
       replica_num_(0),
       dim_(0),
-      annoy_tree_num_(0) {
+      annoy_tree_num_(0),
+      limit_(0) {
   Parse();
 }
 
