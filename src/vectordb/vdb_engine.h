@@ -49,6 +49,8 @@ class VdbEngine final {
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
 
+  MetadataSPtr meta() { return meta_; }
+
  private:
   void Init();
   void MkDir();

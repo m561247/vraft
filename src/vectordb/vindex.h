@@ -96,6 +96,18 @@ struct VecResult {
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();
   std::string ToJsonString(bool tiny, bool one_line);
+
+  std::string ToPrintString();
+};
+
+struct VecResults {
+  std::vector<VecResult> results;
+
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+
+  std::string ToPrintString();
 };
 
 class Vindex {

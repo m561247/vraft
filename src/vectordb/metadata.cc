@@ -768,14 +768,20 @@ nlohmann::json Table::ToJson() {
   j["dim"] = dim;
   j["uid"] = uid;
 
+#if 0
+{
   int32_t i = 0;
   for (auto item : partitions_by_id) {
     j["partition_ids"][i++] = item.first;
   }
+}
+#endif
 
-  i = 0;
-  for (auto item : partitions_by_name) {
-    j["partition_names"][i++] = item.first;
+  {
+    int32_t i = 0;
+    for (auto item : partitions_by_name) {
+      j["partition_names"][i++] = item.first;
+    }
   }
 
   return j;

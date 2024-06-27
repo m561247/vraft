@@ -10,6 +10,40 @@
 
 namespace vectordb {
 
+nlohmann::json VecResults::ToJson() {
+  nlohmann::json j;
+  int32_t i = 0;
+  for (auto &r : results) {
+    j[i++] = r.ToJsonString(false, true);
+  }
+  return j;
+}
+
+nlohmann::json VecResults::ToJsonTiny() { return ToJson(); }
+
+std::string VecResults::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["results"] = ToJsonTiny();
+  } else {
+    j["results"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
+}
+
+std::string VecResults::ToPrintString() {
+  std::string s;
+  for (auto &r : results) {
+    s.append(r.ToPrintString()).append("\n");
+  }
+  return s;
+}
+
 nlohmann::json VecResult::ToJson() {
   nlohmann::json j;
   j["key"] = key;
@@ -39,6 +73,13 @@ std::string VecResult::ToJsonString(bool tiny, bool one_line) {
   } else {
     return j.dump(JSON_TAB);
   }
+}
+
+std::string VecResult::ToPrintString() {
+  char buf[1024];
+  snprintf(buf, sizeof(buf), "{distance:%f, key:%s, attach_value:%s}", distance,
+           key.c_str(), attach_value.c_str());
+  return std::string(buf);
 }
 
 int32_t VIndexParam::MaxBytes() {

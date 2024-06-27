@@ -33,11 +33,16 @@ class LocalConsole final : public vraft::Console {
   void Error();
   void Quit();
   void Version();
+  void Meta();
+  void CreateTable();
+  void Load();
+  void GetKNN();
+  void BuildIndex();
 
  private:
   // parse result
   ParserSPtr parser_;
-  VdbEngineSPtr vdb;
+  VdbEngineSPtr vdb_;
 };
 
 inline LocalConsole::~LocalConsole() {}

@@ -67,6 +67,7 @@ class Parser {
   std::string attach_value() const { return attach_value_; }
   std::string table() const { return table_; }
   int32_t limit() const { return limit_; }
+  std::string file() const { return file_; }
 
  private:
   void Parse();
@@ -89,6 +90,7 @@ class Parser {
   std::string attach_value_;
   std::string table_;
   int32_t limit_;
+  std::string file_;
 };
 
 }  // namespace vectordb

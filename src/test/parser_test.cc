@@ -127,7 +127,7 @@ TEST(Parser, kCmdPut) {
   ASSERT_EQ(parser.cmd(), vectordb::kCmdPut);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 
-  ASSERT_EQ(parser.key(), "kkk");
+  ASSERT_EQ(parser.key(), "key_0");
   ASSERT_EQ(parser.table(), "test-table");
   ASSERT_EQ(parser.attach_value(), "aaavvv");
 }
@@ -138,7 +138,7 @@ TEST(Parser, kCmdGet) {
   std::cout << parser.ToJsonString(false, false) << std::endl;
 
   ASSERT_EQ(parser.table(), "test-table");
-  ASSERT_EQ(parser.key(), "kkk");
+  ASSERT_EQ(parser.key(), "key_0");
 }
 
 TEST(Parser, kCmdDelete) {
@@ -147,7 +147,7 @@ TEST(Parser, kCmdDelete) {
   std::cout << parser.ToJsonString(false, false) << std::endl;
 
   ASSERT_EQ(parser.table(), "test-table");
-  ASSERT_EQ(parser.key(), "kkk");
+  ASSERT_EQ(parser.key(), "key_0");
 }
 
 TEST(Parser, kCmdLoad) {
@@ -155,7 +155,8 @@ TEST(Parser, kCmdLoad) {
   ASSERT_EQ(parser.cmd(), vectordb::kCmdLoad);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 
-  ASSERT_EQ(parser.name(), "/tmp/vec.txt");
+  ASSERT_EQ(parser.table(), "test-table");
+  ASSERT_EQ(parser.file(), "/tmp/vec.txt");
 }
 
 TEST(Parser, kCmdGetKNN) {
@@ -163,7 +164,7 @@ TEST(Parser, kCmdGetKNN) {
   ASSERT_EQ(parser.cmd(), vectordb::kCmdGetKNN);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 
-  ASSERT_EQ(parser.key(), "kkk");
+  ASSERT_EQ(parser.key(), "key_0");
   ASSERT_EQ(parser.table(), "test-table");
   ASSERT_EQ(parser.limit(), 20);
 }

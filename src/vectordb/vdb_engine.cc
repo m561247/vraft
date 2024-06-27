@@ -208,9 +208,11 @@ int32_t VdbEngine::GetKNN(const std::string &table,
 nlohmann::json VdbEngine::ToJson() {
   nlohmann::json j;
   j["meta"] = meta_->ToJson();
+#if 0  
   for (auto &kv : engines_) {
     j["engines"][kv.first] = kv.second->ToJson();
   }
+#endif
   return j;
 }
 

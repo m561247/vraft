@@ -40,7 +40,7 @@ const std::string example_cmdstr(VectordbCmd cmd) {
 
     case kCmdPut: {
       cmd_str.append(
-          "put --table=test-table --key=kkk "
+          "put --table=test-table --key=key_0 "
           "--vec=0.435852,0.031869,0.161108,0.055670,0.846847,0.604385,0."
           "075282,0.386435,0.407000,0.101307 "
           "--attach_value=aaavvv");
@@ -48,17 +48,17 @@ const std::string example_cmdstr(VectordbCmd cmd) {
     }
 
     case kCmdGet: {
-      cmd_str.append("get --table=test-table --key=kkk");
+      cmd_str.append("get --table=test-table --key=key_0");
       return cmd_str;
     }
 
     case kCmdDelete: {
-      cmd_str.append("del --table=test-table --key=kkk");
+      cmd_str.append("del --table=test-table --key=key_0");
       return cmd_str;
     }
 
     case kCmdGetKNN: {
-      cmd_str.append("getknn --table=test-table --key=kkk --limit=20");
+      cmd_str.append("getknn --table=test-table --key=key_0 --limit=20");
       return cmd_str;
     }
 
@@ -72,7 +72,7 @@ const std::string example_cmdstr(VectordbCmd cmd) {
     }
 
     case kCmdLoad: {
-      cmd_str.append("load /tmp/vec.txt");
+      cmd_str.append("load --table=test-table --file=/tmp/vec.txt");
       return cmd_str;
     }
 
@@ -84,7 +84,7 @@ const std::string example_cmdstr(VectordbCmd cmd) {
     }
 
     case kCmdBuildIndex: {
-      cmd_str.append("build index --annoy_tree_num=10");
+      cmd_str.append("build index --table=test-table --annoy_tree_num=10");
       return cmd_str;
     }
 
@@ -319,10 +319,9 @@ VectordbCmd GetCmd(const std::string &cmd_line, int *argc, char ***argv) {
     }
 
   } else if (result[0] == "load") {
-    if (result.size() == 2) {
+    if (result.size() == 3) {
       ret_cmd = kCmdLoad;
-      cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[1]);
-      vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);
+      vraft::ConvertStringToArgcArgv(cmd_line, argc, argv);
       return ret_cmd;
     }
   }
@@ -388,7 +387,8 @@ void Parser::Parse() {
         cxxopts::value<std::string>()->default_value(""))(
         "vec", "vec", cxxopts::value<std::string>()->default_value(""))(
         "table", "table", cxxopts::value<std::string>()->default_value(""))(
-        "limit", "limit", cxxopts::value<int32_t>()->default_value("0"));
+        "limit", "limit", cxxopts::value<int32_t>()->default_value("0"))(
+        "file", "file", cxxopts::value<std::string>()->default_value(""));
 
     parse_result_ = std::make_shared<cxxopts::ParseResult>();
     *parse_result_ = options_->parse(argc_, argv_);
@@ -439,6 +439,10 @@ void Parser::Parse() {
 
     if (parse_result_->count("limit")) {
       limit_ = (*parse_result_)["limit"].as<int32_t>();
+    }
+
+    if (parse_result_->count("file")) {
+      file_ = (*parse_result_)["file"].as<std::string>();
     }
   }
 }

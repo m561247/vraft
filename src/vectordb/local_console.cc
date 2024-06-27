@@ -1,6 +1,8 @@
 #include "local_console.h"
 
+#include "clock.h"
 #include "parser.h"
+#include "util.h"
 #include "vdb_engine.h"
 #include "version.h"
 
@@ -8,8 +10,8 @@ namespace vectordb {
 
 LocalConsole::LocalConsole(const std::string &name, const std::string &path)
     : Console(name) {
-  vdb = std::make_shared<VdbEngine>(path);
-  assert(vdb);
+  vdb_ = std::make_shared<VdbEngine>(path);
+  assert(vdb_);
 }
 
 int32_t LocalConsole::Parse(const std::string &cmd_line) {
@@ -21,6 +23,11 @@ int32_t LocalConsole::Parse(const std::string &cmd_line) {
 int32_t LocalConsole::Execute() {
   if (parser_) {
     switch (parser_->cmd()) {
+      case kCmdError: {
+        Error();
+        break;
+      }
+
       case kCmdHelp: {
         Help();
         break;
@@ -37,7 +44,7 @@ int32_t LocalConsole::Execute() {
       }
 
       case kCmdMeta: {
-        Help();
+        Meta();
         break;
       }
 
@@ -57,22 +64,22 @@ int32_t LocalConsole::Execute() {
       }
 
       case kCmdGetKNN: {
-        Help();
+        GetKNN();
         break;
       }
 
       case kCmdLoad: {
-        Help();
+        Load();
         break;
       }
 
       case kCmdCreateTable: {
-        Help();
+        CreateTable();
         break;
       }
 
       case kCmdBuildIndex: {
-        Help();
+        BuildIndex();
         break;
       }
 
@@ -131,5 +138,83 @@ void LocalConsole::Quit() {
 }
 
 void LocalConsole::Version() { set_result(VECTORDB_VERSION); }
+
+void LocalConsole::Meta() {
+  if (vdb_) {
+    set_result(vdb_->ToJsonString(false, false));
+  } else {
+    set_result("error");
+  }
+}
+
+void LocalConsole::CreateTable() {
+  if (vdb_ && parser_) {
+    vectordb::AddTableParam param;
+    param.name = parser_->name();
+    param.partition_num = parser_->partition_num();
+    param.replica_num = parser_->replica_num();
+    param.dim = parser_->dim();
+    int32_t rv = vdb_->AddTable(param);
+    if (rv == 0) {
+      set_result("ok");
+    } else {
+      set_result("error");
+    }
+  }
+}
+
+void LocalConsole::Load() {
+  if (vdb_ && parser_) {
+    int32_t rv = vdb_->Load(parser_->table(), parser_->file());
+    if (rv == 0) {
+      set_result("ok");
+    } else {
+      set_result("error");
+    }
+  }
+}
+
+void LocalConsole::GetKNN() {
+  if (vdb_ && parser_) {
+    VecResults results;
+    if (parser_->key() != "") {
+      int32_t rv = vdb_->GetKNN(parser_->table(), parser_->key(),
+                                results.results, parser_->limit());
+      if (rv == 0) {
+        set_result(results.ToPrintString());
+      } else {
+        set_result("error");
+      }
+    } else {
+      int32_t rv = vdb_->GetKNN(parser_->table(), parser_->vec(),
+                                results.results, parser_->limit());
+      if (rv == 0) {
+        set_result(results.ToPrintString());
+      } else {
+        set_result("error");
+      }
+    }
+  }
+}
+
+void LocalConsole::BuildIndex() {
+  if (vdb_ && parser_) {
+    TableSPtr table = vdb_->meta()->GetTable(parser_->table());
+    if (table) {
+      AddIndexParam param;
+      param.timestamp = vraft::Clock::NSec();
+      param.dim = table->dim;
+      param.index_type = kIndexAnnoy;
+      param.distance_type = kCosine;
+      param.annoy_tree_num = parser_->annoy_tree_num();
+      int32_t rv = vdb_->AddIndex(parser_->table(), param);
+      if (rv == 0) {
+        set_result("ok");
+      } else {
+        set_result("error");
+      }
+    }
+  }
+}
 
 }  // namespace vectordb
