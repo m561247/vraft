@@ -36,6 +36,41 @@ const std::string example_cmdstr(VectordbCmd cmd) {
       return cmd_str;
     }
 
+    case kCmdBuildIndex: {
+      cmd_str.append("build index --annoy_tree_num=10");
+      return cmd_str;
+    }
+
+    case kDescTable: {
+      cmd_str.append("desc table test-table");
+      return cmd_str;
+    }
+
+    case kDescPartition: {
+      cmd_str.append("desc partition test-table#0");
+      return cmd_str;
+    }
+
+    case kDescDescReplica: {
+      cmd_str.append("desc replica test-table#0#0");
+      return cmd_str;
+    }
+
+    case kShowTables: {
+      cmd_str.append("show tables");
+      return cmd_str;
+    }
+
+    case kShowPartitions: {
+      cmd_str.append("show partitions");
+      return cmd_str;
+    }
+
+    case kShowReplicas: {
+      cmd_str.append("show replicas");
+      return cmd_str;
+    }
+
     default:
       return cmd_str;
   }
@@ -123,38 +158,25 @@ VectordbCmd GetCmd(const std::string &cmd_line, int *argc, char ***argv) {
     }
 
   } else if (result[0] == "desc") {
-    del_count = 2;
     if (result.size() == 3) {
       if (result[1] == "table") {
         ret_cmd = kDescTable;
 
-        result.erase(result.begin(), result.begin() + del_count);
-        cmd_line2.append(CmdStr(ret_cmd))
-            .append(" ")
-            .append(DESC_NAME)
-            .append(result[2]);
+        cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[2]);
         vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);
         return ret_cmd;
 
       } else if (result[1] == "partition") {
         ret_cmd = kDescPartition;
 
-        result.erase(result.begin(), result.begin() + del_count);
-        cmd_line2.append(CmdStr(ret_cmd))
-            .append(" ")
-            .append(DESC_NAME)
-            .append(result[2]);
+        cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[2]);
         vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);
         return ret_cmd;
 
       } else if (result[1] == "replica") {
         ret_cmd = kDescDescReplica;
 
-        result.erase(result.begin(), result.begin() + del_count);
-        cmd_line2.append(CmdStr(ret_cmd))
-            .append(" ")
-            .append(DESC_NAME)
-            .append(result[2]);
+        cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[2]);
         vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);
         return ret_cmd;
 
@@ -232,10 +254,11 @@ nlohmann::json Parser::ToJson() {
     j["argvs"][i] = argv_[i];
   }
 
-  j["name"] = name();
-  j["partition_num"] = partition_num();
-  j["replica_num"] = replica_num();
-  j["dim"] = dim();
+  j["param"]["name"] = name();
+  j["param"]["partition_num"] = partition_num();
+  j["param"]["replica_num"] = replica_num();
+  j["param"]["dim"] = dim();
+  j["param"]["annoy_tree_num"] = annoy_tree_num();
 
   return j;
 }
@@ -268,7 +291,9 @@ void Parser::Parse() {
         cxxopts::value<int32_t>()->default_value("0"))(
         "replica_num", "replica_num",
         cxxopts::value<int32_t>()->default_value("0"))(
-        "dim", "dim", cxxopts::value<int32_t>()->default_value("0"))
+        "dim", "dim", cxxopts::value<int32_t>()->default_value("0"))(
+        "annoy_tree_num", "annoy_tree_num",
+        cxxopts::value<int32_t>()->default_value("10"))
 
         ;
 
@@ -290,6 +315,10 @@ void Parser::Parse() {
     if (parse_result_->count("dim")) {
       dim_ = (*parse_result_)["dim"].as<std::int32_t>();
     }
+
+    if (parse_result_->count("annoy_tree_num")) {
+      annoy_tree_num_ = (*parse_result_)["annoy_tree_num"].as<std::int32_t>();
+    }
   }
 }
 
@@ -300,7 +329,8 @@ Parser::Parser(const std::string &cmd_line)
       name_(""),
       partition_num_(0),
       replica_num_(0),
-      dim_(0) {
+      dim_(0),
+      annoy_tree_num_(0) {
   Parse();
 }
 

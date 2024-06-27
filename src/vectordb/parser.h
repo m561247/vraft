@@ -9,8 +9,6 @@
 
 namespace vectordb {
 
-#define DESC_NAME "-desc_name="
-
 enum VectordbCmd {
   kCmdError = 0,
   kCmdHelp,     // help
@@ -57,6 +55,7 @@ class Parser {
   int32_t partition_num() const { return partition_num_; }
   int32_t replica_num() const { return replica_num_; }
   int32_t dim() const { return dim_; }
+  int32_t annoy_tree_num() const { return annoy_tree_num_; }
 
  private:
   void Parse();
@@ -73,6 +72,7 @@ class Parser {
   int32_t partition_num_;
   int32_t replica_num_;
   int32_t dim_;
+  int32_t annoy_tree_num_;
 };
 
 }  // namespace vectordb

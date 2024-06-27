@@ -66,6 +66,60 @@ TEST(Parser, kCmdCreateTable) {
   vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdCreateTable));
   ASSERT_EQ(parser.cmd(), vectordb::kCmdCreateTable);
   std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.name(), "test-table");
+  ASSERT_EQ(parser.partition_num(), 10);
+  ASSERT_EQ(parser.replica_num(), 3);
+}
+
+TEST(Parser, kCmdBuildIndex) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdBuildIndex));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdBuildIndex);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.annoy_tree_num(), 10);
+}
+
+TEST(Parser, kShowTables) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kShowTables));
+  ASSERT_EQ(parser.cmd(), vectordb::kShowTables);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+}
+
+TEST(Parser, kShowPartitions) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kShowPartitions));
+  ASSERT_EQ(parser.cmd(), vectordb::kShowPartitions);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+}
+
+TEST(Parser, kShowReplicas) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kShowReplicas));
+  ASSERT_EQ(parser.cmd(), vectordb::kShowReplicas);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+}
+
+TEST(Parser, kDescTable) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kDescTable));
+  ASSERT_EQ(parser.cmd(), vectordb::kDescTable);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.name(), "test-table");
+}
+
+TEST(Parser, kDescPartition) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kDescPartition));
+  ASSERT_EQ(parser.cmd(), vectordb::kDescPartition);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.name(), "test-table#0");
+}
+
+TEST(Parser, kDescDescReplica) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kDescDescReplica));
+  ASSERT_EQ(parser.cmd(), vectordb::kDescDescReplica);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.name(), "test-table#0#0");
 }
 
 int main(int argc, char **argv) {
