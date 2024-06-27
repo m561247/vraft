@@ -7,7 +7,7 @@
 #include "vdb_console.h"
 #include "vraft_logger.h"
 
-vectordb::VdbConsoleWPtr wptr;
+vraft::ConsoleWPtr wptr;
 
 void SignalHandler(int signal) {
   std::cout << "recv signal " << strsignal(signal) << std::endl;
