@@ -19,6 +19,7 @@ enum VectordbCmd {
   kCmdGet,      // get
   kCmdDelete,   // del
   kCmdGetKNN,   // getknn
+  kCmdLoad,     // load
 
   kCmdCreateTable,   // create table
   kCmdBuildIndex,    // build index
@@ -56,6 +57,10 @@ class Parser {
   int32_t replica_num() const { return replica_num_; }
   int32_t dim() const { return dim_; }
   int32_t annoy_tree_num() const { return annoy_tree_num_; }
+  std::string key() const { return key_; }
+  std::vector<float> &vec() { return vec_; }
+  std::string attach_value() const { return attach_value_; }
+  std::string table() const { return table_; }
 
  private:
   void Parse();
@@ -73,6 +78,10 @@ class Parser {
   int32_t replica_num_;
   int32_t dim_;
   int32_t annoy_tree_num_;
+  std::string key_;
+  std::vector<float> vec_;
+  std::string attach_value_;
+  std::string table_;
 };
 
 }  // namespace vectordb

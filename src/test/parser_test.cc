@@ -122,6 +122,42 @@ TEST(Parser, kDescDescReplica) {
   ASSERT_EQ(parser.name(), "test-table#0#0");
 }
 
+TEST(Parser, kCmdPut) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdPut));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdPut);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.key(), "kkk");
+  ASSERT_EQ(parser.table(), "test-table");
+  ASSERT_EQ(parser.attach_value(), "aaavvv");
+}
+
+TEST(Parser, kCmdGet) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdGet));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdGet);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.table(), "test-table");
+  ASSERT_EQ(parser.key(), "kkk");
+}
+
+TEST(Parser, kCmdDelete) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdDelete));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdDelete);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.table(), "test-table");
+  ASSERT_EQ(parser.key(), "kkk");
+}
+
+TEST(Parser, kCmdLoad) {
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdLoad));
+  ASSERT_EQ(parser.cmd(), vectordb::kCmdLoad);
+  std::cout << parser.ToJsonString(false, false) << std::endl;
+
+  ASSERT_EQ(parser.name(), "/tmp/vec.txt");
+}
+
 int main(int argc, char **argv) {
   vraft::CodingInit();
   ::testing::InitGoogleTest(&argc, argv);

@@ -29,6 +29,35 @@ const std::string example_cmdstr(VectordbCmd cmd) {
       return cmd_str;
     }
 
+    case kCmdPut: {
+      cmd_str.append(
+          "put --table=test-table --key=kkk "
+          "--vec=0.435852,0.031869,0.161108,0.055670,0.846847,0.604385,0."
+          "075282,0.386435,0.407000,0.101307 "
+          "--attach_value=aaavvv");
+      return cmd_str;
+    }
+
+    case kCmdGet: {
+      cmd_str.append("get --table=test-table --key=kkk");
+      return cmd_str;
+    }
+
+    case kCmdDelete: {
+      cmd_str.append("del --table=test-table --key=kkk");
+      return cmd_str;
+    }
+
+    case kCmdGetKNN: {
+      cmd_str.append("getknn ");
+      return cmd_str;
+    }
+
+    case kCmdLoad: {
+      cmd_str.append("load /tmp/vec.txt");
+      return cmd_str;
+    }
+
     case kCmdCreateTable: {
       cmd_str.append(
           "create table --name=test-table --partition_num=10 --replica_num=3 "
@@ -88,12 +117,16 @@ std::string CmdStr(VectordbCmd cmd) {
       return "kCmdQuit";
     case kCmdMeta:
       return "kMeta";
+    case kCmdPut:
+      return "kCmdPut";
     case kCmdGet:
       return "kCmdGet";
     case kCmdDelete:
       return "kCmdDelete";
     case kCmdGetKNN:
       return "kCmdGetKNN";
+    case kCmdLoad:
+      return "kCmdLoad";
     case kCmdCreateTable:
       return "kCmdCreateTable";
     case kCmdBuildIndex:
@@ -238,9 +271,34 @@ VectordbCmd GetCmd(const std::string &cmd_line, int *argc, char ***argv) {
     }
 
   } else if (result[0] == "put") {
+    if (result.size() == 4 || result.size() == 5) {
+      ret_cmd = kCmdPut;
+      vraft::ConvertStringToArgcArgv(cmd_line, argc, argv);
+      return ret_cmd;
+    }
+
   } else if (result[0] == "get") {
+    if (result.size() == 3) {
+      ret_cmd = kCmdGet;
+      vraft::ConvertStringToArgcArgv(cmd_line, argc, argv);
+      return ret_cmd;
+    }
+
   } else if (result[0] == "del") {
+    if (result.size() == 3) {
+      ret_cmd = kCmdDelete;
+      vraft::ConvertStringToArgcArgv(cmd_line, argc, argv);
+      return ret_cmd;
+    }
+
   } else if (result[0] == "getknn") {
+  } else if (result[0] == "load") {
+    if (result.size() == 2) {
+      ret_cmd = kCmdLoad;
+      cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[1]);
+      vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);
+      return ret_cmd;
+    }
   }
 
   return kCmdError;
@@ -259,6 +317,10 @@ nlohmann::json Parser::ToJson() {
   j["param"]["replica_num"] = replica_num();
   j["param"]["dim"] = dim();
   j["param"]["annoy_tree_num"] = annoy_tree_num();
+  j["param"]["key"] = key();
+  j["param"]["attach_value"] = attach_value();
+  j["param"]["vec"] = vec_;
+  j["param"]["table"] = table_;
 
   return j;
 }
@@ -293,7 +355,12 @@ void Parser::Parse() {
         cxxopts::value<int32_t>()->default_value("0"))(
         "dim", "dim", cxxopts::value<int32_t>()->default_value("0"))(
         "annoy_tree_num", "annoy_tree_num",
-        cxxopts::value<int32_t>()->default_value("10"))
+        cxxopts::value<int32_t>()->default_value("10"))(
+        "key", "key", cxxopts::value<std::string>()->default_value(""))(
+        "attach_value", "attach_value",
+        cxxopts::value<std::string>()->default_value(""))(
+        "vec", "vec", cxxopts::value<std::string>()->default_value(""))(
+        "table", "table", cxxopts::value<std::string>()->default_value(""))
 
         ;
 
@@ -305,19 +372,43 @@ void Parser::Parse() {
     }
 
     if (parse_result_->count("partition_num")) {
-      partition_num_ = (*parse_result_)["partition_num"].as<std::int32_t>();
+      partition_num_ = (*parse_result_)["partition_num"].as<int32_t>();
     }
 
     if (parse_result_->count("replica_num")) {
-      replica_num_ = (*parse_result_)["replica_num"].as<std::int32_t>();
+      replica_num_ = (*parse_result_)["replica_num"].as<int32_t>();
     }
 
     if (parse_result_->count("dim")) {
-      dim_ = (*parse_result_)["dim"].as<std::int32_t>();
+      dim_ = (*parse_result_)["dim"].as<int32_t>();
     }
 
     if (parse_result_->count("annoy_tree_num")) {
-      annoy_tree_num_ = (*parse_result_)["annoy_tree_num"].as<std::int32_t>();
+      annoy_tree_num_ = (*parse_result_)["annoy_tree_num"].as<int32_t>();
+    }
+
+    if (parse_result_->count("key")) {
+      key_ = (*parse_result_)["key"].as<std::string>();
+    }
+
+    if (parse_result_->count("attach_value")) {
+      attach_value_ = (*parse_result_)["attach_value"].as<std::string>();
+    }
+
+    if (parse_result_->count("table")) {
+      table_ = (*parse_result_)["table"].as<std::string>();
+    }
+
+    if (parse_result_->count("vec")) {
+      std::string float_vec_str = (*parse_result_)["vec"].as<std::string>();
+
+      std::vector<std::string> result;
+      vraft::Split(float_vec_str, ',', result);
+      for (auto &item : result) {
+        float f32;
+        sscanf(item.c_str(), "%f", &f32);
+        vec_.push_back(f32);
+      }
     }
   }
 }
