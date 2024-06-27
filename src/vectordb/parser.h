@@ -30,7 +30,11 @@ enum VectordbCmd {
   kShowTables,       // show tables
   kShowPartitions,   // show partitions
   kShowReplicas,     // show replicas
+
+  kCmdEnd,
 };
+
+const std::string HelpStr();
 
 const std::string example_cmdstr(VectordbCmd cmd);
 

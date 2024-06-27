@@ -36,12 +36,7 @@ class LocalConsole final : public vraft::Console {
 
  private:
   // parse result
-  int argc_;
-  char **argv_;
-  std::string cmd_;
-  std::shared_ptr<cxxopts::Options> options_;
-  cxxopts::ParseResult parse_result_;
-
+  ParserSPtr parser_;
   VdbEngineSPtr vdb;
 };
 

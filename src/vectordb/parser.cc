@@ -5,6 +5,15 @@
 
 namespace vectordb {
 
+const std::string HelpStr() {
+  std::string help;
+  help.append("example:\n\n");
+  for (int32_t i = kCmdHelp; i < kCmdEnd; ++i) {
+    help.append(example_cmdstr(*(VectordbCmd *)(&i))).append("\n");
+  }
+  return help;
+}
+
 const std::string example_cmdstr(VectordbCmd cmd) {
   // char str_buf[1024];
   std::string cmd_str;
