@@ -84,17 +84,17 @@ int32_t LocalConsole::Execute() {
       }
 
       case kDescTable: {
-        Help();
+        DescTable();
         break;
       }
 
       case kDescPartition: {
-        Help();
+        DescPartition();
         break;
       }
 
       case kDescDescReplica: {
-        Help();
+        DescDescReplica();
         break;
       }
 
@@ -238,6 +238,33 @@ void LocalConsole::ShowReplicas() {
     Names names;
     vdb_->meta()->Replicas(names);
     set_result(names.ToJsonString(false, false));
+  }
+}
+
+void LocalConsole::DescTable() {
+  if (vdb_ && parser_) {
+    TableSPtr sptr = vdb_->meta()->GetTable(parser_->name());
+    if (sptr) {
+      set_result(sptr->ToJsonString(false, false));
+    }
+  }
+}
+
+void LocalConsole::DescPartition() {
+  if (vdb_ && parser_) {
+    PartitionSPtr sptr = vdb_->meta()->GetPartition(parser_->name());
+    if (sptr) {
+      set_result(sptr->ToJsonString(false, false));
+    }
+  }
+}
+
+void LocalConsole::DescDescReplica() {
+  if (vdb_ && parser_) {
+    ReplicaSPtr sptr = vdb_->meta()->GetReplica(parser_->name());
+    if (sptr) {
+      set_result(sptr->ToJsonString(false, false));
+    }
   }
 }
 
