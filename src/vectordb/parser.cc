@@ -9,10 +9,31 @@ const std::string example_cmdstr(VectordbCmd cmd) {
   // char str_buf[1024];
   std::string cmd_str;
   switch (cmd) {
+    case kCmdHelp: {
+      cmd_str.append("help");
+      return cmd_str;
+    }
+
+    case kCmdVersion: {
+      cmd_str.append("version");
+      return cmd_str;
+    }
+
+    case kCmdQuit: {
+      cmd_str.append("quit");
+      return cmd_str;
+    }
+
+    case kCmdMeta: {
+      cmd_str.append("meta");
+      return cmd_str;
+    }
+
     case kCmdCreateTable: {
       cmd_str.append(
           "create table --name=test-table --partition_num=10 --replica_num=3 "
           "--dim=10");
+      return cmd_str;
     }
 
     default:

@@ -39,25 +39,25 @@ TEST(Parser, kCmdError) {
 }
 
 TEST(Parser, kCmdHelp) {
-  vectordb::Parser parser("help");
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdHelp));
   ASSERT_EQ(parser.cmd(), vectordb::kCmdHelp);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 }
 
 TEST(Parser, kCmdVersion) {
-  vectordb::Parser parser("version");
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdVersion));
   ASSERT_EQ(parser.cmd(), vectordb::kCmdVersion);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 }
 
 TEST(Parser, kCmdQuit) {
-  vectordb::Parser parser("quit");
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdQuit));
   ASSERT_EQ(parser.cmd(), vectordb::kCmdQuit);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 }
 
 TEST(Parser, kCmdMeta) {
-  vectordb::Parser parser("meta");
+  vectordb::Parser parser(vectordb::example_cmdstr(vectordb::kCmdMeta));
   ASSERT_EQ(parser.cmd(), vectordb::kCmdMeta);
   std::cout << parser.ToJsonString(false, false) << std::endl;
 }
