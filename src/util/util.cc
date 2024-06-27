@@ -323,4 +323,28 @@ int32_t PartitionId(const std::string &key, int32_t partition_num) {
   return Crc32(key.c_str(), key.size()) % partition_num;
 }
 
+void DelTail(std::string &s, char ch) {
+  int len = s.length();
+  while (len > 0 && s[len - 1] == ch) {
+    len--;
+  }
+  s = s.substr(0, len);
+}
+
+void DelHead(std::string &s, const std::string &del) {
+  size_t pos = 0;
+  while (pos < s.length() && del.find(s[pos]) != std::string::npos) {
+    pos++;
+  }
+  s = s.substr(pos);
+}
+
+void DelTail(std::string &s, const std::string &del) {
+  size_t len = s.length();
+  while (len > 0 && del.find(s[len - 1]) != std::string::npos) {
+    len--;
+  }
+  s = s.substr(0, len);
+}
+
 }  // namespace vraft

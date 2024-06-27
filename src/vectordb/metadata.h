@@ -153,6 +153,10 @@ class Metadata final {
                                  ReplicaFunc func);
   void ForEachReplicaInTable(const std::string &table_name, ReplicaFunc func);
 
+  void Tables(Names &names);
+  void Partitions(Names &names);
+  void Replicas(Names &names);
+
  private:
   TableSPtr CreateTable(TableParam param);
   PartitionSPtr CreatePartition(Partition param);

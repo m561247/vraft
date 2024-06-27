@@ -127,11 +127,11 @@ int32_t Names::FromString(const char *ptr, int32_t len) {
 
 nlohmann::json Names::ToJson() {
   nlohmann::json j;
-  j["table_num"] = names.size();
+  j[0]["size"] = names.size();
 
   int32_t i = 0;
   for (auto name : names) {
-    j["names"][i++] = name;
+    j[1][i++] = name;
   }
 
   return j;
@@ -142,9 +142,9 @@ nlohmann::json Names::ToJsonTiny() { return ToJson(); }
 std::string Names::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["names"] = ToJsonTiny();
+    j = ToJsonTiny();
   } else {
-    j["names"] = ToJson();
+    j = ToJson();
   }
 
   if (one_line) {
@@ -939,6 +939,21 @@ void Metadata::ForEachReplicaInTable(const std::string &table_name,
   ForEachPartitionInTable(table_name, [this, func](PartitionSPtr sptr) {
     std::bind(&Metadata::ForEachReplicaInPartition, this, sptr->name, func)();
   });
+}
+
+void Metadata::Tables(Names &names) {
+  for (auto &kv : tables_) {
+    names.names.push_back(kv.first);
+  }
+}
+
+void Metadata::Partitions(Names &names) {
+  ForEachPartition(
+      [&names](PartitionSPtr p) { names.names.push_back(p->name); });
+}
+
+void Metadata::Replicas(Names &names) {
+  ForEachReplica([&names](ReplicaSPtr r) { names.names.push_back(r->name); });
 }
 
 TableSPtr Metadata::CreateTable(TableParam param) {

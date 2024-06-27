@@ -99,17 +99,17 @@ int32_t LocalConsole::Execute() {
       }
 
       case kShowTables: {
-        Help();
+        ShowTables();
         break;
       }
 
       case kShowPartitions: {
-        Help();
+        ShowPartitions();
         break;
       }
 
       case kShowReplicas: {
-        Help();
+        ShowReplicas();
         break;
       }
 
@@ -214,6 +214,30 @@ void LocalConsole::BuildIndex() {
         set_result("error");
       }
     }
+  }
+}
+
+void LocalConsole::ShowTables() {
+  if (vdb_ && parser_) {
+    Names names;
+    vdb_->meta()->Tables(names);
+    set_result(names.ToJsonString(false, false));
+  }
+}
+
+void LocalConsole::ShowPartitions() {
+  if (vdb_ && parser_) {
+    Names names;
+    vdb_->meta()->Partitions(names);
+    set_result(names.ToJsonString(false, false));
+  }
+}
+
+void LocalConsole::ShowReplicas() {
+  if (vdb_ && parser_) {
+    Names names;
+    vdb_->meta()->Replicas(names);
+    set_result(names.ToJsonString(false, false));
   }
 }
 

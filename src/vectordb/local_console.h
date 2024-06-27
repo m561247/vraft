@@ -38,6 +38,9 @@ class LocalConsole final : public vraft::Console {
   void Load();
   void GetKNN();
   void BuildIndex();
+  void ShowTables();
+  void ShowPartitions();
+  void ShowReplicas();
 
  private:
   // parse result

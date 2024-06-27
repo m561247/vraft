@@ -369,6 +369,8 @@ std::string Parser::ToJsonString(bool tiny, bool one_line) {
 }
 
 void Parser::Parse() {
+  vraft::DelHead(cmd_line_, " ");
+  vraft::DelTail(cmd_line_, " ;");
   cmd_ = GetCmd(cmd_line_, &argc_, &argv_);
 
   if (cmd_ != kCmdError) {

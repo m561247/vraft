@@ -78,6 +78,10 @@ bool IsFileExist(const std::string &path);
 
 int32_t PartitionId(const std::string &key, int32_t partition_num);
 
+void DelHead(std::string &s, const std::string &del);
+
+void DelTail(std::string &s, const std::string &del);
+
 }  // namespace vraft
 
 #endif
