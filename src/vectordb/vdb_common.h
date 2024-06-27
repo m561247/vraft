@@ -9,6 +9,11 @@ namespace vectordb {
 #define DEFAULT_LIMIT 10
 #define SEARCH_K 1000000
 
+class Parser;
+using ParserSPtr = std::shared_ptr<Parser>;
+using ParserUPtr = std::unique_ptr<Parser>;
+using ParserWPtr = std::weak_ptr<Parser>;
+
 class Table;
 using TableSPtr = std::shared_ptr<Table>;
 using TableUPtr = std::unique_ptr<Table>;
