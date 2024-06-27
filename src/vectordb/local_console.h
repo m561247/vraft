@@ -44,6 +44,9 @@ class LocalConsole final : public vraft::Console {
   void DescTable();
   void DescPartition();
   void DescDescReplica();
+  void Get();
+  void Put();
+  void Delete();
 
  private:
   // parse result

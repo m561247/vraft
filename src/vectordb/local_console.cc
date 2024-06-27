@@ -49,17 +49,17 @@ int32_t LocalConsole::Execute() {
       }
 
       case kCmdPut: {
-        Help();
+        Put();
         break;
       }
 
       case kCmdGet: {
-        Help();
+        Get();
         break;
       }
 
       case kCmdDelete: {
-        Help();
+        Delete();
         break;
       }
 
@@ -264,6 +264,43 @@ void LocalConsole::DescDescReplica() {
     ReplicaSPtr sptr = vdb_->meta()->GetReplica(parser_->name());
     if (sptr) {
       set_result(sptr->ToJsonString(false, false));
+    }
+  }
+}
+
+void LocalConsole::Get() {
+  if (vdb_ && parser_) {
+    VecObj vo;
+    int32_t rv = vdb_->Get(parser_->table(), parser_->key(), vo);
+    if (rv == 0) {
+      set_result(vo.ToJsonString(false, false));
+    } else {
+      set_result("error");
+    }
+  }
+}
+
+void LocalConsole::Put() {
+  if (vdb_ && parser_) {
+    VecValue vv;
+    vv.vec.data = parser_->vec();
+    vv.attach_value = parser_->attach_value();
+    int32_t rv = vdb_->Put(parser_->table(), parser_->key(), vv);
+    if (rv == 0) {
+      set_result("ok");
+    } else {
+      set_result("error");
+    }
+  }
+}
+
+void LocalConsole::Delete() {
+  if (vdb_ && parser_) {
+    int32_t rv = vdb_->Delete(parser_->table(), parser_->key());
+    if (rv == 0) {
+      set_result("ok");
+    } else {
+      set_result("error");
     }
   }
 }
