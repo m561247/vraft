@@ -54,6 +54,54 @@ TEST(Split, Split) {
   }
 }
 
+TEST(SplitTest, HandlesSingleSeparator) {
+  std::vector<std::string> result;
+  vraft::Split("aaa bb cc", ' ', result);
+
+  std::vector<std::string> expected = {"aaa", "bb", "cc"};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(SplitTest, HandlesMultipleSeparators) {
+  std::vector<std::string> result;
+  vraft::Split("aaa   bb cc", ' ', result);
+
+  std::vector<std::string> expected = {"aaa", "bb", "cc"};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(SplitTest, HandlesLeadingSeparators) {
+  std::vector<std::string> result;
+  vraft::Split("  aaa bb cc", ' ', result);
+
+  std::vector<std::string> expected = {"aaa", "bb", "cc"};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(SplitTest, HandlesTrailingSeparators) {
+  std::vector<std::string> result;
+  vraft::Split("aaa bb cc  ", ' ', result);
+
+  std::vector<std::string> expected = {"aaa", "bb", "cc"};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(SplitTest, HandlesNoSeparators) {
+  std::vector<std::string> result;
+  vraft::Split("aaabbcc", ' ', result);
+
+  std::vector<std::string> expected = {"aaabbcc"};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(SplitTest, HandlesEmptyString) {
+  std::vector<std::string> result;
+  vraft::Split("", ' ', result);
+
+  std::vector<std::string> expected = {};
+  EXPECT_EQ(result, expected);
+}
+
 TEST(UniqId, test) {
   char buf[20];
   for (int i = 0; i < 20; ++i) {
