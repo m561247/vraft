@@ -418,4 +418,9 @@ format:
 	clang-format --style=Google -i `find ./src -type f \( -name "*.h" -o -name "*.c" -o -name "*.cc" -o -name "*.cpp" \)`
 
 
-.PHONY: all clean
+# deps
+deps:
+	cd third_party && make clean && make && cd -
+
+
+.PHONY: all clean deps
