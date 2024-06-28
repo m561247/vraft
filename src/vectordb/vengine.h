@@ -93,6 +93,7 @@ class VEngine final : public std::enable_shared_from_this<VEngine> {
                  int limit);
   int32_t GetKNN(const std::vector<float> &vec, std::vector<VecResult> &results,
                  int limit);
+  void LoadIndex();
 
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();

@@ -125,11 +125,14 @@ TEST(VdbEngine, Load) {
     rv = vdb.AddIndex(param.name, add_index_param);
     ASSERT_EQ(rv, 0);
 
+    std::cout << vdb.ToJsonString(false, false) << std::endl;
+
     {
       std::string find_key = "key_3";
       std::vector<vectordb::VecResult> results;
       rv = vdb.GetKNN(param.name, find_key, results, 10);
       ASSERT_EQ(rv, 0);
+      ASSERT_EQ(results.size(), (size_t)10);
 
       std::cout << "results.size(): " << results.size() << std::endl;
       for (auto &item : results) {
@@ -147,6 +150,51 @@ TEST(VdbEngine, Load) {
       std::vector<vectordb::VecResult> results;
       rv = vdb.GetKNN(param.name, vec, results, 10);
       ASSERT_EQ(rv, 0);
+      ASSERT_EQ(results.size(), (size_t)10);
+
+      std::cout << "results.size(): " << results.size() << std::endl;
+      for (auto &item : results) {
+        std::cout << item.ToJsonString(true, true) << std::endl;
+      }
+    }
+  }
+
+  if (ok) {
+    vectordb::VdbEngine vdb(home_path);
+    std::cout << vdb.ToJsonString(false, false) << std::endl;
+
+    std::string table_name = "test-table";
+    int32_t rv = 0;
+
+    vectordb::VecObj vo;
+    rv = vdb.Get(table_name, "key_0", vo);
+    ASSERT_EQ(rv, 0);
+    std::cout << "get: " << vo.ToJsonString(false, true) << std::endl;
+
+    {
+      std::string find_key = "key_3";
+      std::vector<vectordb::VecResult> results;
+      rv = vdb.GetKNN(table_name, find_key, results, 10);
+      ASSERT_EQ(rv, 0);
+      ASSERT_EQ(results.size(), (size_t)10);
+
+      std::cout << "results.size(): " << results.size() << std::endl;
+      for (auto &item : results) {
+        std::cout << item.ToJsonString(true, true) << std::endl;
+      }
+    }
+
+    {
+      std::vector<float> vec;
+      for (int32_t i = 0; i < dim; ++i) {
+        float f32 = vraft::RandomFloat(1);
+        vec.push_back(f32);
+      }
+
+      std::vector<vectordb::VecResult> results;
+      rv = vdb.GetKNN(table_name, vec, results, 10);
+      ASSERT_EQ(rv, 0);
+      ASSERT_EQ(results.size(), (size_t)10);
 
       std::cout << "results.size(): " << results.size() << std::endl;
       for (auto &item : results) {

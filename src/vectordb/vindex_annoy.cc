@@ -133,6 +133,9 @@ void VindexAnnoy::Init() {
   meta_ = std::make_shared<VindexMeta>(meta_path_, tmp_param);
   assert(meta_);
 
+  // update parent param
+  set_param(meta_->param());
+
   // init keyid meta, dir logic in KeyidMeta
   keyid_ = std::make_shared<KeyidMeta>(keyid_path_);
   assert(keyid_);

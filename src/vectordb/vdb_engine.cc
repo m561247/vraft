@@ -208,11 +208,20 @@ int32_t VdbEngine::GetKNN(const std::string &table,
 nlohmann::json VdbEngine::ToJson() {
   nlohmann::json j;
   j["meta"] = meta_->ToJson();
-#if 0  
-  for (auto &kv : engines_) {
-    j["engines"][kv.first] = kv.second->ToJson();
+
+  if (engines_.size() > 0) {
+    for (auto &kv : engines_) {
+      std::string path = kv.second->path();
+      std::vector<std::string> result;
+      vraft::Split(path, '/', result);
+      assert(result.size() > 0);
+      std::string name = *(result.rbegin());
+      j["engines"][name] = kv.second->ToJson();
+    }
+  } else {
+    j["engines"] = "null";
   }
-#endif
+
   return j;
 }
 
@@ -237,6 +246,9 @@ int32_t VdbEngine::CreateVEngine(ReplicaSPtr replica) {
   vectordb::VEngineSPtr ve =
       std::make_shared<VEngine>(replica->path, replica->dim);
   engines_[replica->uid] = ve;
+  if (!ve->HasIndex()) {
+    ve->LoadIndex();
+  }
   return 0;
 }
 
@@ -272,6 +284,11 @@ void VdbEngine::Init() {
 
   meta_ = std::make_shared<Metadata>(meta_path_);
   assert(meta_);
+
+  meta_->ForEachReplica([this](ReplicaSPtr replica) {
+    int32_t rv = this->CreateVEngine(replica);
+    assert(rv == 0);
+  });
 }
 
 void VdbEngine::MkDir() {

@@ -22,6 +22,10 @@ class VindexManager final {
   VindexSPtr Get(uint64_t timestamp);
   VindexSPtr GetNewest();
 
+  nlohmann::json ToJson();
+  nlohmann::json ToJsonTiny();
+  std::string ToJsonString(bool tiny, bool one_line);
+
  private:
   std::map<uint64_t, VindexSPtr> indices_;
 };

@@ -463,7 +463,8 @@ int32_t VEngine::GetKNN(const std::vector<float> &vec,
 
 nlohmann::json VEngine::ToJson() {
   nlohmann::json j;
-  j[0] = meta_->ToJson();
+  j["meta"] = meta_->ToJson();
+  j["indices"] = index_manager_->ToJson();
   return j;
 }
 
@@ -505,9 +506,29 @@ void VEngine::Init() {
   meta_ = std::make_shared<EngineMeta>(meta_path_);
   assert(meta_);
 
-  // init index
+  // init index manager
   index_manager_ = std::make_shared<VindexManager>();
   assert(index_manager_);
+}
+
+void VEngine::LoadIndex() {
+  std::vector<std::string> index_paths;
+  vraft::ListDir(index_path_, index_paths);
+  for (auto &index_path : index_paths) {
+    VIndexParam param;
+    param.path = index_path;
+    param.timestamp = 0;
+    param.dim = meta_->dim();
+    param.index_type = kIndexAnnoy;
+    param.distance_type = kCosine;
+    param.annoy_tree_num = 0;
+
+    VindexAnnoy *index = new VindexAnnoy(param, shared_from_this());
+    assert(index);
+    VindexSPtr vindex;
+    vindex.reset(index);
+    index_manager_->Add(vindex);
+  }
 }
 
 void VEngine::MkDir() {

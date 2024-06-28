@@ -118,6 +118,7 @@ class Vindex {
   Vindex &operator=(const Vindex &) = delete;
 
   VIndexParam param() const { return param_; }
+  void set_param(VIndexParam param) { param_ = param; }
 
   virtual int32_t GetKNN(const std::string &key,
                          std::vector<VecResult> &results,

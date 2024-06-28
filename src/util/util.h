@@ -2,6 +2,7 @@
 #define VRAFT_UTIL_H_
 
 #include <arpa/inet.h>
+#include <dirent.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -81,6 +82,8 @@ int32_t PartitionId(const std::string &key, int32_t partition_num);
 void DelHead(std::string &s, const std::string &del);
 
 void DelTail(std::string &s, const std::string &del);
+
+void ListDir(const std::string &path, std::vector<std::string> &paths);
 
 }  // namespace vraft
 

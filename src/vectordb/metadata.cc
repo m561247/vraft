@@ -1147,6 +1147,10 @@ int32_t Metadata::Load() {
         (table_sptr->partitions_by_id)[partition_sptr->id] = partition_sptr;
 
         std::vector<std::string> tmp_replica_names;
+        for (auto item : partition_sptr->replicas_by_name) {
+          tmp_replica_names.push_back(item.first);
+        }
+
         for (auto &replica_name : tmp_replica_names) {
           ReplicaSPtr replica_sptr = LoadReplica(replica_name);
           assert(replica_sptr);

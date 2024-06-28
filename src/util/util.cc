@@ -347,4 +347,36 @@ void DelTail(std::string &s, const std::string &del) {
   s = s.substr(0, len);
 }
 
+// List all subdirectories in the given path and store them in the vector paths.
+void ListDir(const std::string &path, std::vector<std::string> &paths) {
+  DIR *dir = opendir(path.c_str());
+  if (dir == nullptr) {
+    std::cerr << "Invalid path: " << path << std::endl;
+    return;
+  }
+
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != nullptr) {
+    // Skip the "." and ".." entries
+    if (entry->d_name[0] == '.' &&
+        (entry->d_name[1] == '\0' ||
+         (entry->d_name[1] == '.' && entry->d_name[2] == '\0'))) {
+      continue;
+    }
+
+    std::string fullPath = path + "/" + entry->d_name;
+    struct stat info;
+    if (stat(fullPath.c_str(), &info) != 0) {
+      std::cerr << "Error reading directory: " << fullPath << std::endl;
+      continue;
+    }
+
+    if (S_ISDIR(info.st_mode)) {
+      paths.push_back(fullPath);
+    }
+  }
+
+  closedir(dir);
+}
+
 }  // namespace vraft

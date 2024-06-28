@@ -2,6 +2,8 @@
 
 #include <map>
 
+#include "common.h"
+#include "util.h"
 #include "vengine.h"
 
 namespace vectordb {
@@ -36,6 +38,34 @@ VindexSPtr VindexManager::GetNewest() {
     sptr = it->second;
   }
   return sptr;
+}
+
+nlohmann::json VindexManager::ToJson() {
+  nlohmann::json j;
+  int32_t i = 0;
+  for (auto &kv : indices_) {
+    j[i]["index"] = kv.second->ToJson();
+    j[i]["time"] = vraft::NsToString(kv.first);
+    ++i;
+  }
+  return j;
+}
+
+nlohmann::json VindexManager::ToJsonTiny() { return ToJson(); }
+
+std::string VindexManager::ToJsonString(bool tiny, bool one_line) {
+  nlohmann::json j;
+  if (tiny) {
+    j["indices"] = ToJsonTiny();
+  } else {
+    j["indices"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
 }
 
 }  // namespace vectordb
