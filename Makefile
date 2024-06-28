@@ -422,5 +422,8 @@ format:
 deps:
 	cd third_party && make clean && make && cd -
 
+clean_deps:
+	cd third_party && make clean && cd -
+
 
 .PHONY: all clean deps
