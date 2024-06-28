@@ -103,6 +103,11 @@ const std::string example_cmdstr(VectordbCmd cmd) {
       return cmd_str;
     }
 
+    case kDescDescEngine: {
+      cmd_str.append("desc engine test-table#0#0");
+      return cmd_str;
+    }
+
     case kShowTables: {
       cmd_str.append("show tables");
       return cmd_str;
@@ -157,6 +162,8 @@ std::string CmdStr(VectordbCmd cmd) {
       return "kDescPartition";
     case kDescDescReplica:
       return "kDescDescReplica";
+    case kDescDescEngine:
+      return "kDescDescEngine";
     case kShowTables:
       return "kShowTables";
     case kShowPartitions:
@@ -228,6 +235,13 @@ VectordbCmd GetCmd(const std::string &cmd_line, int *argc, char ***argv) {
 
       } else if (result[1] == "replica") {
         ret_cmd = kDescDescReplica;
+
+        cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[2]);
+        vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);
+        return ret_cmd;
+
+      } else if (result[1] == "engine") {
+        ret_cmd = kDescDescEngine;
 
         cmd_line2.append(CmdStr(ret_cmd)).append(" --name=").append(result[2]);
         vraft::ConvertStringToArgcArgv(cmd_line2, argc, argv);

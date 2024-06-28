@@ -6,6 +6,54 @@
 
 #include "simple_random.h"
 
+TEST(Split, Split) {
+  {
+    std::vector<std::string> result;
+    vraft::Split("aaa   bb cc", ' ', result);
+    for (auto &s : result) {
+      std::cout << s << std::endl;
+    }
+    ASSERT_EQ(result.size(), (size_t)3);
+    ASSERT_EQ(result[0], "aaa");
+    ASSERT_EQ(result[1], "bb");
+    ASSERT_EQ(result[2], "cc");
+  }
+
+  {
+    std::vector<std::string> result;
+    vraft::Split("aaa bb cc", ' ', result);
+    for (auto &s : result) {
+      std::cout << s << std::endl;
+    }
+    ASSERT_EQ(result.size(), (size_t)3);
+    ASSERT_EQ(result[0], "aaa");
+    ASSERT_EQ(result[1], "bb");
+    ASSERT_EQ(result[2], "cc");
+  }
+
+  {
+    std::vector<std::string> result;
+    vraft::Split("  aaabb cc", ' ', result);
+    for (auto &s : result) {
+      std::cout << s << std::endl;
+    }
+    ASSERT_EQ(result.size(), (size_t)2);
+    ASSERT_EQ(result[0], "aaabb");
+    ASSERT_EQ(result[1], "cc");
+  }
+
+  {
+    std::vector<std::string> result;
+    vraft::Split("aaabb cc    ", ' ', result);
+    for (auto &s : result) {
+      std::cout << s << std::endl;
+    }
+    ASSERT_EQ(result.size(), (size_t)2);
+    ASSERT_EQ(result[0], "aaabb");
+    ASSERT_EQ(result[1], "cc");
+  }
+}
+
 TEST(UniqId, test) {
   char buf[20];
   for (int i = 0; i < 20; ++i) {

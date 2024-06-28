@@ -276,6 +276,21 @@ VEngineSPtr VdbEngine::GetVEngine(const std::string &table,
   return sptr;
 }
 
+VEngineSPtr VdbEngine::GetVEngine(const std::string &replica_name) {
+  VEngineSPtr sptr;
+  ReplicaSPtr replica_sptr = meta_->GetReplica(replica_name);
+  if (!replica_sptr) {
+    return sptr;
+  }
+
+  auto it = engines_.find(replica_sptr->uid);
+  if (it != engines_.end()) {
+    sptr = it->second;
+  }
+
+  return sptr;
+}
+
 void VdbEngine::Init() {
   bool dir_exist = vraft::IsDirExist(path_);
   if (!dir_exist) {

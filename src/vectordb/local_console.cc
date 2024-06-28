@@ -98,6 +98,11 @@ int32_t LocalConsole::Execute() {
         break;
       }
 
+      case kDescDescEngine: {
+        DescDescEngine();
+        break;
+      }
+
       case kShowTables: {
         ShowTables();
         break;
@@ -262,6 +267,15 @@ void LocalConsole::DescPartition() {
 void LocalConsole::DescDescReplica() {
   if (vdb_ && parser_) {
     ReplicaSPtr sptr = vdb_->meta()->GetReplica(parser_->name());
+    if (sptr) {
+      set_result(sptr->ToJsonString(false, false));
+    }
+  }
+}
+
+void LocalConsole::DescDescEngine() {
+  if (vdb_ && parser_) {
+    VEngineSPtr sptr = vdb_->GetVEngine(parser_->name());
     if (sptr) {
       set_result(sptr->ToJsonString(false, false));
     }

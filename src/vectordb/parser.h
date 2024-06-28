@@ -27,6 +27,7 @@ enum VectordbCmd {
   kDescTable,        // desc table
   kDescPartition,    // desc partition
   kDescDescReplica,  // desc replica
+  kDescDescEngine,   // desc engine
   kShowTables,       // show tables
   kShowPartitions,   // show partitions
   kShowReplicas,     // show replicas

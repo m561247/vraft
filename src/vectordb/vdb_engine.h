@@ -50,6 +50,7 @@ class VdbEngine final {
   std::string ToJsonString(bool tiny, bool one_line);
 
   MetadataSPtr meta() { return meta_; }
+  VEngineSPtr GetVEngine(const std::string &replica_name);
 
  private:
   void Init();

@@ -11,6 +11,7 @@
 
 namespace vraft {
 
+#if 0
 void Split(const std::string &str, char separator,
            std::vector<std::string> &result) {
   size_t start = 0;
@@ -23,6 +24,28 @@ void Split(const std::string &str, char separator,
   }
 
   result.push_back(str.substr(start));
+}
+#endif
+
+void Split(const std::string &str, char separator,
+           std::vector<std::string> &result) {
+  result.clear();
+  std::string temp;
+
+  for (char ch : str) {
+    if (ch == separator) {
+      if (!temp.empty()) {
+        result.push_back(temp);
+        temp.clear();
+      }
+    } else {
+      temp += ch;
+    }
+  }
+
+  if (!temp.empty()) {
+    result.push_back(temp);
+  }
 }
 
 void DelSpace(std::string &str) {
