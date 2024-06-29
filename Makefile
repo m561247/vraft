@@ -46,6 +46,7 @@ VECTORDB_CLI_SRCS := src/main/vectordb_cli.cc $(COMMON_SRCS)
 ECHO_SERVER_SRCS := src/example/echo_server.cc $(COMMON_SRCS)
 ECHO_CLIENT_SRCS := src/example/echo_client.cc $(COMMON_SRCS)
 ECHO_CONSOLE_SRCS := src/example/echo_console.cc $(COMMON_SRCS)
+TURING_MACHINE_SRCS := src/example/turing_machine.cc $(COMMON_SRCS)
 
 # test src
 LOGGER_TEST_SRCS := src/test/logger_test.cc $(COMMON_SRCS)
@@ -113,6 +114,7 @@ VECTORDB_CLI_OBJECTS := $(VECTORDB_CLI_SRCS:.cc=.o)
 ECHO_SERVER_OBJECTS := $(ECHO_SERVER_SRCS:.cc=.o)
 ECHO_CLIENT_OBJECTS := $(ECHO_CLIENT_SRCS:.cc=.o)
 ECHO_CONSOLE_OBJECTS := $(ECHO_CONSOLE_SRCS:.cc=.o)
+TURING_MACHINE_OBJECTS := $(TURING_MACHINE_SRCS:.cc=.o)
 
 # test
 LOGGER_TEST_OBJECTS := $(LOGGER_TEST_SRCS:.cc=.o)
@@ -166,7 +168,7 @@ PARSER_TEST_OBJECTS := $(PARSER_TEST_SRCS:.cc=.o)
 
 # generate exe
 MAIN := vraft-server rlog-tool meta-tool db-tool remu vectordb-server vectordb-cli
-EXAMPLE := echo-server echo-client echo-console
+EXAMPLE := echo-server echo-client echo-console turing-machine
 
 TEST := tpl_test
 TEST += logger_test 
@@ -402,6 +404,9 @@ vdb_engine_test: $(VDB_ENGINE_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 parser_test: $(PARSER_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+turing-machine: $(TURING_MACHINE_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 
