@@ -10,7 +10,7 @@
 
 namespace vraft {
 
-#define INIT_POS 10
+#define INIT_POS 20
 
 char characters[] = {'0', '1'};
 
@@ -18,43 +18,68 @@ enum HeadState {
   kHeadState0 = 0,
   kHeadState1,
   kHeadState2,
-  kHeadState3,
+};
+
+enum HeadDirection {
+  kDirectionLeft,
+  kDirectionRight,
+  kDirectionHalt,
 };
 
 class Head final {
  public:
-  explicit Head(HeadState current_state, int32_t current_pos);
+  explicit Head(HeadState state, int32_t pos);
   ~Head();
   Head(const Head &) = delete;
   Head &operator=(const Head &) = delete;
 
   char Read();
   void Write(char c);
+  void MoveLeft();
+  void MoveRight();
 
+  HeadState state() const;
+  int32_t pos() const;
+  std::vector<char> &tape();
+  void set_state(HeadState state);
   std::string ToString();
 
  private:
-  HeadState current_state_;
-  int32_t current_pos_;
+  HeadState state_;
+  int32_t pos_;
   std::vector<char> tape_;
 };
 
-inline Head::Head(HeadState current_state, int32_t current_pos)
-    : current_state_(current_state),
-      current_pos_(current_pos),
-      tape_(INIT_POS * 2, '0') {}
+inline Head::Head(HeadState state, int32_t pos)
+    : state_(state), pos_(pos), tape_(INIT_POS * 2, '0') {}
 
 inline Head::~Head() {}
 
-struct RulesKey {
+inline HeadState Head::state() const { return state_; }
+
+inline int32_t Head::pos() const { return pos_; }
+
+inline std::vector<char> &Head::tape() { return tape_; }
+
+inline void Head::set_state(HeadState state) { state_ = state; }
+
+struct RuleKey {
   HeadState current_state;
   char read_char;
+
+  bool operator<(const RuleKey &rhs) const {
+    if (current_state < rhs.current_state) {
+      return true;
+    } else {
+      return read_char < rhs.read_char;
+    }
+  }
 };
 
-struct RulesValue {
-  int32_t pos;
-  HeadState next_state;
+struct RuleValue {
   char write_char;
+  HeadDirection direction;
+  HeadState next_state;
 };
 
 void timer_cb(Timer *timer);
@@ -73,7 +98,7 @@ class TuringMachine final {
   void InitRules();
 
  private:
-  std::map<RulesKey, RulesValue> rules_;
+  std::map<RuleKey, RuleValue> rules_;
   Head head_;
   EventLoopSPtr loop_;
   int32_t step_;
