@@ -20,11 +20,39 @@ enum HeadState {
   kHeadState2,
 };
 
+inline std::string HeadStateToString(HeadState s) {
+  switch (s) {
+    case kHeadState0:
+      return "State0";
+    case kHeadState1:
+      return "State1";
+    case kHeadState2:
+      return "State2";
+
+    default:
+      assert(0);
+  }
+}
+
 enum HeadDirection {
   kDirectionLeft,
   kDirectionRight,
   kDirectionHalt,
 };
+
+inline std::string HeadDirectionToString(HeadDirection d) {
+  switch (d) {
+    case kDirectionLeft:
+      return "Left";
+    case kDirectionRight:
+      return "Right";
+    case kDirectionHalt:
+      return "Halt";
+
+    default:
+      assert(0);
+  }
+}
 
 class Head final {
  public:
@@ -93,6 +121,7 @@ class TuringMachine final {
 
   void Run();
   void DoEvent();
+  void Print();
 
  private:
   void InitRules();

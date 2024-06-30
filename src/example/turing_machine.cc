@@ -108,10 +108,37 @@ void TuringMachine::DoEvent() {
   head_.set_state(rule_value.next_state);
 }
 
+void TuringMachine::Print() {
+  std::cout << "rules:" << std::endl;
+  std::cout << "current-state\t";
+  std::cout << "read-char\t";
+  std::cout << "write-char\t";
+  std::cout << "action\t";
+  std::cout << "next-state\t";
+  std::cout << std::endl;
+
+  for (auto &kv : rules_) {
+    std::cout << HeadStateToString(kv.first.current_state) << "\t\t";
+    std::cout << kv.first.read_char << "\t\t";
+    std::cout << kv.second.write_char << "\t\t";
+    std::cout << HeadDirectionToString(kv.second.direction) << "\t";
+    std::cout << HeadStateToString(kv.second.next_state) << "\t";
+    std::cout << std::endl;
+  }
+
+  std::cout << std::endl;
+  std::cout << head_.ToString() << std::endl;
+}
+
 }  // namespace vraft
 
 int main(int argc, char **argv) {
   vraft::TuringMachine tm;
+
+  if (argc == 2 && std::string(argv[1]) == "--print") {
+    tm.Print();
+    return 0;
+  }
 
   tm.Run();
   return 0;
