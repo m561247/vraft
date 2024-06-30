@@ -42,12 +42,6 @@ vraft有如下特点：
 #### node state
 ![](images/remu-web3.png)
 
-#### index page
-![](images/remu-web.png)
-
-#### log
-![](images/remu-web4.png)
-
 # 3 Flame Graph
 持续优化
 ![](images/perf.svg)
