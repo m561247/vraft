@@ -8,7 +8,7 @@ vraft有如下特点：
 
 # 1 - Architecture
 ## SEDA (Staged Event-Driven Architecture)
-* VRaft实现了一种SEDA架构，用来支持Multi-Raft。
+* [SEDA](https://www.cs.princeton.edu/courses/archive/fall15/cos518/studpres/seda.pdf)是一种扩展性很强的互联网软件架构，VRaft实现了SEDA，用来支持Multi-Raft。
 * SEDA架构的论文：
   * https://www.cs.princeton.edu/courses/archive/fall15/cos518/studpres/seda.pdf
 
