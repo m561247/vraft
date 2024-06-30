@@ -27,6 +27,12 @@ void RemuLogState(std::string key) {
   }
 }
 
+void RemuPrint() {
+  if (remu) {
+    remu->Print(false, false);
+  }
+}
+
 void SignalHandler(int signal) {
   std::cout << "recv signal " << strsignal(signal) << std::endl;
   std::cout << "exit ..." << std::endl;
