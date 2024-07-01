@@ -139,8 +139,32 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
               reinterpret_cast<vstore::VstoreSm *>(raft_->sm().get());
           assert(sm);
           std::string value;
-          sm->Get(msg.key, value);
-          conn->CopySend(value.c_str(), value.size());
+          rv = sm->Get(msg.key, value);
+
+          {
+            // reply
+            vstore::VstoreGetReply reply;
+            reply.uid = UniqId(&reply);
+
+            if (rv == 0) {
+              reply.value = value;
+            } else {
+              reply.value = "error";
+            }
+
+            std::string body_str;
+            int32_t bytes = msg.ToString(body_str);
+
+            MsgHeader header;
+            header.body_bytes = bytes;
+            header.type = kVstoreGetReply;
+            std::string header_str;
+            header.ToString(header_str);
+
+            header_str.append(std::move(body_str));
+            conn->CopySend(header_str.c_str(), header_str.size());
+          }
+
           break;
         }
 
