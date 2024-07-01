@@ -82,6 +82,11 @@ using RaftSPtr = std::shared_ptr<Raft>;
 using RaftUPtr = std::unique_ptr<Raft>;
 using RaftWPtr = std::weak_ptr<Raft>;
 
+class Config;
+using ConfigSPtr = std::shared_ptr<Config>;
+using ConfigUPtr = std::unique_ptr<Config>;
+using ConfigWPtr = std::weak_ptr<Config>;
+
 class StateMachine;
 using StateMachineSPtr = std::shared_ptr<StateMachine>;
 using StateMachineUPtr = std::unique_ptr<StateMachine>;

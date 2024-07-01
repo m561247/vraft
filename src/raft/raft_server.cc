@@ -54,6 +54,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
           raft_->OnPing(msg);
           break;
         }
+        
         case kPingReply: {
           PingReply msg;
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
