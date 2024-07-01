@@ -143,6 +143,14 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
 
           {
             // reply
+            if (rv != 0) {
+              value = "error";
+            }
+            conn->CopySend(value.c_str(), value.size());
+          }
+#if 0
+          {
+            // reply
             vstore::VstoreGetReply reply;
             reply.uid = UniqId(&reply);
 
@@ -164,6 +172,7 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
             header_str.append(std::move(body_str));
             conn->CopySend(header_str.c_str(), header_str.size());
           }
+#endif
 
           break;
         }

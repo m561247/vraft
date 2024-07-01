@@ -11,6 +11,7 @@
 namespace vraft {
 
 int32_t Raft::OnPropose(struct Propose &msg, vraft::TcpConnectionSPtr conn) {
+  int32_t rv = 0;
   if (started_) {
     vraft_logger.Info("%s recv propose msg:%s", Me().ToString().c_str(),
                       msg.ToJsonString(true, true).c_str());
@@ -19,8 +20,7 @@ int32_t Raft::OnPropose(struct Propose &msg, vraft::TcpConnectionSPtr conn) {
     tracer.PrepareState0();
     tracer.PrepareEvent(kEventRecv, msg.ToJsonString(false, true));
 
-    int32_t rv = Propose(msg.msg, nullptr);
-    assert(rv == 0);
+    rv = Propose(msg.msg, nullptr);
 
     tracer.PrepareState1();
     tracer.Finish();

@@ -20,22 +20,17 @@ class VstoreConsole : public vraft::Console {
   VstoreConsole &operator=(const VstoreConsole &) = delete;
 
  private:
-  int32_t Parse(const std::string &cmd_line) override { return 0; }
-
-  int32_t Execute() override {
-    std::string msg = cmd_line();
-    Send(msg);
-    return 0;
-  }
-
+  int32_t Parse(const std::string &cmd_line) override;
+  int32_t Execute() override;
   void OnMessage(const vraft::TcpConnectionSPtr &conn,
-                 vraft::Buffer *buf) override {
-    set_result("msg back: " + std::string(buf->Peek()));
-    buf->RetrieveAll();
-    ResultReady();
-  }
+                 vraft::Buffer *buf) override;
+
+  void Clear();
 
  private:
+  std::string cmd_;
+  std::string key_;
+  std::string value_;
 };
 
 inline VstoreConsole::VstoreConsole(const std::string &name,

@@ -33,6 +33,8 @@ void Tick(Timer *timer) {
   for (auto &dest_addr : r->Peers()) {
     r->SendPing(dest_addr.ToU64(), nullptr);
   }
+
+  std::cout << r->ToJsonString(true, true) << std::endl;
 }
 
 // if path is empty, use rc to initialize,
