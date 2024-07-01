@@ -1,5 +1,5 @@
-#ifndef VRAFT_PROPOSE_H_
-#define VRAFT_PROPOSE_H_
+#ifndef VRAFT_PROPOSE_REPLY_H_
+#define VRAFT_PROPOSE_REPLY_H_
 
 #include <string>
 
@@ -12,8 +12,9 @@
 
 namespace vraft {
 
-struct Propose : public Message {
+struct ProposeReply : public Message {
   uint32_t uid;
+  int32_t code;
   std::string msg;
 
   int32_t MaxBytes() override;
@@ -27,15 +28,16 @@ struct Propose : public Message {
   std::string ToJsonString(bool tiny, bool one_line) override;
 };
 
-inline int32_t Propose::MaxBytes() {
+inline int32_t ProposeReply::MaxBytes() {
   int32_t sz = 0;
   sz += sizeof(uid);
+  sz += sizeof(code);
   sz += 2 * sizeof(int32_t);
   sz += msg.size();
   return sz;
 }
 
-inline int32_t Propose::ToString(std::string &s) {
+inline int32_t ProposeReply::ToString(std::string &s) {
   s.clear();
   int32_t max_bytes = MaxBytes();
   char *ptr = reinterpret_cast<char *>(DefaultAllocator().Malloc(max_bytes));
@@ -45,13 +47,17 @@ inline int32_t Propose::ToString(std::string &s) {
   return size;
 }
 
-inline int32_t Propose::ToString(const char *ptr, int32_t len) {
+inline int32_t ProposeReply::ToString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   int32_t size = 0;
 
   EncodeFixed32(p, uid);
   p += sizeof(uid);
   size += sizeof(uid);
+
+  EncodeFixed32(p, code);
+  p += sizeof(code);
+  size += sizeof(code);
 
   Slice sls(msg.c_str(), msg.size());
   char *p2 = EncodeString2(p, len - size, sls);
@@ -62,17 +68,21 @@ inline int32_t Propose::ToString(const char *ptr, int32_t len) {
   return size;
 }
 
-inline int32_t Propose::FromString(std::string &s) {
+inline int32_t ProposeReply::FromString(std::string &s) {
   return FromString(s.c_str(), s.size());
 }
 
-inline int32_t Propose::FromString(const char *ptr, int32_t len) {
+inline int32_t ProposeReply::FromString(const char *ptr, int32_t len) {
   char *p = const_cast<char *>(ptr);
   int32_t size = 0;
 
   uid = DecodeFixed32(p);
   p += sizeof(uid);
   size += sizeof(uid);
+
+  code = DecodeFixed32(p);
+  p += sizeof(code);
+  size += sizeof(code);
 
   Slice result;
   Slice input(p, len - size);
@@ -86,26 +96,28 @@ inline int32_t Propose::FromString(const char *ptr, int32_t len) {
   return size;
 }
 
-inline nlohmann::json Propose::ToJson() {
+inline nlohmann::json ProposeReply::ToJson() {
   nlohmann::json j;
   j["uid"] = U32ToHexStr(uid);
+  j["code"] = code;
   j["msg"] = msg;
   return j;
 }
 
-inline nlohmann::json Propose::ToJsonTiny() {
+inline nlohmann::json ProposeReply::ToJsonTiny() {
   nlohmann::json j;
-  j[0] = U32ToHexStr(uid);
-  j[1] = msg;
+  j["uid"] = U32ToHexStr(uid);
+  j["code"] = code;
+  j["msg"] = msg;
   return j;
 }
 
-inline std::string Propose::ToJsonString(bool tiny, bool one_line) {
+inline std::string ProposeReply::ToJsonString(bool tiny, bool one_line) {
   nlohmann::json j;
   if (tiny) {
-    j["pps"] = ToJsonTiny();
+    j["pps-r"] = ToJsonTiny();
   } else {
-    j["propose"] = ToJson();
+    j["propose-reply"] = ToJson();
   }
 
   if (one_line) {

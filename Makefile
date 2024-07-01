@@ -53,8 +53,9 @@ TURING_MACHINE_SRCS := src/example/turing_machine.cc $(COMMON_SRCS)
 # test src
 LOGGER_TEST_SRCS := src/test/logger_test.cc $(COMMON_SRCS)
 PING_TEST_SRCS := src/test/ping_test.cc $(COMMON_SRCS)
-PROPOSE_TEST_SRCS := src/test/propose_test.cc $(COMMON_SRCS)
 PING_REPLY_TEST_SRCS := src/test/ping_reply_test.cc $(COMMON_SRCS)
+PROPOSE_TEST_SRCS := src/test/propose_test.cc $(COMMON_SRCS)
+PROPOSE_REPLY_TEST_SRCS := src/test/propose_reply_test.cc $(COMMON_SRCS)
 RAFT_LOG_TEST_SRCS := src/test/raft_log_test.cc $(COMMON_SRCS)
 SOLID_DATA_TEST_SRCS := src/test/solid_data_test.cc $(COMMON_SRCS)
 UTIL_TEST_SRCS := src/test/util_test.cc $(COMMON_SRCS)
@@ -124,8 +125,9 @@ TURING_MACHINE_OBJECTS := $(TURING_MACHINE_SRCS:.cc=.o)
 # test
 LOGGER_TEST_OBJECTS := $(LOGGER_TEST_SRCS:.cc=.o)
 PING_TEST_OBJECTS := $(PING_TEST_SRCS:.cc=.o)
-PROPOSE_TEST_OBJECTS := $(PROPOSE_TEST_SRCS:.cc=.o)
 PING_REPLY_TEST_OBJECTS := $(PING_REPLY_TEST_SRCS:.cc=.o)
+PROPOSE_TEST_OBJECTS := $(PROPOSE_TEST_SRCS:.cc=.o)
+PROPOSE_REPLY_TEST_OBJECTS := $(PROPOSE_REPLY_TEST_SRCS:.cc=.o)
 RAFT_LOG_TEST_OBJECTS := $(RAFT_LOG_TEST_SRCS:.cc=.o)
 SOLID_DATA_TEST_OBJECTS := $(SOLID_DATA_TEST_SRCS:.cc=.o)
 UTIL_TEST_OBJECTS := $(UTIL_TEST_SRCS:.cc=.o)
@@ -181,6 +183,7 @@ TEST += logger_test
 TEST += ping_test 
 TEST += ping_reply_test 
 TEST += propose_test
+TEST += propose_reply_test
 TEST += raft_log_test 
 TEST += solid_data_test 
 TEST += util_test 
@@ -288,6 +291,9 @@ ping_reply_test: $(PING_REPLY_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 propose_test: $(PROPOSE_TEST_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
+
+propose_reply_test: $(PROPOSE_REPLY_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 raft_log_test: $(RAFT_LOG_TEST_OBJECTS)
