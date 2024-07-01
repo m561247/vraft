@@ -34,7 +34,8 @@ void Remu::Log(std::string key) {
 }
 
 void Remu::Print(bool tiny, bool one_line) {
-  printf("--- remu global-state --- %s ---:\n", NsToString(Clock::NSec()).c_str());
+  printf("--- remu global-state --- %s ---:\n",
+         NsToString(Clock::NSec()).c_str());
   for (auto ptr : raft_servers) {
     ptr->Print(tiny, one_line);
     if (!one_line) {

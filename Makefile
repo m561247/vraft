@@ -41,6 +41,8 @@ DB_TOOL_SRCS := src/main/db_tool.cc $(COMMON_SRCS)
 REMU_SRCS := src/main/remu_main.cc $(COMMON_SRCS)
 VECTORDB_SERVER_SRCS := src/main/vectordb_server.cc $(COMMON_SRCS)
 VECTORDB_CLI_SRCS := src/main/vectordb_cli.cc $(COMMON_SRCS)
+VSTORE_SERVER_SRCS := src/main/vstore_server.cc $(COMMON_SRCS)
+VSTORE_CLI_SRCS := src/main/vstore_cli.cc $(COMMON_SRCS)
 
 # example src
 ECHO_SERVER_SRCS := src/example/echo_server.cc $(COMMON_SRCS)
@@ -109,6 +111,8 @@ DB_TOOL_OBJECTS := $(DB_TOOL_SRCS:.cc=.o)
 REMU_OBJECTS := $(REMU_SRCS:.cc=.o)
 VECTORDB_SERVER_OBJECTS := $(VECTORDB_SERVER_SRCS:.cc=.o)
 VECTORDB_CLI_OBJECTS := $(VECTORDB_CLI_SRCS:.cc=.o)
+VSTORE_SERVER_OBJECTS := $(VSTORE_SERVER_SRCS:.cc=.o)
+VSTORE_CLI_OBJECTS := $(VSTORE_CLI_SRCS:.cc=.o)
 
 # example
 ECHO_SERVER_OBJECTS := $(ECHO_SERVER_SRCS:.cc=.o)
@@ -167,7 +171,7 @@ PARSER_TEST_OBJECTS := $(PARSER_TEST_SRCS:.cc=.o)
 
 
 # generate exe
-MAIN := vraft-server rlog-tool meta-tool db-tool remu vectordb-server vectordb-cli
+MAIN := vraft-server rlog-tool meta-tool db-tool remu vectordb-server vectordb-cli vstore-server vstore-cli
 EXAMPLE := echo-server echo-client echo-console turing-machine
 
 TEST := tpl_test
@@ -252,6 +256,12 @@ vectordb-server: $(VECTORDB_SERVER_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 vectordb-cli: $(VECTORDB_CLI_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
+
+vstore-server: $(VSTORE_SERVER_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
+
+vstore-cli: $(VSTORE_CLI_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/main/$@
 
 # example
