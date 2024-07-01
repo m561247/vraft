@@ -75,28 +75,28 @@ inline const std::string Config::UsageBanner(char *program_name) {
   snprintf(buf, sizeof(buf),
            "%s --mode=single --addr=127.0.0.1:9000 "
            "--peers=127.0.0.1:9001,127.0.0.1:9002 "
-           "--path=./vraft_9000\n",
+           "--path=/tmp/vraft_9000\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9000 --peers=127.0.0.1:9001,127.0.0.1:9002 "
-           "--path=./vraft_9000\n",
+           "--path=/tmp/vraft_9000\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9001 --peers=127.0.0.1:9000,127.0.0.1:9002 "
-           "--path=./vraft_9001\n",
+           "--path=/tmp/vraft_9001\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9002 --peers=127.0.0.1:9000,127.0.0.1:9001 "
-           "--path=./vraft_9002\n",
+           "--path=/tmp/vraft_9002\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf),
            "%s --addr=127.0.0.1:9000 "
            "--peers=127.0.0.1:9001,127.0.0.1:9002 "
-           "--path=./remu_dir\n",
+           "--path=/tmp/remu_dir\n",
            program_name);
   str.append(buf);
   snprintf(buf, sizeof(buf), "%s -h\n", program_name);

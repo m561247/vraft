@@ -100,6 +100,7 @@ KEYID_META_TEST_SRCS := src/test/keyid_meta_test.cc $(COMMON_SRCS)
 METADATA_TEST_SRCS := src/test/metadata_test.cc $(COMMON_SRCS)
 VDB_ENGINE_TEST_SRCS := src/test/vdb_engine_test.cc $(COMMON_SRCS)
 PARSER_TEST_SRCS := src/test/parser_test.cc $(COMMON_SRCS)
+VSTORE_MSG_TEST_SRCS := src/test/vstore_msg_test.cc $(COMMON_SRCS)
 
 
 # remu test src
@@ -172,6 +173,7 @@ KEYID_META_TEST_OBJECTS := $(KEYID_META_TEST_SRCS:.cc=.o)
 METADATA_TEST_OBJECTS := $(METADATA_TEST_SRCS:.cc=.o)
 VDB_ENGINE_TEST_OBJECTS := $(VDB_ENGINE_TEST_SRCS:.cc=.o)
 PARSER_TEST_OBJECTS := $(PARSER_TEST_SRCS:.cc=.o)
+VSTORE_MSG_TEST_OBJECTS := $(VSTORE_MSG_TEST_SRCS:.cc=.o)
 
 
 # generate exe
@@ -227,6 +229,7 @@ TEST += keyid_meta_test
 TEST += metadata_test
 TEST += vdb_engine_test
 TEST += parser_test
+TEST += vstore_msg_test
 
 
 # compile
@@ -279,6 +282,9 @@ echo-client: $(ECHO_CLIENT_OBJECTS)
 
 echo-console: $(ECHO_CONSOLE_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/example/$@
+
+turing-machine: $(TURING_MACHINE_OBJECTS)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 # test
 logger_test: $(LOGGER_TEST_OBJECTS)
@@ -428,7 +434,7 @@ vdb_engine_test: $(VDB_ENGINE_TEST_OBJECTS)
 parser_test: $(PARSER_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
-turing-machine: $(TURING_MACHINE_OBJECTS)
+vstore_msg_test: $(VSTORE_MSG_TEST_OBJECTS)
 	$(CXX) $(INCLUDES) $(CXXFLAGS) $^ $(LDFLAGS) -o ./output/test/$@
 
 

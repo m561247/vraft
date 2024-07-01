@@ -3,6 +3,8 @@
 #include "ping.h"
 #include "ping_reply.h"
 #include "vraft_logger.h"
+#include "vstore_msg.h"
+#include "vstore_sm.h"
 
 namespace vraft {
 
@@ -46,6 +48,15 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
 
       // parse body
       switch (header.type) {
+        case kPropose: {
+          Propose msg;
+          int32_t rv = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(rv > 0);
+          buf->Retrieve(body_bytes);
+          raft_->OnPropose(msg, conn);
+          break;
+        }
+
         case kPing: {
           Ping msg;
           bool b = msg.FromString(buf->BeginRead(), body_bytes);
@@ -115,6 +126,21 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
           assert(b);
           buf->Retrieve(body_bytes);
           raft_->OnInstallSnapshotReply(msg);
+          break;
+        }
+
+        // vstore
+        case kVstoreGet: {
+          vstore::VstoreGet msg;
+          int32_t rv = msg.FromString(buf->BeginRead(), body_bytes);
+          assert(rv > 0);
+          buf->Retrieve(body_bytes);
+          vstore::VstoreSm *sm =
+              reinterpret_cast<vstore::VstoreSm *>(raft_->sm().get());
+          assert(sm);
+          std::string value;
+          sm->Get(msg.key, value);
+          conn->CopySend(value.c_str(), value.size());
           break;
         }
 

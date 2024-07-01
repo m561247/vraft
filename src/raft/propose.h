@@ -89,14 +89,14 @@ inline int32_t Propose::FromString(const char *ptr, int32_t len) {
 inline nlohmann::json Propose::ToJson() {
   nlohmann::json j;
   j["uid"] = U32ToHexStr(uid);
-  j["msg"] = msg;
+  j["msg"] = StrToHexStr(msg.c_str(), msg.size());
   return j;
 }
 
 inline nlohmann::json Propose::ToJsonTiny() {
   nlohmann::json j;
-  j[0] = U32ToHexStr(uid);
-  j[1] = msg;
+  j["uid"] = U32ToHexStr(uid);
+  j["msg"] = StrToHexStr(msg.c_str(), msg.size());
   return j;
 }
 

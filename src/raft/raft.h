@@ -15,6 +15,7 @@
 #include "nlohmann/json.hpp"
 #include "ping.h"
 #include "ping_reply.h"
+#include "propose.h"
 #include "raft_addr.h"
 #include "raft_log.h"
 #include "request_vote.h"
@@ -57,6 +58,7 @@ class Raft final {
   int32_t Propose(std::string value, Functor cb);
 
   // on message
+  int32_t OnPropose(struct Propose &msg, vraft::TcpConnectionSPtr conn);
   int32_t OnPing(struct Ping &msg);
   int32_t OnPingReply(struct PingReply &msg);
   int32_t OnRequestVote(struct RequestVote &msg);
@@ -115,6 +117,8 @@ class Raft final {
   std::string meta_path_;
   std::string log_path_;
   std::string sm_path_;
+
+  int32_t seqid_;
 
   // raft state: every server
   enum State state_;

@@ -11,7 +11,10 @@
 namespace vraft {
 
 enum MsgType {
-  kPing = 0,
+  // raft
+  kPropose = 0,
+  kProposeReply,
+  kPing,
   kPingReply,
   kRequestVote,
   kRequestVoteReply,
@@ -19,6 +22,11 @@ enum MsgType {
   kAppendEntriesReply,
   kInstallSnapshot,
   kInstallSnapshotReply,
+
+  // vstore
+  kVstoreGet,
+  kVstoreGetReply,
+
   kMsgNum,
 };
 
