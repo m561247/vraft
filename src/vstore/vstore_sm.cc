@@ -89,6 +89,8 @@ int32_t VstoreSm::Get(const std::string &key, std::string &value) {
   s = db_->Get(ro, leveldb::Slice(key), &value);
   if (s.ok()) {
     return 0;
+  } else if (s.IsNotFound()) {
+    return -2;
   } else {
     return -1;
   }

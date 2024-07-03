@@ -143,9 +143,12 @@ void RaftServer::OnMessage(const vraft::TcpConnectionSPtr &conn,
 
           {
             // reply
-            if (rv != 0) {
+            if (rv == -2) {
+              value = "not found";
+            } else if (rv == -1) {
               value = "error";
             }
+
             conn->CopySend(value.c_str(), value.size());
           }
 #if 0
