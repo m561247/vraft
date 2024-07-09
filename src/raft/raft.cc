@@ -34,9 +34,11 @@ void Tick(Timer *timer) {
     r->SendPing(dest_addr.ToU64(), nullptr);
   }
 
+#if 0
   printf("%s %s\n", NsToString(Clock::NSec()).c_str(),
          r->ToJsonString(true, true).c_str());
   fflush(nullptr);
+#endif
 }
 
 // if path is empty, use rc to initialize,
