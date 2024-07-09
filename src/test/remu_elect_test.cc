@@ -36,6 +36,8 @@ void SignalHandler(int signal) {
 
 void RemuTick(vraft::Timer *timer) {
   switch (vraft::current_state) {
+    remu->Check();
+
     case vraft::kTestState0: {
       remu->Print();
       // remu->Log();

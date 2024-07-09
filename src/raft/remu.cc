@@ -1,6 +1,7 @@
 #include "remu.h"
 
 #include <cstdio>
+#include <unordered_map>
 
 #include "clock.h"
 #include "raft_server.h"
@@ -45,6 +46,39 @@ void Remu::Print(bool tiny, bool one_line) {
   printf("\n");
   fflush(nullptr);
 }
+
+void Remu::Check() {
+  CheckLeader();
+  CheckLog();
+  CheckMeta();
+  CheckIndex();
+}
+
+void Remu::CheckLeader() {
+  std::unordered_map<RaftTerm, RaftAddr> leader_map;
+  for (auto &raft_server : raft_servers) {
+    if (raft_server->raft()->state() == LEADER) {
+      RaftTerm term = raft_server->raft()->Term();
+      RaftAddr addr = raft_server->raft()->Me();
+      auto it = leader_map.find(term);
+      if (it == leader_map.end()) {
+        leader_map[term] = addr;
+      } else {
+        std::cout << "check error, term:" << term
+                  << ", leader:" << it->second.ToString() << " "
+                  << addr.ToString() << std::endl
+                  << std::flush;
+        assert(0);
+      }
+    }
+  }
+}
+
+void Remu::CheckLog() {}
+
+void Remu::CheckMeta() {}
+
+void Remu::CheckIndex() {}
 
 void Remu::Create() {
   for (auto conf : configs) {

@@ -13,7 +13,8 @@ void Head::MoveRight() { pos_++; }
 std::string Head::ToString() {
   std::string s;
   char buf[1024];
-  snprintf(buf, sizeof(buf), "current_state: %s\n", HeadStateToString(state_).c_str());
+  snprintf(buf, sizeof(buf), "current_state: %s\n",
+           HeadStateToString(state_).c_str());
   s.append(buf);
   snprintf(buf, sizeof(buf), "current_pos: %d\n", pos_);
   s.append(buf);

@@ -80,6 +80,7 @@ class Raft final {
   // utils
   int16_t Id() { return config_mgr_.Current().me.id(); }
   RaftAddr Me() { return config_mgr_.Current().me; }
+  RaftTerm Term();
   std::vector<RaftAddr> Peers() { return config_mgr_.Current().peers; }
   nlohmann::json ToJson();
   nlohmann::json ToJsonTiny();

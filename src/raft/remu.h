@@ -28,6 +28,14 @@ struct Remu {
 
   void Log(std::string key);
   void Print(bool tiny = true, bool one_line = true);
+
+  void Check();
+
+ private:
+  void CheckLeader();
+  void CheckLog();
+  void CheckMeta();
+  void CheckIndex();
 };
 
 }  // namespace vraft

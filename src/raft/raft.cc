@@ -225,6 +225,8 @@ RaftTerm Raft::GetTerm(RaftIndex index) {
   }
 }
 
+RaftTerm Raft::Term() { return meta_.term(); }
+
 bool Raft::IfSelfVote() { return (meta_.vote() == Me().ToU64()); }
 
 void Raft::AppendNoop(Tracer *tracer) {
