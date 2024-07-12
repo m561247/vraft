@@ -92,6 +92,16 @@ using StateMachineSPtr = std::shared_ptr<StateMachine>;
 using StateMachineUPtr = std::unique_ptr<StateMachine>;
 using StateMachineWPtr = std::weak_ptr<StateMachine>;
 
+class SnapshotReader;
+using SnapshotReaderSPtr = std::shared_ptr<SnapshotReader>;
+using SnapshotReaderUPtr = std::unique_ptr<SnapshotReader>;
+using SnapshotReaderWPtr = std::weak_ptr<SnapshotReader>;
+
+class SnapshotWriter;
+using SnapshotWriterSPtr = std::shared_ptr<SnapshotWriter>;
+using SnapshotWriterUPtr = std::unique_ptr<SnapshotWriter>;
+using SnapshotWriterWPtr = std::weak_ptr<SnapshotWriter>;
+
 class WorkThread;
 using WorkThreadSPtr = std::shared_ptr<WorkThread>;
 using WorkThreadUPtr = std::unique_ptr<WorkThread>;

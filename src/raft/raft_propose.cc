@@ -26,7 +26,7 @@ int32_t Raft::OnPropose(struct Propose &msg, vraft::TcpConnectionSPtr conn) {
     tracer.Finish();
   }
 
-  return 0;
+  return rv;
 }
 
 }  // namespace vraft

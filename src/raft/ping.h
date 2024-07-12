@@ -30,8 +30,12 @@ struct Ping : public Message {
 };
 
 inline int32_t Ping::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(uid) +
-         2 * sizeof(int32_t) + msg.size();
+  int32_t size = 0;
+  size += sizeof(uint64_t);
+  size += sizeof(uint64_t);
+  size += sizeof(uid);
+  size += 2 * sizeof(int32_t) + msg.size();
+  return size;
 }
 
 inline int32_t Ping::ToString(std::string &s) {

@@ -33,8 +33,14 @@ struct RequestVote : public Message {
 };
 
 inline int32_t RequestVote::MaxBytes() {
-  return sizeof(uint64_t) + sizeof(uint64_t) + sizeof(term) + sizeof(uid) +
-         sizeof(last_log_term) + sizeof(last_log_index);
+  int32_t size = 0;
+  size += sizeof(uint64_t);
+  size += sizeof(uint64_t);
+  size += sizeof(term);
+  size += sizeof(uid);
+  size += sizeof(last_log_term);
+  size += sizeof(last_log_index);
+  return size;
 }
 
 inline int32_t RequestVote::ToString(std::string &s) {
