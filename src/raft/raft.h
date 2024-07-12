@@ -21,6 +21,7 @@
 #include "request_vote.h"
 #include "request_vote_reply.h"
 #include "simple_random.h"
+#include "snapshot_manager.h"
 #include "solid_data.h"
 #include "state_machine.h"
 #include "timer.h"
@@ -141,7 +142,10 @@ class Raft final {
   // raft state: state machine
   StateMachineSPtr sm_;
 
-  // assistant
+  // raft state: snapshot
+  SnapshotManager snapshot_mgr_;
+
+  // helper
   TimerManager timer_mgr_;
   SendFunc send_;
   MakeTimerFunc make_timer_;

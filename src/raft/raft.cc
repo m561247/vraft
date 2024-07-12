@@ -60,6 +60,7 @@ Raft::Raft(const std::string &path, const RaftConfig &rc)
       vote_mgr_(rc.peers),
       index_mgr_(rc.peers),
       sm_(nullptr),
+      snapshot_mgr_(rc.peers),
       timer_mgr_(rc.peers),
       send_(nullptr),
       make_timer_(nullptr) {
@@ -185,6 +186,7 @@ int32_t Raft::InitConfig() {
     // reset managers
     index_mgr_.Reset(rc.peers);
     vote_mgr_.Reset(rc.peers);
+    snapshot_mgr_.Reset(rc.peers);
     timer_mgr_.Reset(rc.peers);
 
   } else {

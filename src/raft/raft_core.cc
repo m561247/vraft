@@ -165,7 +165,7 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
 
   if (next_index < log_.First()) {
     // do not have log, send snapshot
-    assert(0);
+    SendInstallSnapshot(dest, tracer);
     return 0;
   }
   assert(next_index >= log_.First());
@@ -182,7 +182,7 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
 
   } else {
     // do not have log, send snapshot
-    assert(0);
+    SendInstallSnapshot(dest, tracer);
     return 0;
   }
 
@@ -229,7 +229,15 @@ int32_t Raft::SendAppendEntries(uint64_t dest, Tracer *tracer) {
   return 0;
 }
 
-int32_t Raft::SendInstallSnapshot(uint64_t dest, Tracer *tracer) { return 0; }
+int32_t Raft::SendInstallSnapshot(uint64_t dest, Tracer *tracer) {
+  InstallSnapshot msg;
+  msg.src = Me();
+  msg.dest = RaftAddr(dest);
+  msg.term = meta_.term();
+  msg.uid = UniqId(&msg);
+
+  return 0;
+}
 
 /********************************************************************************************
 \* Leader i receives a client request to add v to the log.

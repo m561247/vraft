@@ -92,6 +92,11 @@ using StateMachineSPtr = std::shared_ptr<StateMachine>;
 using StateMachineUPtr = std::unique_ptr<StateMachine>;
 using StateMachineWPtr = std::weak_ptr<StateMachine>;
 
+class SnapshotManager;
+using SnapshotManagerSPtr = std::shared_ptr<SnapshotManager>;
+using SnapshotManagerUPtr = std::unique_ptr<SnapshotManager>;
+using SnapshotManagerWPtr = std::weak_ptr<SnapshotManager>;
+
 class SnapshotReader;
 using SnapshotReaderSPtr = std::shared_ptr<SnapshotReader>;
 using SnapshotReaderUPtr = std::unique_ptr<SnapshotReader>;
