@@ -1,12 +1,13 @@
+#include "install_snapshot_reply.h"
+
 #include <gtest/gtest.h>
 
 #include <csignal>
 #include <iostream>
 
-#include "ping.h"
 #include "util.h"
 
-TEST(Ping, test) {
+TEST(InstallSnapshotReply, InstallSnapshotReply) {
   uint32_t ip32;
   bool b = vraft::StringToIpU32("127.0.0.1", ip32);
   assert(b);
@@ -14,11 +15,12 @@ TEST(Ping, test) {
   vraft::RaftAddr src(ip32, 1234, 55);
   vraft::RaftAddr dest(ip32, 5678, 99);
 
-  vraft::Ping msg;
+  vraft::InstallSnapshotReply msg;
   msg.src = src;
   msg.dest = dest;
+  msg.term = 100;
   msg.uid = vraft::UniqId(&msg);
-  msg.msg = "ping";
+  msg.stored = 66;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -30,7 +32,7 @@ TEST(Ping, test) {
   std::cout << msg.ToJsonString(false, true) << std::endl;
   std::cout << msg.ToJsonString(false, false) << std::endl;
 
-  vraft::Ping msg2;
+  vraft::InstallSnapshotReply msg2;
   b = msg2.FromString(msg_str);
   assert(b);
 
@@ -42,8 +44,9 @@ TEST(Ping, test) {
 
   ASSERT_EQ(msg.src.ToU64(), msg2.src.ToU64());
   ASSERT_EQ(msg.dest.ToU64(), msg2.dest.ToU64());
-  ASSERT_EQ(msg.msg, msg2.msg);
+  ASSERT_EQ(msg.term, msg2.term);
   ASSERT_EQ(msg.uid, msg2.uid);
+  ASSERT_EQ(msg.stored, msg2.stored);
 }
 
 int main(int argc, char **argv) {

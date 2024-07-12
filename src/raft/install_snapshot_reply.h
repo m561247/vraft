@@ -12,6 +12,14 @@
 namespace vraft {
 
 struct InstallSnapshotReply {
+  RaftAddr src;   // uint64_t
+  RaftAddr dest;  // uint64_t
+  RaftTerm term;
+  uint32_t uid;
+
+  // maybe count, maybe bytes, defined by user
+  int32_t stored;
+
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
   int32_t ToString(const char *ptr, int32_t len);
@@ -23,21 +31,117 @@ struct InstallSnapshotReply {
   std::string ToJsonString(bool tiny, bool one_line);
 };
 
-inline int32_t InstallSnapshotReply::MaxBytes() { return 0; }
-inline int32_t InstallSnapshotReply::ToString(std::string &s) { return 0; }
-inline int32_t InstallSnapshotReply::ToString(const char *ptr, int32_t len) {
-  return 0;
-}
-inline bool InstallSnapshotReply::FromString(std::string &s) { return 0; }
-inline bool InstallSnapshotReply::FromString(const char *ptr, int32_t len) {
-  return 0;
+inline int32_t InstallSnapshotReply::MaxBytes() {
+  int32_t size = 0;
+  size += sizeof(uint64_t);
+  size += sizeof(uint64_t);
+  size += sizeof(term);
+  size += sizeof(uid);
+  size += sizeof(stored);
+  return size;
 }
 
-inline nlohmann::json InstallSnapshotReply::ToJson() { return 0; }
-inline nlohmann::json InstallSnapshotReply::ToJsonTiny() { return 0; }
+inline int32_t InstallSnapshotReply::ToString(std::string &s) {
+  s.clear();
+  int32_t max_bytes = MaxBytes();
+  char *ptr = reinterpret_cast<char *>(DefaultAllocator().Malloc(max_bytes));
+  int32_t size = ToString(ptr, max_bytes);
+  s.append(ptr, size);
+  DefaultAllocator().Free(ptr);
+  return size;
+}
+
+inline int32_t InstallSnapshotReply::ToString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  int32_t size = 0;
+  uint64_t u64 = 0;
+
+  u64 = src.ToU64();
+  EncodeFixed64(p, u64);
+  p += sizeof(u64);
+  size += sizeof(u64);
+
+  u64 = dest.ToU64();
+  EncodeFixed64(p, u64);
+  p += sizeof(u64);
+  size += sizeof(u64);
+
+  EncodeFixed64(p, term);
+  p += sizeof(term);
+  size += sizeof(term);
+
+  EncodeFixed32(p, uid);
+  p += sizeof(uid);
+  size += sizeof(uid);
+
+  EncodeFixed32(p, stored);
+  p += sizeof(stored);
+  size += sizeof(stored);
+
+  assert(size <= len);
+  return size;
+}
+
+inline bool InstallSnapshotReply::FromString(std::string &s) {
+  return FromString(s.c_str(), s.size());
+}
+
+inline bool InstallSnapshotReply::FromString(const char *ptr, int32_t len) {
+  char *p = const_cast<char *>(ptr);
+  uint64_t u64 = 0;
+  int32_t size = 0;
+
+  u64 = DecodeFixed64(p);
+  src.FromU64(u64);
+  p += sizeof(u64);
+  size += sizeof(u64);
+
+  u64 = DecodeFixed64(p);
+  dest.FromU64(u64);
+  p += sizeof(u64);
+  size += sizeof(u64);
+
+  term = DecodeFixed64(p);
+  p += sizeof(term);
+  size += sizeof(term);
+
+  uid = DecodeFixed32(p);
+  p += sizeof(uid);
+  size += sizeof(uid);
+
+  stored = DecodeFixed32(p);
+  p += sizeof(stored);
+  size += sizeof(stored);
+
+  return size;
+}
+
+inline nlohmann::json InstallSnapshotReply::ToJson() {
+  nlohmann::json j;
+  j[0]["src"] = src.ToString();
+  j[0]["dest"] = dest.ToString();
+  j[0]["term"] = term;
+  j[0]["uid"] = U32ToHexStr(uid);
+  j[1]["stored"] = stored;
+  return j;
+}
+
+inline nlohmann::json InstallSnapshotReply::ToJsonTiny() { return ToJson(); }
+
 inline std::string InstallSnapshotReply::ToJsonString(bool tiny,
                                                       bool one_line) {
-  return 0;
+  nlohmann::json j;
+  if (tiny) {
+    j["install_snapshot_reply"] = ToJsonTiny();
+  } else {
+    j["install_snapshot_reply"] = ToJson();
+  }
+
+  if (one_line) {
+    return j.dump();
+  } else {
+    return j.dump(JSON_TAB);
+  }
 }
 
 }  // namespace vraft
