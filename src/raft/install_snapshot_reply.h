@@ -20,6 +20,9 @@ struct InstallSnapshotReply {
   // maybe count, maybe bytes, defined by user
   int32_t stored;
 
+  // send back
+  RaftTerm req_term;
+
   int32_t MaxBytes();
   int32_t ToString(std::string &s);
   int32_t ToString(const char *ptr, int32_t len);
@@ -38,6 +41,7 @@ inline int32_t InstallSnapshotReply::MaxBytes() {
   size += sizeof(term);
   size += sizeof(uid);
   size += sizeof(stored);
+  size += sizeof(req_term);
   return size;
 }
 
@@ -78,6 +82,10 @@ inline int32_t InstallSnapshotReply::ToString(const char *ptr, int32_t len) {
   p += sizeof(stored);
   size += sizeof(stored);
 
+  EncodeFixed64(p, req_term);
+  p += sizeof(req_term);
+  size += sizeof(req_term);
+
   assert(size <= len);
   return size;
 }
@@ -113,6 +121,10 @@ inline bool InstallSnapshotReply::FromString(const char *ptr, int32_t len) {
   p += sizeof(stored);
   size += sizeof(stored);
 
+  req_term = DecodeFixed64(p);
+  p += sizeof(req_term);
+  size += sizeof(req_term);
+
   return size;
 }
 
@@ -123,6 +135,7 @@ inline nlohmann::json InstallSnapshotReply::ToJson() {
   j[0]["term"] = term;
   j[0]["uid"] = U32ToHexStr(uid);
   j[1]["stored"] = stored;
+  j[1]["req_term"] = req_term;
   return j;
 }
 

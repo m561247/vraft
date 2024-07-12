@@ -12,6 +12,8 @@ namespace vraft {
 
 #define JSON_TAB 2
 
+#define SNAPSHOT_MAX_READ 10
+
 using RaftIndex = uint32_t;
 using RaftTerm = uint64_t;
 

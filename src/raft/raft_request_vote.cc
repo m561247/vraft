@@ -91,28 +91,6 @@ int32_t Raft::OnRequestVote(struct RequestVote &msg) {
   return 0;
 }
 
-int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg, Tracer *tracer) {
-  std::string body_str;
-  int32_t bytes = msg.ToString(body_str);
-
-  MsgHeader header;
-  header.body_bytes = bytes;
-  header.type = kRequestVoteReply;
-  std::string header_str;
-  header.ToString(header_str);
-
-  if (send_) {
-    header_str.append(std::move(body_str));
-    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
-
-    if (tracer != nullptr) {
-      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
-    }
-  }
-
-  return 0;
-}
-
 /********************************************************************************************
 \* Server i receives a RequestVote response from server j with
 \* m.mterm = currentTerm[i].
@@ -184,6 +162,58 @@ int32_t Raft::OnRequestVoteReply(struct RequestVoteReply &msg) {
     tracer.PrepareState1();
     tracer.Finish();
   }
+  return 0;
+}
+
+int32_t Raft::SendRequestVote(uint64_t dest, Tracer *tracer) {
+  RequestVote msg;
+  msg.src = Me();
+  msg.dest = RaftAddr(dest);
+  msg.term = meta_.term();
+  msg.uid = UniqId(&msg);
+
+  msg.last_log_index = LastIndex();
+  msg.last_log_term = LastTerm();
+
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kRequestVote;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(dest, header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
+    }
+  }
+  return 0;
+}
+
+int32_t Raft::SendRequestVoteReply(RequestVoteReply &msg, Tracer *tracer) {
+  std::string body_str;
+  int32_t bytes = msg.ToString(body_str);
+
+  MsgHeader header;
+  header.body_bytes = bytes;
+  header.type = kRequestVoteReply;
+  std::string header_str;
+  header.ToString(header_str);
+
+  if (send_) {
+    header_str.append(std::move(body_str));
+    send_(msg.dest.ToU64(), header_str.data(), header_str.size());
+
+    if (tracer != nullptr) {
+      tracer->PrepareEvent(kEventSend, msg.ToJsonString(false, true));
+    }
+  }
+
   return 0;
 }
 

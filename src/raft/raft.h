@@ -95,7 +95,9 @@ class Raft final {
   void set_make_timer(MakeTimerFunc func);
   void set_assert_loop(Functor assert_loop);
   void set_tracer_cb(TracerCb tracer_cb);
-  void set_create_sm(CreateSMFunc create_sm);
+  void set_create_sm(CreateSMFunc func);
+  void set_reader_sm(CreateReaderFunc func);
+  void set_writer_sm(CreateWriterFunc func);
   StateMachineSPtr sm();
 
  private:
@@ -152,6 +154,8 @@ class Raft final {
   Functor assert_loop_;
   TracerCb tracer_cb_;
   CreateSMFunc create_sm_;
+  CreateReaderFunc create_reader_;
+  CreateWriterFunc create_writer_;
 
   friend void Tick(Timer *timer);
   friend void Elect(Timer *timer);
@@ -173,8 +177,14 @@ inline void Raft::set_assert_loop(Functor assert_loop) {
 
 inline void Raft::set_tracer_cb(TracerCb tracer_cb) { tracer_cb_ = tracer_cb; }
 
-inline void Raft::set_create_sm(CreateSMFunc create_sm) {
-  create_sm_ = create_sm;
+inline void Raft::set_create_sm(CreateSMFunc func) { create_sm_ = func; }
+
+inline void Raft::set_reader_sm(CreateReaderFunc func) {
+  create_reader_ = func;
+}
+
+inline void Raft::set_writer_sm(CreateWriterFunc func) {
+  create_writer_ = func;
 }
 
 inline StateMachineSPtr Raft::sm() { return sm_; }

@@ -402,4 +402,15 @@ void ListDir(const std::string &path, std::vector<std::string> &paths) {
   closedir(dir);
 }
 
+int32_t AtomicMove(const std::string &src_path, const std::string &dest_path) {
+  // Use the rename function which is atomic
+  if (rename(src_path.c_str(), dest_path.c_str()) != 0) {
+    // Error occurred, print it and return -1
+    perror("Error renaming file or directory");
+    return -1;
+  }
+  // Success
+  return 0;
+}
+
 }  // namespace vraft

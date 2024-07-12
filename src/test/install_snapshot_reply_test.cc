@@ -21,6 +21,7 @@ TEST(InstallSnapshotReply, InstallSnapshotReply) {
   msg.term = 100;
   msg.uid = vraft::UniqId(&msg);
   msg.stored = 66;
+  msg.req_term = 77;
 
   std::string msg_str;
   int32_t bytes = msg.ToString(msg_str);
@@ -47,6 +48,7 @@ TEST(InstallSnapshotReply, InstallSnapshotReply) {
   ASSERT_EQ(msg.term, msg2.term);
   ASSERT_EQ(msg.uid, msg2.uid);
   ASSERT_EQ(msg.stored, msg2.stored);
+  ASSERT_EQ(msg.req_term, msg2.req_term);
 }
 
 int main(int argc, char **argv) {
