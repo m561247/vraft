@@ -106,7 +106,9 @@ inline int32_t Ping::FromString(const char *ptr, int32_t len) {
     msg.clear();
     msg.append(result.data(), result.size());
     size += sz;
+    p += sz;
   }
+
   return size;
 }
 
